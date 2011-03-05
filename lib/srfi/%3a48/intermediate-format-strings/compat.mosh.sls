@@ -24,11 +24,7 @@
 
 (library (srfi :48 intermediate-format-strings compat)
   (export
-    pretty-print
-    ascii-tab)
+    pretty-print)
   (import
-   (only (rnrs base) define)
     (only (mosh pp) pretty-print))
-
-  (define ascii-tab #\tab)
 )

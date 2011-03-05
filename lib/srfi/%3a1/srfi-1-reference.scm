@@ -252,11 +252,13 @@
 ;;;
 ;;; (cons first (unfold not-pair? car cdr rest values))
 
+#| ;; R6RS has cons*
 (define (cons* first . rest)
   (let recur ((x first) (rest rest))
     (if (pair? rest)
 	(cons x (recur (car rest) (cdr rest)))
 	x)))
+|#
 
 ;;; (unfold not-pair? car cdr lis values)
 

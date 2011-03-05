@@ -5,10 +5,16 @@
 (import
   (except (rnrs) error)
   (rnrs r5rs)
-  (rename (only (rnrs) write) (write pretty-write))
   (srfi :23 error)
-  (srfi :42 eager-comprehensions)
   (srfi private include)
-  (srfi :67 compare-procedures))
+  (srfi :27 random-bits))
 
-(include/resolve ("srfi" "%3a67") "examples.scm")
+(define eval 'ignore)
+(define interaction-environment 'ignore)
+
+(define ascii->char integer->char)
+
+(include/resolve ("srfi" "%3a27") "conftest.scm")
+
+(check-mrg32k3a)
+(display "passed (check-mrg32k3a)\n")

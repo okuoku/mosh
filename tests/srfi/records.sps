@@ -1,40 +1,35 @@
-;; Copyright (c) 2009 Derick Eddington
-;;
-;; Permission is hereby granted, free of charge, to any person obtaining a
-;; copy of this software and associated documentation files (the "Software"),
-;; to deal in the Software without restriction, including without limitation
-;; the rights to use, copy, modify, merge, publish, distribute, sublicense,
-;; and/or sell copies of the Software, and to permit persons to whom the
-;; Software is furnished to do so, subject to the following conditions:
-;;
-;; The above copyright notice and this permission notice shall be included in
-;; all copies or substantial portions of the Software.
-;;
-;; Except as contained in this notice, the name(s) of the above copyright
-;; holders shall not be used in advertising or otherwise to promote the sale,
-;; use or other dealings in this Software without prior written authorization.
-;;
-;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-;; THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-;; DEALINGS IN THE SOFTWARE.
-
 #!r6rs
+;; Copyright 2010 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
+
 (import
   (rnrs base) ; no R6RS records
-  (only (rnrs io simple) display write newline)
-  (srfi :9 records))
+  (srfi :78 lightweight-testing)
+  (srfi :9 records)
+  #;(srfi :99 records))
 
-(define-record-type thing
-  (make-thing x)
-  thing?
-  (x thing-x)
-  (y thing-y set-thing-y!))
+(define unspec)
 
-(define t (make-thing 123))
-(display "t => ") (write t) (newline)
-(set-thing-y! t 'blah)
-(display "t => ") (write t) (newline)
+(define-record-type T0 (make-T0) T0?)
+(check (T0? (make-T0)) => #T)
+
+(define-record-type T1 (make-T1) T1? (x T1-x))
+(check (T1? (make-T1)) => #T)
+(check (T1-x (make-T1)) => unspec)
+
+(define-record-type T2 (make-T2 y x) T2? (x T2-x) (y T2-y))
+(let ((o (make-T2 1 2)))
+  (check (T2? o) => #T)
+  (check (T2-x o) => 2)
+  (check (T2-y o) => 1))
+
+(define-record-type T3 (make-T3 z) T3? (x T3-x set-T3-x!) (y T3-y) (z T3-z))
+(let ((o (make-T3 1)))
+  (check (T3? o) => #T)
+  (check (T3-x o) => unspec)
+  (check (T3-y o) => unspec)
+  (check (T3-z o) => 1)
+  (set-T3-x! o 2)
+  (check (T3-x o) => 2))
+
+(check-report)

@@ -3,10 +3,10 @@
 ;; LICENSE from the original collection this file is distributed with.
 
 (import
-  (rnrs)
-  (rnrs r5rs)
-  (srfi :42 eager-comprehensions)
+  (except (rnrs base) error)
+  (rnrs lists)
+  (srfi :23 error)
   (srfi private include)
-  (srfi :78 lightweight-testing))
+  (srfi :64 testing))
 
-(include/resolve ("srfi" "%3a78") "examples.scm")
+(include/resolve ("srfi" "%3a64") "srfi-64-test.scm")

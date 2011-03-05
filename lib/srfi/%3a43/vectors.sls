@@ -1,28 +1,7 @@
-;; Copyright (c) 2009 Derick Eddington
-;;
-;; Permission is hereby granted, free of charge, to any person obtaining a
-;; copy of this software and associated documentation files (the "Software"),
-;; to deal in the Software without restriction, including without limitation
-;; the rights to use, copy, modify, merge, publish, distribute, sublicense,
-;; and/or sell copies of the Software, and to permit persons to whom the
-;; Software is furnished to do so, subject to the following conditions:
-;;
-;; The above copyright notice and this permission notice shall be included in
-;; all copies or substantial portions of the Software.
-;;
-;; Except as contained in this notice, the name(s) of the above copyright
-;; holders shall not be used in advertising or otherwise to promote the sale,
-;; use or other dealings in this Software without prior written authorization.
-;;
-;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-;; THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-;; DEALINGS IN THE SOFTWARE.
-
 #!r6rs
+;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
+
 (library (srfi :43 vectors)
   (export
     ;;; * Constructors
@@ -49,41 +28,43 @@
     ;;; * Mutators
     vector-set!
     vector-swap!
-    vector-fill!
+    (rename (my:vector-fill! vector-fill!))
     vector-reverse!
     vector-copy!          vector-reverse-copy!
     ;;; * Conversion
-    vector->list          reverse-vector->list
-    list->vector          reverse-list->vector )
+    (rename (my:vector->list vector->list))          reverse-vector->list
+    (rename (my:list->vector list->vector))          reverse-list->vector )
   (import
-(only (rnrs) ... _ define define-syntax lambda syntax-case if identifier? syntax begin syntax-rules apply and integer? not negative? < <= map vector-ref let cond quasiquote >= vector-length else > values append null? cdr car cddr cadr letrec min vector? - + vector-set! = zero? make-vector procedure? quote cdddr caddr let* or eq? cons positive? do case-lambda length list-tail pair? list list? vector)
-(prefix (only (rnrs) vector-fill! vector->list list->vector) rnrs:)
-(only (rnrs r5rs) quotient)
-(only (prefix (srfi :23 error) ER:) ER:error ER:error-who)
-(only (srfi :39 parameters) parameterize)
-(only (srfi :8 receive) receive)
-(only (srfi private include) include/resolve)
-)
-  
-  (define (error . args)
-    (parameterize ([ER:error-who 
-                    "(library (srfi :43 vectors))"])
-      (apply ER:error args)))
-  
-  (define-syntax check-type
-    (lambda (stx)
-      (syntax-case stx ()
-        [(_ pred? value callee)
-         (if (identifier? #'value)
-           #'(if (pred? value)
-               value
-               (parameterize ([ER:error-who callee])
-                 (ER:error "erroneous value" value)))
-           #'(let ([v value])
-               (if (pred? v)
-                 v
-                 (parameterize ([ER:error-who callee])
-                   (ER:error "erroneous value" v)))))])))
-    
-  (include/resolve ("srfi" "43") "vector-lib.scm")
+    (except (rnrs) vector-map vector-for-each)
+    (rnrs r5rs)
+    (srfi :23 error tricks)
+    (srfi :8 receive)
+    (for (srfi private vanish) expand)
+    (srfi private include))
+
+  ;; I do these let-syntax tricks so the original vector-lib.scm file does
+  ;; not have to be modified at all.
+  (let-syntax
+      ((define
+        (let ((vd (vanish-define define
+                   (make-vector vector vector? vector-ref vector-set! vector-length))))
+          (lambda (stx)
+            (define (rename? id)
+              (memp (lambda (x) (free-identifier=? id x))
+                    (list #'vector-fill! #'vector->list #'list->vector)))
+            (define (rename id)
+              (datum->syntax id
+               (string->symbol
+                (string-append "my:" (symbol->string (syntax->datum id))))))
+            (syntax-case stx ()
+              ((_ name . r)
+               (and (identifier? #'name)
+                    (rename? #'name))
+               #`(define #,(rename #'name) . r))
+              (_ (vd stx))))))
+       (define-syntax
+        (vanish-define define-syntax
+         (receive))))
+    (SRFI-23-error->R6RS "(library (srfi :43 vectors))"
+     (include/resolve ("srfi" "%3a43") "vector-lib.scm")))
 )

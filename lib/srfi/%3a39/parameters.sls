@@ -1,30 +1,9 @@
-;; Copyright (c) 2009 Derick Eddington
-;;
-;; Permission is hereby granted, free of charge, to any person obtaining a
-;; copy of this software and associated documentation files (the "Software"),
-;; to deal in the Software without restriction, including without limitation
-;; the rights to use, copy, modify, merge, publish, distribute, sublicense,
-;; and/or sell copies of the Software, and to permit persons to whom the
-;; Software is furnished to do so, subject to the following conditions:
-;;
-;; The above copyright notice and this permission notice shall be included in
-;; all copies or substantial portions of the Software.
-;;
-;; Except as contained in this notice, the name(s) of the above copyright
-;; holders shall not be used in advertising or otherwise to promote the sale,
-;; use or other dealings in this Software without prior written authorization.
-;;
-;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-;; THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-;; DEALINGS IN THE SOFTWARE.
+#!r6rs
+;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
 
 ;; Fall-back library in case the host Scheme system does not provide SRFI-39.
 
-#!r6rs
 (library (srfi :39 parameters)
   (export
     make-parameter 
@@ -34,36 +13,36 @@
 
   (define make-parameter
     (case-lambda
-      [(val) (make-parameter val values)]
-      [(val guard)
+      ((val) (make-parameter val values))
+      ((val guard)
        (unless (procedure? guard)
          (assertion-violation 'make-parameter "not a procedure" guard))
-       (let ([p (case-lambda
-                  [() val]
-                  [(x) (set! val (guard x))])])
+       (let ((p (case-lambda
+                  (() val)
+                  ((x) (set! val (guard x))))))
          (p val)
-         p)]))
+         p))))
       
   (define-syntax parameterize
     ;; Derived from Ikarus's implementation of parameterize.
     (lambda (stx)
       (syntax-case stx ()
-        [(_ () b0 b ...)
-         #'(let () b0 b ...)]
-        [(_ ([p e] ...) b0 b ...)
-         (with-syntax ([(tp ...) (generate-temporaries #'(p ...))]
-                       [(te ...) (generate-temporaries #'(e ...))])
-           #'(let ([tp p] ...
-                   [te e] ...)
-               (let ([swap (lambda ()
-                             (let ([t (tp)])
+        ((_ () b0 b ...)
+         #'(let () b0 b ...))
+        ((_ ((p e) ...) b0 b ...)
+         (with-syntax (((tp ...) (generate-temporaries #'(p ...)))
+                       ((te ...) (generate-temporaries #'(e ...))))
+           #'(let ((tp p) ...
+                   (te e) ...)
+               (let ((swap (lambda ()
+                             (let ((t (tp)))
                                (tp te)
                                (set! te t))
-                             ...)])
+                             ...)))
                  (dynamic-wind
                   swap
                   (lambda () b0 b ...)
-                  swap))))])))  
+                  swap))))))))  
 
 )
 

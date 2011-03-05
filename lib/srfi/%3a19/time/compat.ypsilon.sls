@@ -1,42 +1,32 @@
-;; Copyright (c) 2009 Derick Eddington
-;;
-;; Permission is hereby granted, free of charge, to any person obtaining a
-;; copy of this software and associated documentation files (the "Software"),
-;; to deal in the Software without restriction, including without limitation
-;; the rights to use, copy, modify, merge, publish, distribute, sublicense,
-;; and/or sell copies of the Software, and to permit persons to whom the
-;; Software is furnished to do so, subject to the following conditions:
-;;
-;; The above copyright notice and this permission notice shall be included in
-;; all copies or substantial portions of the Software.
-;;
-;; Except as contained in this notice, the name(s) of the above copyright
-;; holders shall not be used in advertising or otherwise to promote the sale,
-;; use or other dealings in this Software without prior written authorization.
-;;
-;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-;; THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-;; DEALINGS IN THE SOFTWARE.
+#!r6rs
+;; Copyright 2010 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
 
 (library (srfi :19 time compat)
   (export
-   format
-   host:time-resolution
-   host:current-time
-   host:time-nanosecond
-   host:time-second
-   host:time-gmt-offset)
+    time-resolution
+    timezone-offset
+    current-time
+    cumulative-thread-time
+    cumulative-process-time
+    cumulative-gc-time
+    time-nanosecond
+    time-second)
   (import
-   (rnrs base)
-   (only (core) format microsecond microsecond->utc))
+    (rnrs base)
+    (only (core) microsecond microsecond->utc)
+    (srfi :19 time not-implemented))
 
-  (define host:time-resolution 1000)
-  (define (host:current-time) (microsecond))
-  (define (host:time-nanosecond t) (* (mod t 1000000) 1000))
-  (define (host:time-second t) (div t 1000000))
-  (define (host:time-gmt-offset t) (/ (- t (microsecond->utc t)) 1000000))
+  (define time-resolution 1000)
+
+  (define timezone-offset
+    (let ((t (microsecond)))
+      (/ (- t (microsecond->utc t)) #e1e6)))
+
+  (define (current-time)
+    (let-values (((d m) (div-and-mod (microsecond) #e1e6)))
+      (cons d (* m 1000))))
+
+  (define time-nanosecond cdr)
+  (define time-second car)
 )

@@ -1,28 +1,7 @@
-;; Copyright (c) 2009 Derick Eddington
-;;
-;; Permission is hereby granted, free of charge, to any person obtaining a
-;; copy of this software and associated documentation files (the "Software"),
-;; to deal in the Software without restriction, including without limitation
-;; the rights to use, copy, modify, merge, publish, distribute, sublicense,
-;; and/or sell copies of the Software, and to permit persons to whom the
-;; Software is furnished to do so, subject to the following conditions:
-;;
-;; The above copyright notice and this permission notice shall be included in
-;; all copies or substantial portions of the Software.
-;;
-;; Except as contained in this notice, the name(s) of the above copyright
-;; holders shall not be used in advertising or otherwise to promote the sale,
-;; use or other dealings in this Software without prior written authorization.
-;;
-;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-;; THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-;; DEALINGS IN THE SOFTWARE.
-
 #!r6rs
+;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
+
 (library (srfi :64 testing)
   (export
     test-begin
@@ -60,22 +39,20 @@
     test-on-bad-count-simple test-on-bad-end-name-simple
     test-on-final-simple test-on-test-end-simple)
   (import
-    (only (rnrs base) define ... _ lambda begin define-syntax syntax-rules else assertion-violation quote set! reverse let if not cond null? car cdr or eqv? cons let* string? string-append > number->string and equal? = - caar cdar eq? pair? case + >= <= dynamic-wind apply list < procedure? integer? quasiquote)
-    (only (rnrs control) case-lambda when)
-    (only (rnrs exceptions) guard)
-    (only (rnrs io simple) display newline open-output-file output-port? current-output-port write eof-object? read-char read)
-    (only (rnrs lists) assq memq)
-    (only (rename (rnrs eval) (eval rnrs:eval)) rnrs:eval environment)
-    (only (rnrs mutable-pairs) set-car! set-cdr!)
-    (only (srfi :0 cond-expand) cond-expand)
+    (rnrs base)
+    (rnrs control)
+    (rnrs exceptions)
+    (rnrs io simple)
+    (rnrs lists)
+    (rename (rnrs eval) (eval rnrs:eval))
+    (rnrs mutable-pairs)
+    (srfi :0 cond-expand)
     (only (srfi :1 lists) reverse!)
-    (only (srfi :6 basic-string-ports) open-input-string)
-    (only (srfi :9 records) define-record-type)
-    (only (srfi :39 parameters) make-parameter)
-    (only (srfi private include) include/resolve))
-
-  (define (error msg)
-    (assertion-violation "(library (srfi :64 testing))" msg))
+    (srfi :6 basic-string-ports)
+    (srfi :9 records)
+    (srfi :39 parameters)
+    (srfi :23 error tricks)
+    (srfi private include))
 
   (define (eval form)
     (rnrs:eval form (environment '(rnrs)
@@ -88,6 +65,9 @@
     (case-lambda
       (() test-log-to-file)
       ((val) (set! test-log-to-file val))))
-  
-  (include/resolve ("srfi" "64") "testing.scm")
+
+  (SRFI-23-error->R6RS "(library (srfi :64 testing))"
+   (include/resolve ("srfi" "%3a64") "testing.scm"))
+
+  (set! test-log-to-file #F)
 )

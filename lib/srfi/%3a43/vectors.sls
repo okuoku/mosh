@@ -28,12 +28,19 @@
     ;;; * Mutators
     vector-set!
     vector-swap!
-    (rename (my:vector-fill! vector-fill!))
+    ;MOSH: psyntax-mosh workaround
+    vector-fill!
+    ;(rename (my:vector-fill! vector-fill!))
     vector-reverse!
     vector-copy!          vector-reverse-copy!
     ;;; * Conversion
-    (rename (my:vector->list vector->list))          reverse-vector->list
-    (rename (my:list->vector list->vector))          reverse-list->vector )
+    ;MOSH: psyntax-mosh workaround
+    ;(rename (my:vector->list vector->list))          
+    vector->list
+    reverse-vector->list
+    ;(rename (my:list->vector list->vector))          
+    list->vector
+    reverse-list->vector )
   (import
     (except (rnrs) vector-map vector-for-each)
     (rnrs r5rs)
@@ -44,6 +51,9 @@
 
   ;; I do these let-syntax tricks so the original vector-lib.scm file does
   ;; not have to be modified at all.
+  ;;
+  ;; MOSH: psyntax-mosh has some bug in expand this.. disabled.
+#|
   (let-syntax
       ((define
         (let ((vd (vanish-define define
@@ -52,10 +62,13 @@
             (define (rename? id)
               (memp (lambda (x) (free-identifier=? id x))
                     (list #'vector-fill! #'vector->list #'list->vector)))
-            (define (rename id)
+            (define (rename id) ;; MOSH: psyntax-mosh workaround
               (datum->syntax id
                (string->symbol
-                (string-append "my:" (symbol->string (syntax->datum id))))))
+                ;(string-append "my:" (symbol->string (syntax->datum id)))
+                ; FORCE USING R6RS Version...
+                (string-append "" (symbol->string (syntax->datum id)))
+                )))
             (syntax-case stx ()
               ((_ name . r)
                (and (identifier? #'name)
@@ -67,4 +80,8 @@
          (receive))))
     (SRFI-23-error->R6RS "(library (srfi :43 vectors))"
      (include/resolve ("srfi" "%3a43") "vector-lib.scm")))
+|#
+    (SRFI-23-error->R6RS "(library (srfi :43 vectors))"
+     (include/resolve ("srfi" "%3a43") "vector-lib.scm"))
+
 )

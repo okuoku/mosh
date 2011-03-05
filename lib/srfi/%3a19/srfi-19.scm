@@ -158,12 +158,14 @@
     invalid-month-specification
     ))
 
+#| ; MOSH: removed
 (define (tm:time-error caller type value)
   (if (member type tm:time-error-types)
       (if value
 	  (error caller "TIME-ERROR type ~S: ~S" type value)
 	  (error caller "TIME-ERROR type ~S" type))
       (error caller "TIME-ERROR unsupported error type ~S" type)))
+|#
 
 
 ;; A table of leap seconds
@@ -272,6 +274,7 @@
 ;;    this is supposed to return utc.
 ;; 
 
+#| ; MOSH : remove
 (define (tm:get-time-of-day)
   (values (current-seconds)
 	  (let ((r (remainder (current-milliseconds) 1000)))
@@ -288,7 +291,7 @@
 		      (+ seconds (tm:leap-second-delta seconds))
 		      )))
 
-
+|#
 
 (define (tm:current-time-ms-time time-type proc)
   (let ((current-ms (proc)))
@@ -302,6 +305,7 @@
 ;;    will require rewriting all of the time-monotonic converters,
 ;;    of course.
 
+#| ;; MOSH: remove
 (define (tm:current-time-monotonic)
   (receive (seconds ms) (tm:get-time-of-day)
 	   (make-time time-monotonic
@@ -313,11 +317,14 @@
 (define (tm:current-time-thread)
   (tm:current-time-ms-time time-process current-process-milliseconds))
 
+
 (define (tm:current-time-process)
   (tm:current-time-ms-time time-process current-process-milliseconds))
 
 (define (tm:current-time-gc)
   (tm:current-time-ms-time time-gc current-gc-milliseconds))
+
+|#
 
 (define (current-time . clock-type)
   (let ( (clock-type (:optional clock-type time-utc)) )
@@ -336,6 +343,7 @@
 ;; this is the resolution of the clock in nanoseconds.
 ;; this will be implementation specific.
 
+#| ; MOSH: remove
 (define (time-resolution . clock-type)
   (let ((clock-type (:optional clock-type time-utc)))
     (cond
@@ -346,6 +354,7 @@
       ((eq? clock-type time-process) 10000)
       ((eq? clock-type time-gc) 10000)
       (else (tm:time-error 'time-resolution 'invalid-clock-type clock-type)))))
+|#
 
 ;; -- time comparisons
 
@@ -581,6 +590,8 @@
 (define tm:set-date-year! set-date-year!)
 (define tm:set-date-zone-offset! set-date-zone-offset!)
 
+;; MOSH: remove
+#|
 (define (set-date-nanosecond! date val)
   (tm:time-error 'set-date-nanosecond! 'dates-are-immutable date))
 
@@ -604,6 +615,7 @@
 
 (define (set-date-zone-offset! date val)
   (tm:time-error 'set-date-zone-offset! 'dates-are-immutable date))
+|#
 
 ;; gives the julian day which starts at noon.
 (define (tm:encode-julian-day-number day month year)
@@ -656,8 +668,11 @@
 ;; differently from MzScheme's....
 ;; This should be written to be OS specific.
 
+;; MOSH: remove
+#|
 (define (tm:local-tz-offset)
   (date-time-zone-offset (seconds->date (current-seconds))))
+|#
 
 ;; special thing -- ignores nanos
 (define (tm:time->julian-day-number seconds tz-offset)

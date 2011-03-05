@@ -24,7 +24,7 @@
       (_ (check:mode-param))
       ((set! _ expr) (check:mode-param expr))))
 
-  (define check:mode-param (make-parameter #F))
+  (define check:mode-param (make-parameter #f))
 
   (let-syntax ((define (vanish-define define (check:write check:mode))))
     (SRFI-23-error->R6RS "(library (srfi :78 lightweight-testing))"

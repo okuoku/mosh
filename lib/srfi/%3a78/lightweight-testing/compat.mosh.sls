@@ -23,8 +23,15 @@
 ;; DEALINGS IN THE SOFTWARE.
 
 (library (srfi :78 lightweight-testing compat)
-  (export
-    (rename (pretty-print pretty-print/no-trailing-newline)))
-  (import
-    (only (mosh pp) pretty-print))
+         (export check:write)
+         (import
+           (rnrs)
+           (only (mosh pp) pp))
+
+(define check:write 
+  (case-lambda
+    ((x)
+     (check:write x (current-output-port)))
+    ((x p)
+     (pp x p))))
 )

@@ -793,8 +793,11 @@
           (else
            #f )))))))
 
+;; MOSH: removed
+#|
 (define :-dispatch
   (make-initial-:-dispatch) )
+|#
 
 (define (:-dispatch-ref)
   :-dispatch )

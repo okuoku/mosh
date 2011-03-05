@@ -3,7 +3,6 @@
 ;;   lib/srfi/%3a23/error.sls
 (library (srfi :23)
          (export
-             error-who
              error
          )
          (import

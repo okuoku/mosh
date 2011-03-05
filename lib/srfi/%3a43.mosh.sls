@@ -4,13 +4,10 @@
 (library (srfi :43)
          (export
              reverse-list->vector
-             list->vector
              reverse-vector->list
-             vector->list
              vector-reverse-copy!
              vector-copy!
              vector-reverse!
-             vector-fill!
              vector-swap!
              vector-set!
              vector-every
@@ -39,6 +36,9 @@
              vector-unfold
              vector
              make-vector
+             vector-fill!
+             vector->list
+             list->vector
          )
          (import
              (srfi :43 vectors)

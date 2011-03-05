@@ -5,66 +5,43 @@
          (export
              string->date
              date->string
-             current-modified-julian-day
-             current-julian-day
-             modified-julian-day->time-monotonic
-             modified-julian-day->time-tai
-             modified-julian-day->time-utc
-             modified-julian-day->date
-             julian-day->date
-             julian-day->time-monotonic
-             julian-day->time-tai
-             julian-day->time-utc
-             time-monotonic->modified-julian-day
-             time-monotonic->julian-day
-             time-tai->modified-julian-day
-             time-tai->julian-day
+             time-utc->time-tai!
+             time-utc->time-tai
+             time-utc->time-monotonic!
+             time-utc->time-monotonic
              time-utc->modified-julian-day
              time-utc->julian-day
+             time-utc->date
+             time-tai->time-utc!
+             time-tai->time-utc
+             time-tai->time-monotonic!
+             time-tai->time-monotonic
+             time-tai->modified-julian-day
+             time-tai->julian-day
+             time-tai->date
+             time-monotonic->time-utc!
+             time-monotonic->time-utc
+             time-monotonic->time-tai!
+             time-monotonic->time-tai
+             time-monotonic->modified-julian-day
+             time-monotonic->julian-day
+             time-monotonic->date
+             modified-julian-day->time-utc
+             modified-julian-day->time-tai
+             modified-julian-day->time-monotonic
+             modified-julian-day->date
+             julian-day->time-utc
+             julian-day->time-tai
+             julian-day->time-monotonic
+             julian-day->date
+             date->time-utc
+             date->time-tai
+             date->time-monotonic
              date->modified-julian-day
              date->julian-day
-             current-date
              date-week-number
              date-week-day
              date-year-day
-             leap-year?
-             date->time-monotonic
-             date->time-tai
-             date->time-utc
-             time-monotonic->date
-             time-utc->date
-             time-tai->date
-             time-tai->time-monotonic!
-             time-tai->time-monotonic
-             time-utc->time-monotonic!
-             time-utc->time-monotonic
-             time-monotonic->time-tai!
-             time-monotonic->time-tai
-             time-monotonic->time-utc!
-             time-monotonic->time-utc
-             time-utc->time-tai!
-             time-utc->time-tai
-             time-tai->time-utc!
-             time-tai->time-utc
-             subtract-duration!
-             subtract-duration
-             add-duration!
-             add-duration
-             time-difference!
-             time-difference
-             time<=?
-             time>=?
-             time<?
-             time>?
-             time=?
-             time-resolution
-             current-time
-             copy-time
-             read-leap-second-table
-             time-duration
-             time-monotonic
-             time-utc
-             time-tai
              date-zone-offset
              date-year
              date-month
@@ -75,13 +52,37 @@
              date-nanosecond
              date?
              make-date
-             date
+             subtract-duration!
+             subtract-duration
+             add-duration!
+             add-duration
+             time-difference!
+             time-difference
+             time>?
+             time>=?
+             time=?
+             time<?
+             time<=?
+             copy-time
+             set-time-second!
+             set-time-nanosecond!
+             set-time-type!
              time-second
              time-nanosecond
              time-type
              time?
              make-time
-             time
+             time-resolution
+             current-time
+             current-modified-julian-day
+             current-julian-day
+             current-date
+             time-utc
+             time-thread
+             time-tai
+             time-process
+             time-monotonic
+             time-duration
          )
          (import
              (srfi :19 time)

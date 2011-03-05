@@ -11,7 +11,6 @@
              fold-right
              find
              filter
-             cons*
              assoc
              set-cdr!
              set-car!
@@ -23,6 +22,7 @@
              list-ref
              list
              length
+             cons*
              cons
              cdr
              cddr

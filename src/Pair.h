@@ -36,7 +36,9 @@ namespace scheme {
 
 struct Pair
 {
-    Pair(Object car, Object cdr) : car(car), cdr(cdr)  {}
+    Pair(Object car, Object cdr) : car(car), cdr(cdr)  {
+        annotation = Object::False;
+    }
     static int length(Object obj)
     {
         if (!obj.isPair()) return 0;
@@ -197,6 +199,7 @@ struct Pair
 
     Object car;
     Object cdr;
+    Object annotation;
 };
 
 struct AnnotatedPair

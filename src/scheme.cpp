@@ -62,7 +62,7 @@ using namespace scheme;
 #if USE_GMP_WITH_GC
 static void* gmp_alloc(size_t size)
 {
-    return GC_malloc(size);
+    return GC_MALLOC(size);
 }
 
 static void* gmp_realloc(void *ptr, size_t oldSize, size_t newSize)

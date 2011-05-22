@@ -50,6 +50,8 @@ AC_DEFINE(NO_CLOCK)
 
 ## DONT_ADD_BYTE_AT_END is required to distinguish annotated pair and normal pair. See isAnnotatedPair.
 AC_DEFINE(DONT_ADD_BYTE_AT_END)
+#AC_DEFINE(GC_ASSERTIONS)
+#AC_DEFINE(KEEP_BACK_PTRS)
 ## Mosh end
 
 GC_CFLAGS=${gc_cflags}

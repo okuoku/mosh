@@ -29,6 +29,12 @@
 
 ;; Originally from Ypsilon Scheme
 
+(define nongenerativeRtds (make-eq-hashtable))
+(define (nongenerative-rtd-set! obj sim)
+  (hashtable-set! nongenerativeRtds obj sim))
+(define (lookup-nongenerative-rtd obj)
+  (hashtable-ref nongenerativeRtds obj #f))
+
 (define (tuple id . fields)
   (make-simple-struct id (length fields) fields))
 
@@ -392,3 +398,4 @@
     (or (record-type? obj)
         (assertion-violation 'record-type-rcd (wrong-type-argument-message "record-type" obj)))
     (tuple-ref obj 3)))
+

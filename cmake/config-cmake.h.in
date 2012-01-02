@@ -17,6 +17,13 @@
 #cmakedefine HAVE_MEMMOVE
 #cmakedefine HAVE_MEMSET
 #cmakedefine HAVE_STRTOL
+#cmakedefine HAVE_POSIX_SPAWN
+#cmakedefine HAVE_PTRACE
+#cmakedefine HAVE_FCNTL
+#cmakedefine HAVE_POLL
+#cmakedefine HAVE_SIGACTION
+#cmakedefine HAVE_VFORK
+#cmakedefine HAVE_SOCKET
 
 #cmakedefine SIZEOF_INT @SIZEOF_INT@
 #cmakedefine SIZEOF_SHORT @SIZEOF_SHORT@

@@ -198,10 +198,19 @@ CHECK_INCLUDE_FILE(utmp.h HAVE_UTMP_H)
 
 # functions
 CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
-CHECK_FUNCTION_EXISTS(gettimeofday HAVE_GETTIMEOFDAY)
 CHECK_FUNCTION_EXISTS(memmove HAVE_MEMMOVE)
 CHECK_FUNCTION_EXISTS(memset HAVE_MEMSET)
 CHECK_FUNCTION_EXISTS(strtol HAVE_STRTOL)
+if(NOT WIN32) # It's waste of time in Win32!
+CHECK_FUNCTION_EXISTS(gettimeofday HAVE_GETTIMEOFDAY)
+CHECK_FUNCTION_EXISTS(posix_spawn HAVE_POSIX_SPAWN)
+CHECK_FUNCTION_EXISTS(ptrace HAVE_PTRACE)
+CHECK_FUNCTION_EXISTS(fcntl HAVE_FCNTL)
+CHECK_FUNCTION_EXISTS(poll HAVE_POLL)
+CHECK_FUNCTION_EXISTS(sigaction HAVE_SIGACTION)
+CHECK_FUNCTION_EXISTS(vfork HAVE_VFORK)
+CHECK_FUNCTION_EXISTS(socket HAVE_SOCKET)
+endif()
 
 # sizeofs
 CHECK_TYPE_SIZE(int SIZEOF_INT)
@@ -600,6 +609,16 @@ src/VMFactory.cpp
 src/OSCompat.cpp
 src/stubs.cpp
 src/posix/terminal/terminal.c
+src/posix/spawn/posixspawn.c
+src/posix/environ/mosh-environ.c
+src/posix/fd/posix_fd.c
+src/posix/poll/posix_poll.c
+src/posix/socket/posix_socket.c
+src/posix/sigchld_handler/sigchld_handler.c
+src/posix/debugee/posix_debugee.c
+src/bsd/kqueue/kqueue_stubs.c
+src/posix/wait3/wait3.c
+src/posix/pthread/mosh_pthread.c
 src/generic/boehmgc-stubs.c
 )
 

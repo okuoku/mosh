@@ -149,7 +149,13 @@ void showUsage()
 #endif
             "  --loadpath=<path> Add library loadpath.\n\n"
             " MOSH_LOADPATH\n"
-            "  You can add library loadpath by using environment variable MOSH_LOADPATH, with \':\'(use \';\' for Windows) separated paths.\n\n"
+            "  You can add library loadpath by using environment variable MOSH_LOADPATH,\n  with "
+#ifndef _WIN32
+            "\':\'"
+#else
+            "\';\'"
+#endif
+            " separated paths.\n\n"
             "bug report:\n"
             "  http://code.google.com/p/mosh-scheme/issues\n"
             "  higepon@users.sourceforge.jp\n\n"

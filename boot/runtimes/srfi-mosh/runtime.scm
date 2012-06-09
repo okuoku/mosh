@@ -105,13 +105,16 @@
           (let ((library (assoc name table)))
             (if (and (not recompile?) library)
                 library
-		(begin
-		  (PCK 'LOOKING-UP... name)
-		  (let ((fn (library-name->filename name)))
-		    (cond ; we cannot use "=>" here..
-		      (fn (ca-load fn recompile? name) ;MOSH: recompile flg
-			  (ex:lookup-library name #f))
-		      (else (assertion-violation 'lookup-library "Library not loaded" name)))))))))
+                (if (ca-preload-realize name recompile?)
+                  (ex:lookup-library name #f)
+                  (begin
+                    (PCK 'LOOKING-UP... name)
+                    (let ((fn (library-name->filename name)))
+                      (cond ; we cannot use "=>" here..
+                        (fn (ca-load fn recompile? name) ;MOSH: recompile flg
+                            (ex:lookup-library name #f))
+                        (else (assertion-violation 
+                                'lookup-library "Library not found" name))))))))))
   (set! ex:unload-libraries! (lambda () (set! table '()))))
 
 ;; Only instantiate part of the bootstrap library 

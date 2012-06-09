@@ -516,6 +516,57 @@
   (unless (file-exists? CACHEDIR)
     (create-directory CACHEDIR)))
 
+;;------------------------------------------------
+;; library preload
+;;------------------------------------------------
+
+;; preload-list = ((libname . address) ...)
+(define preload-list '())
+(define preload-offset 0)
+(define preload-port #f)
+
+(define (ca-preload-path)
+  ;; nmosh-preload.fasl 
+  ;;  
+  (define BASENAME "nmosh-preload.fasl")
+  (cond
+    (%nmosh-portable-mode
+      (string-append (mosh-executable-path) BASENAME))
+    (else
+      (string-append CACHEPATH BASENAME))))
+
+(define (ca-preload-lookup-itr cur name)
+  (and (pair? cur)
+       (if (equal? (caar cur) name)
+         (ca-preload-register (caar cur) (cdar cur))
+         (ca-preload-lookup-itr (cdr cur) name))))
+
+(define (ca-preload-enable)
+  (define path (ca-preload-path))
+  (define p (and path (open-file-input-port path)))
+  (set! preload-list (fasl-read p))
+  (set! preload-offset (port-position p))
+  (set! preload-port p))
+
+(define (ca-preload-disable)
+  (set! preload-list '())
+  (set! preload-port #f))
+
+(define (ca-preload-register name address) ;; => true
+  (PCK 'PRELOAD: name 'at address)
+  (set-port-position! preload-port (+ preload-offset address))
+  (ca-runcache (fasl-read preload-port))
+  ;; FIXME: return fail if we failed to load cache image?
+  #t)
+
+(define (ca-preload-realize name recompile?) ;; => boolean
+  (and preload-port
+       (ca-preload-lookup-itr preload-list name)))
+
+;;------------------------------------------------
+;; library file name
+;;------------------------------------------------
+
 (define (make-prefix-list)
   (define (append-prefix-x l str)
     (cond

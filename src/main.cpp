@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
     bool isDebugExpand   = false; // show the result of psyntax expansion.
 #ifdef WITH_NMOSH_DEFAULTS
     bool invokeApplet = false;
+    bool enablePreload = false;
     bool isGuruMode = false;
 #endif
     ucs4char* initFile = NULL;
@@ -200,6 +201,7 @@ int main(int argc, char *argv[])
        {UC("clean-acc"), 0, 0, 'C'},
        {UC("verbose"), 0, 0, 'a'},
 #ifdef WITH_NMOSH_DEFAULTS
+       {UC("preload"), 0, 0, 'R'},
        {UC("applet"), 0, 0, 'T'},
        {UC("guru-mode"), 0, 0, 'G'},
 #endif
@@ -209,7 +211,7 @@ int main(int argc, char *argv[])
    ucs4char** argvU = getCommandLine(argc, argv);
 
 #ifdef WITH_NMOSH_DEFAULTS
-#define NMOSH_APPEND_OPTIONS "T"
+#define NMOSH_APPEND_OPTIONS "RT"
 #else
 #define NMOSH_APPEND_OPTIONS
 #endif
@@ -259,6 +261,9 @@ int main(int argc, char *argv[])
             isR6RSBatchMode = false;
             break;
 #ifdef WITH_NMOSH_DEFAULTS
+        case 'R':
+            enablePreload = true;
+            break;
         case 'T':
             invokeApplet = true;
             break;
@@ -307,6 +312,7 @@ int main(int argc, char *argv[])
     theVM->setValueString(UC("%get-nmosh-dbg-image"),Object::makeCProcedure(internalGetNmoshDbgImage));
     theVM->setValueString(UC("%invoke-applet"),Object::makeBool(invokeApplet));
     theVM->setValueString(UC("%nmosh-guru-mode"),Object::makeBool(isGuruMode));
+    theVM->setValueString(UC("%nmosh-preload-mode"),Object::makeBool(enablePreload));
 #ifdef WITH_NMOSH_PORTABLE
     theVM->setValueString(UC("%nmosh-portable-mode"),Object::makeBool(1));
 #else
@@ -321,7 +327,7 @@ int main(int argc, char *argv[])
 #else // WITH_NMOSH_DEFAULTS
     theVM->setValueString(UC("%nmosh-portable-mode"),Object::makeBool(0));
     theVM->setValueString(UC("%nmosh-prefixless-mode"),Object::makeBool(0));
-#endif
+#endif// WITH_NMOSH_DEFAULTS
     if (isTestOption) {
         theVM->loadFileWithGuard(UC("all-tests.scm"));
 //     } else if (isCompileString) {

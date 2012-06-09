@@ -59,7 +59,7 @@ void win32_window_getwindowrect(void*,int*,int*,int*,int*);
 void win32_window_getclientrect(void*,int*,int*,int*,int*);
 int win32_window_getclientrect_x(void* h);
 int win32_window_getclientrect_y(void* h);
-void win32_window_clienttoscreen(void*,int,int,void*,void*);
+void win32_window_clienttoscreen(void*,int,int,int*,int*);
 void* win32_dc_create(void);
 void win32_dc_dispose(void* d);
 void win32_dc_selectobject(void* d,void* obj);
@@ -71,7 +71,7 @@ void* win32_brush_create(int r,int g,int b);
 void* win32_font_create(int h,int weight,int italicp,wchar_t* face);
 void win32_dc_draw(void* dc,void* bmpdc,intptr_t* ops,int len);
 int win32_dc_measure_text(void* d,wchar_t* str,int len,int* x,int* y);
-void win32_cursor_hide(void);
+void win32_cursor_hide(void*);
 
 
 void win32_getmonitorinfo(int id,int cmd,signed int *valid,signed int *x0,signed int* y0,signed int *x1,signed int *y1);
@@ -83,7 +83,7 @@ int win32_get_ansi_codepage(void);
 int win32_multibyte_to_widechar(int cp, void* input, int input_count, void* output, int output_count, int* output_size);
 int win32_measure_multibyte_to_widechar(int cp, void* input, int input_count);
 int win32_mypath(wchar_t* buf,int len);
-int win32_setenv(wchar_t* var,wchar_t val);
+int win32_setenv(wchar_t* var,wchar_t* val);
 int win32_querydosdevice(wchar_t*,wchar_t*,int);
 int win32_extent_size(int count);
 int win32_extent_get(wchar_t *partition,void* out,int len,int*out_len);

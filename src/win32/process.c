@@ -1,6 +1,7 @@
 #include <winsock2.h>
 #include <mswsock.h>
 #include <ws2tcpip.h>
+#include <winioctl.h>
 
 #include <windows.h>
 #include <config.h>
@@ -1034,9 +1035,11 @@ BaseWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam){
                 GetClientRect(hWnd,&r);
                 EnterCriticalSection(&whd->cs);
                 b = BitBlt(hDC,0,0,r.right,r.bottom,whd->hBufferDataDC,0,0,SRCCOPY);
+#if 0
                 if(!b){
                     printf("ERROR = %d\n",GetLastError());
                 }
+#endif
                 LeaveCriticalSection(&whd->cs);
             }
             EndPaint(hWnd,&ps);

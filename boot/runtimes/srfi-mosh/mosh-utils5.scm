@@ -530,7 +530,7 @@
   ;;  
   (define BASENAME "nmosh-preload.fasl")
   (cond
-    (%nmosh-portable-mode
+    ((or %nmosh-prefixless-mode %nmosh-portable-mode)
       (string-append (mosh-executable-path) BASENAME))
     (else
       (string-append CACHEPATH BASENAME))))

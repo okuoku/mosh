@@ -21,9 +21,7 @@
                    ))
 
 (define library-set
-  '((yuni core)
-    (yuni async)
-    (yuni miniobj)))
+  '((nmosh applet turbocharge list)))
 
 (define (calc-cachepath libname)
   (define fn (library-name->filename libname))

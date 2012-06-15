@@ -52,7 +52,7 @@ AM_CFLAGS   = $(GLOBAL_CFLAGS)
 AM_CXXFLAGS = $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS)
 
 # Boehm GC
-BOEHM_GC_DIR = extlibs/gc-cvs
+BOEHM_GC_DIR = extlibs/gc
 
 # for GTEST
 GTEST_DIR     = $(top_srcdir)/gtest
@@ -243,8 +243,8 @@ $(BOEHM_GC_DIR)/specific.c \
 $(BOEHM_GC_DIR)/stubborn.c \
 $(BOEHM_GC_DIR)/typd_mlc.c \
 $(BOEHM_GC_DIR)/backgraph.c \
-$(BOEHM_GC_DIR)/thread_local_alloc.c \
-$(BOEHM_GC_DIR)/libatomic_ops/src/atomic_ops.c 
+$(BOEHM_GC_DIR)/thread_local_alloc.c 
+# $(BOEHM_GC_DIR)/libatomic_ops/src/atomic_ops.c 
 
 GC_PTHREAD_SRCS = \
 $(BOEHM_GC_DIR)/pthread_start.c \
@@ -333,7 +333,7 @@ datadir = $(MOSH_LIB_PATH)
 data_DATA = src/all-tests.scm
 nobase_data_DATA = ${mosh_core_libraries} ${MOSH_PLUGINS} #${mosh_core_fasl_libraries}
 
-INCLUDES       = -I $(top_srcdir)/$(BOEHM_GC_DIR)/include -I $(top_srcdir)/$(BOEHM_GC_DIR)/libatomic_ops/src -I$(top_srcdir)/src
+INCLUDES       = -I $(top_srcdir)/$(BOEHM_GC_DIR)/include -I $(top_srcdir)/extlibs/libatomic_ops/src -I$(top_srcdir)/src
 EXTRA_DIST     = \
 boot/vm.scm boot/baselib boot/compiler.scm \
 boot/free-vars.scm misc/scripts boot/baselib/match.scm doc \

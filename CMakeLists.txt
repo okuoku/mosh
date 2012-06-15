@@ -258,47 +258,46 @@ endif(GMP_SEARCH)
 # => gc_srcs
 
 set(gc_core_srcs
-extlibs/gc-cvs/allchblk.c
-extlibs/gc-cvs/alloc.c
-extlibs/gc-cvs/blacklst.c
-extlibs/gc-cvs/checksums.c
-extlibs/gc-cvs/dbg_mlc.c
-extlibs/gc-cvs/dyn_load.c
-extlibs/gc-cvs/finalize.c
-extlibs/gc-cvs/gc_dlopen.c
-extlibs/gc-cvs/gcj_mlc.c
-extlibs/gc-cvs/headers.c
-extlibs/gc-cvs/malloc.c
-extlibs/gc-cvs/mallocx.c
-extlibs/gc-cvs/mark.c
-extlibs/gc-cvs/mark_rts.c
-extlibs/gc-cvs/gc_misc.c
-extlibs/gc-cvs/new_hblk.c
-extlibs/gc-cvs/obj_map.c
-extlibs/gc-cvs/os_dep.c
-extlibs/gc-cvs/mach_dep.c
-extlibs/gc-cvs/pcr_interface.c
-extlibs/gc-cvs/ptr_chck.c
-extlibs/gc-cvs/real_malloc.c
-extlibs/gc-cvs/reclaim.c
-extlibs/gc-cvs/specific.c
-extlibs/gc-cvs/stubborn.c
-extlibs/gc-cvs/typd_mlc.c
-extlibs/gc-cvs/backgraph.c
-extlibs/gc-cvs/thread_local_alloc.c
-extlibs/gc-cvs/libatomic_ops/src/atomic_ops.c
+extlibs/gc/allchblk.c
+extlibs/gc/alloc.c
+extlibs/gc/blacklst.c
+extlibs/gc/checksums.c
+extlibs/gc/dbg_mlc.c
+extlibs/gc/dyn_load.c
+extlibs/gc/finalize.c
+extlibs/gc/gc_dlopen.c
+extlibs/gc/gcj_mlc.c
+extlibs/gc/headers.c
+extlibs/gc/malloc.c
+extlibs/gc/mallocx.c
+extlibs/gc/mark.c
+extlibs/gc/mark_rts.c
+extlibs/gc/gc_misc.c
+extlibs/gc/new_hblk.c
+extlibs/gc/obj_map.c
+extlibs/gc/os_dep.c
+extlibs/gc/mach_dep.c
+extlibs/gc/pcr_interface.c
+extlibs/gc/ptr_chck.c
+extlibs/gc/real_malloc.c
+extlibs/gc/reclaim.c
+extlibs/gc/specific.c
+extlibs/gc/stubborn.c
+extlibs/gc/typd_mlc.c
+extlibs/gc/backgraph.c
+extlibs/gc/thread_local_alloc.c
 )
 
 set(gc_pthread_srcs
-extlibs/gc-cvs/pthread_start.c
-extlibs/gc-cvs/pthread_support.c
-extlibs/gc-cvs/pthread_stop_world.c
+extlibs/gc/pthread_start.c
+extlibs/gc/pthread_support.c
+extlibs/gc/pthread_stop_world.c
 )
 set(gc_darwin_srcs
-extlibs/gc-cvs/darwin_stop_world.c
+extlibs/gc/darwin_stop_world.c
 )
 set(gc_win32_srcs
-extlibs/gc-cvs/win32_threads.c
+extlibs/gc/win32_threads.c
 )
 
 if(WIN32)
@@ -374,7 +373,7 @@ ${MOSH_ONIG_DIR}/enc/cp1251.c
 
 # mosh
 
-include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc-cvs/include extlibs/gc-cvs/libatomic_ops/src src ${GMP_INCLUDE_DIR} ${MOSH_ONIG_DIR} ${ARCH_INCLUDE} gtest src/posix/terminal src/generic)
+include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc/include extlibs/libatomic_ops/src src ${GMP_INCLUDE_DIR} ${MOSH_ONIG_DIR} ${ARCH_INCLUDE} gtest src/posix/terminal src/generic)
 
 if(CMAKE_COMPILER_IS_GNUCC)
     if(XCODE)
@@ -806,16 +805,16 @@ set_target_properties(testingmosh PROPERTIES FOLDER Test)
 # GC tests
 macro(add_gcguitest testname)
 if(MSVC)
-add_executable(gctest${testname} EXCLUDE_FROM_ALL WIN32 ${PROJECT_SOURCE_DIR}/extlibs/gc-cvs/tests/${testname}.c)
+add_executable(gctest${testname} EXCLUDE_FROM_ALL WIN32 ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
 else(MSVC)
-add_executable(gctest${testname} EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/extlibs/gc-cvs/tests/${testname}.c)
+add_executable(gctest${testname} EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
 endif(MSVC)
 target_link_libraries(gctest${testname} testinggc ${arch_libs})
 set_target_properties(gctest${testname} PROPERTIES FOLDER Test)
 add_test(gctest-${testname} gctest${testname})
 endmacro(add_gcguitest)
 macro(add_gctest testname)
-add_executable(gctest${testname} EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/extlibs/gc-cvs/tests/${testname}.c)
+add_executable(gctest${testname} EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
 target_link_libraries(gctest${testname} testinggc ${arch_libs})
 set_target_properties(gctest${testname} PROPERTIES FOLDER Test)
 add_test(gctest-${testname} gctest${testname})

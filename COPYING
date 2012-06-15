@@ -63,7 +63,7 @@ Copyright of pass2 at compiler.scm from Gauche ------------------------------
     NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Copyright of extlibs/gc-cvs -------------------------------------------------
+Copyright of extlibs/gc -----------------------------------------------------
 
     Copyright (c) 1988, 1989 Hans-J. Boehm, Alan J. Demers
     Copyright (c) 1991-1996 by Xerox Corporation.  All rights reserved.

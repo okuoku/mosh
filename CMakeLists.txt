@@ -373,7 +373,7 @@ ${MOSH_ONIG_DIR}/enc/cp1251.c
 
 # mosh
 
-include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc/include extlibs/gc/libatomic_ops/src src ${GMP_INCLUDE_DIR} ${MOSH_ONIG_DIR} ${ARCH_INCLUDE} gtest src/posix/terminal src/generic)
+include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc/include extlibs/libatomic_ops/src src ${GMP_INCLUDE_DIR} ${MOSH_ONIG_DIR} ${ARCH_INCLUDE} gtest src/posix/terminal src/generic)
 
 if(CMAKE_COMPILER_IS_GNUCC)
     if(XCODE)

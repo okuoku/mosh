@@ -410,6 +410,52 @@ open_for_output(wchar_t* path,int mode){
 	return CreateFileW(path,GENERIC_WRITE,mode,&sat,CREATE_ALWAYS,0,NULL);
 }
 
+uintptr_t /* HANDLE */
+win32_handle_open(wchar_t* path, int mode){ /* => NULL if fail */
+    /* mode:
+     *  1: Create + RW
+     *  2: Existing + RW 
+     *  3: Existing + RW + Truncate
+     *  4: Existing + R (I/O) 
+     *  5: Existing + RW (I/O) */
+    DWORD accessmode;
+    DWORD disposition;
+    DWORD sharemode = FILE_SHARE_READ;
+    HANDLE h;
+    switch(mode){
+        default:
+            return 0;
+        case 1:
+            disposition = CREATE_ALWAYS;
+            accessmode = GENERIC_READ|GENERIC_WRITE;
+            break;
+        case 2:
+            disposition = OPEN_EXISTING;
+            accessmode = GENERIC_READ|GENERIC_WRITE;
+            break;
+        case 3:
+            disposition = TRUNCATE_EXISTING;
+            accessmode = GENERIC_READ|GENERIC_WRITE;
+            break;
+        case 4:
+            disposition = OPEN_EXISTING;
+            accessmode = GENERIC_READ;
+            break;
+        case 5:
+            disposition = OPEN_EXISTING;
+            accessmode = GENERIC_READ|GENERIC_WRITE;
+            break;
+    }
+    h = CreateFile(path,accessmode,sharemode,NULL,disposition,
+                   FILE_ATTRIBUTE_NORMAL, NULL);
+    if(h == INVALID_HANDLE_VALUE){
+        return 0;
+    }else{
+        return (uintptr_t) h;
+    }
+}
+
+
 // mode:
 //  0 : /dev/null
 //  1 : stdio
@@ -1674,4 +1720,5 @@ win32_extent_length(void* p,int id,int *upper,unsigned int *lower){
     *upper = vde->Extents[id].ExtentLength.u.HighPart;
     *lower = vde->Extents[id].ExtentLength.u.LowPart;
 }
+
 

@@ -119,6 +119,7 @@ CONS(FN(ptrace_setfpregs), NIL)))))))))))))))
 
 #ifdef HAVE_AIO_WIN32
 #define LIBDATA_AIO_WIN32 CONS(SYM("aio-win32"), \
+CONS(FN(win32_handle_open), \
 CONS(FN(win32_handle_close), \
 CONS(FN(win32_iocp_create), \
 CONS(FN(win32_iocp_assoc), \
@@ -147,7 +148,7 @@ CONS(FN(win32_socket_getsockname), \
 CONS(FN(win32_getaddrinfo), \
 CONS(FN(win32_finalization_handler_get), \
 CONS(FN(win32_finalization_handler_create), \
-	NIL)))))))))))))))))))))))))))))
+	NIL))))))))))))))))))))))))))))))
 
 #define LIBDATA_WIN32_GUI CONS(SYM("win32-gui"), \
 CONS(FN(win32_messagebox) ,\

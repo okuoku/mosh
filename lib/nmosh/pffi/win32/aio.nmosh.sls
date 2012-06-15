@@ -13,6 +13,7 @@
                  win32_create_named_pipe_async
                  win32_wait_named_pipe_async
                  win32_process_wait_async
+                 win32_handle_open
                  win32_handle_close
 
                  ;; sockets
@@ -212,6 +213,19 @@
                                           key
                                           overlapped)))
     x))
+
+(define* (win32_handle_open path mode)
+  ;; mode:
+  ;;  1: Create + RW
+  ;;  2: Existing + RW
+  ;;  3: Existing + RW + Truncate
+  ;;  4: Existing + R
+  ;;  5: Existing + RW
+  (let ((p (string->utf16-bv path)))
+    (let ((r (stub:win32_handle_open p mode)))
+      (if (= 0 (pointer->integer r))
+        #f ; Error
+        (pointer->handle r)))))
 
 (define* (win32_handle_close (h win32-handle))
   (let ((handle (handle->pointer h)))

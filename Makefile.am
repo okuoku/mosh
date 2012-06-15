@@ -52,7 +52,7 @@ AM_CFLAGS   = $(GLOBAL_CFLAGS)
 AM_CXXFLAGS = $(GLOBAL_CFLAGS) $(GLOBAL_CXXFLAGS)
 
 # Boehm GC
-BOEHM_GC_DIR = extlibs/gc-cvs
+BOEHM_GC_DIR = extlibs/gc
 
 # for GTEST
 GTEST_DIR     = $(top_srcdir)/gtest

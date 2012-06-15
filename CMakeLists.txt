@@ -286,7 +286,6 @@ extlibs/gc/stubborn.c
 extlibs/gc/typd_mlc.c
 extlibs/gc/backgraph.c
 extlibs/gc/thread_local_alloc.c
-extlibs/gc/libatomic_ops/src/atomic_ops.c
 )
 
 set(gc_pthread_srcs

@@ -32,11 +32,27 @@ Changes:
         nmosh now uses shortened filename for cache/debug-info. The shortened
         filename will be prefixed with "@"(at).
 
+        nmosh learned "turbocharge"(precompile every standard libraries)
+        feature. To update precompiled libraries,
+
+          nmosh -T turbocharge
+
+        nmosh -R option will activate precompiled archive.
+
+         Warning: turbocharged cache will not automatically update; ie. you
+         will have to update turbocharge when you installed new nmosh on your
+         system.
+
     Build system:
         nmosh CMake builds now built with clang compiler on MacOS 10.7 or later.
 
+        nmosh CMake builds now installs "testmosh.bat" to test built nmosh.exe
+        on Win32.
+
         Autotools and CMake builds will install additional plugins (some shared
         objects suffixed with .mplg) for nmosh.
+
+        Applied several tidy-up patches from barak. (Thanks!)
 
 Bug fixes:
 
@@ -71,3 +87,10 @@ Bug fixes:
 
         Bytevector buffer port opened by open-bytevector-output-port was broken
         when the value outputted multiple times.
+
+    FFI x86_64:
+        No longer clobber rax register on calling FFI functions.
+        This change made var-arg functions callable on x86_64.
+
+    nmosh:
+        On Win32, nmosh couldn't start properly on very long path(> 255 chars).

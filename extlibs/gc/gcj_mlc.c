@@ -56,13 +56,12 @@ GC_INNER ptr_t * GC_gcjobjfreelist = NULL;
 
 STATIC ptr_t * GC_gcjdebugobjfreelist = NULL;
 
-/*ARGSUSED*/
-STATIC struct GC_ms_entry * GC_gcj_fake_mark_proc(word * addr,
-                                        struct GC_ms_entry *mark_stack_ptr,
-                                        struct GC_ms_entry *mark_stack_limit,
-                                        word env)
+STATIC struct GC_ms_entry * GC_gcj_fake_mark_proc(word * addr GC_ATTR_UNUSED,
+                        struct GC_ms_entry *mark_stack_ptr,
+                        struct GC_ms_entry * mark_stack_limit GC_ATTR_UNUSED,
+                        word env GC_ATTR_UNUSED)
 {
-    ABORT("No client gcj mark proc is specified");
+    ABORT_RET("No client gcj mark proc is specified");
     return mark_stack_ptr;
 }
 
@@ -145,8 +144,8 @@ static void maybe_finalize(void)
    static word last_finalized_no = 0;
    DCL_LOCK_STATE;
 
-   if (GC_gc_no == last_finalized_no) return;
-   if (!GC_is_initialized) return;
+   if (GC_gc_no == last_finalized_no ||
+       !EXPECT(GC_is_initialized, TRUE)) return;
    UNLOCK();
    GC_INVOKE_FINALIZERS();
    LOCK();
@@ -204,13 +203,6 @@ static void maybe_finalize(void)
     return((void *) op);
 }
 
-GC_INNER void GC_start_debugging(void); /* defined in dbg_mlc.c */
-
-/* Store debugging info into p.  Return displaced pointer.      */
-/* Assumes we don't hold allocation lock.                       */
-GC_INNER ptr_t GC_store_debug_info(ptr_t p, word sz, const char *str,
-                                   int linenum);
-
 /* Similar to GC_gcj_malloc, but add debug info.  This is allocated     */
 /* with GC_gcj_debug_kind.                                              */
 GC_API void * GC_CALL GC_debug_gcj_malloc(size_t lb,
@@ -227,7 +219,7 @@ GC_API void * GC_CALL GC_debug_gcj_malloc(size_t lb,
     if (result == 0) {
         GC_oom_func oom_fn = GC_oom_fn;
         UNLOCK();
-        GC_err_printf("GC_debug_gcj_malloc(%ld, %p) returning NULL (",
+        GC_err_printf("GC_debug_gcj_malloc(%lu, %p) returning NULL (",
                       (unsigned long)lb, ptr_to_struct_containing_descr);
         GC_err_puts(s);
         GC_err_printf(":%d)\n", i);
@@ -255,7 +247,8 @@ GC_API void * GC_CALL GC_gcj_malloc_ignore_off_page(size_t lb,
         lg = GC_size_map[lb];
         opp = &(GC_gcjobjfreelist[lg]);
         LOCK();
-        if( (op = *opp) == 0 ) {
+        op = *opp;
+        if (EXPECT(0 == op, FALSE)) {
             maybe_finalize();
             op = (ptr_t)GENERAL_MALLOC_INNER_IOP(lb, GC_gcj_kind);
             if (0 == op) {

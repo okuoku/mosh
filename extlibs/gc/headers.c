@@ -122,7 +122,7 @@ GC_INNER ptr_t GC_scratch_alloc(size_t bytes)
     bytes += GRANULE_BYTES-1;
     bytes &= ~(GRANULE_BYTES-1);
     scratch_free_ptr += bytes;
-    if (scratch_free_ptr <= GC_scratch_end_ptr) {
+    if ((word)scratch_free_ptr <= (word)GC_scratch_end_ptr) {
         return(result);
     }
     {
@@ -196,6 +196,10 @@ GC_INNER void GC_init_headers(void)
     register unsigned i;
 
     GC_all_nils = (bottom_index *)GC_scratch_alloc((word)sizeof(bottom_index));
+    if (GC_all_nils == NULL) {
+      GC_err_printf("Insufficient memory for GC_all_nils\n");
+      EXIT();
+    }
     BZERO(GC_all_nils, sizeof(bottom_index));
     for (i = 0; i < TOP_SZ; i++) {
         GC_top_index[i] = GC_all_nils;
@@ -276,11 +280,11 @@ GC_INNER GC_bool GC_install_counts(struct hblk *h, size_t sz/* bytes */)
     struct hblk * hbp;
     word i;
 
-    for (hbp = h; (char *)hbp < (char *)h + sz; hbp += BOTTOM_SZ) {
+    for (hbp = h; (word)hbp < (word)h + sz; hbp += BOTTOM_SZ) {
         if (!get_index((word) hbp)) return(FALSE);
     }
     if (!get_index((word)h + sz - 1)) return(FALSE);
-    for (hbp = h + 1; (char *)hbp < (char *)h + sz; hbp += 1) {
+    for (hbp = h + 1; (word)hbp < (word)h + sz; hbp += 1) {
         i = HBLK_PTR_DIFF(hbp, h);
         SET_HDR(hbp, (hdr *)(i > MAX_JUMP? MAX_JUMP : i));
     }
@@ -300,7 +304,7 @@ GC_INNER void GC_remove_header(struct hblk *h)
 GC_INNER void GC_remove_counts(struct hblk *h, size_t sz/* bytes */)
 {
     register struct hblk * hbp;
-    for (hbp = h+1; (char *)hbp < (char *)h + sz; hbp += 1) {
+    for (hbp = h+1; (word)hbp < (word)h + sz; hbp += 1) {
         SET_HDR(hbp, 0);
     }
 }

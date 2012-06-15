@@ -10,8 +10,6 @@ Permission to modify the code and to distribute modified code is
 granted, provided the above notices are retained, and a notice that
 the code was modified is included with the above copyright notice.
 ****************************************************************************
-Last modified on Mon Jul 10 21:06:03 PDT 1995 by ellis
-     modified on December 20, 1994 7:27 pm PST by boehm
 
 usage: test_cpp number-of-iterations
 
@@ -36,19 +34,20 @@ few minutes to complete.
 #include <stdlib.h>
 #include <string.h>
 
-#define USE_STD_ALLOCATOR
-
-#ifdef USE_STD_ALLOCATOR
-#   include "gc_allocator.h"
-#elif __GNUC__
-#   include "new_gc_alloc.h"
+#ifndef DONT_USE_STD_ALLOCATOR
+# include "gc_allocator.h"
 #else
-#   include "gc_alloc.h"
+  /* Note: This works only for ancient STL versions.    */
+# include "new_gc_alloc.h"
 #endif
 
 extern "C" {
 # include "private/gcconfig.h"
-  GC_API void GC_printf(const char *format, ...);
+
+# ifndef GC_API_PRIV
+#   define GC_API_PRIV GC_API
+# endif
+  GC_API_PRIV void GC_printf(const char * format, ...);
   /* Use GC private output to reach the same log file.  */
   /* Don't include gc_priv.h, since that may include Windows system     */
   /* header files that don't take kindly to this context.               */
@@ -71,6 +70,11 @@ extern "C" {
                     __LINE__ ); \
         exit( 1 ); }
 
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+# define ATTR_UNUSED __attribute__((__unused__))
+#else
+# define ATTR_UNUSED /* empty */
+#endif
 
 class A {public:
     /* An uncollectable class. */
@@ -188,8 +192,8 @@ void* Undisguise( GC_word i ) {
     return (void*) ~ i;}
 
 #ifdef MSWIN32
-int APIENTRY WinMain(
-    HINSTANCE instance, HINSTANCE prev, LPSTR cmd, int cmdShow )
+int APIENTRY WinMain( HINSTANCE instance ATTR_UNUSED,
+        HINSTANCE prev ATTR_UNUSED, LPSTR cmd, int cmdShow ATTR_UNUSED )
 {
     int argc;
     char* argv[ 3 ];
@@ -209,20 +213,17 @@ int APIENTRY WinMain(
     GC_INIT();
 
     int i, iters, n;
-#   ifdef USE_STD_ALLOCATOR
+#   ifndef DONT_USE_STD_ALLOCATOR
       int *x = gc_allocator<int>().allocate(1);
       int *xio;
       xio = gc_allocator_ignore_off_page<int>().allocate(1);
+      (void)xio;
       int **xptr = traceable_allocator<int *>().allocate(1);
 #   else
-#     ifdef __GNUC__
-          int *x = (int *)gc_alloc::allocate(sizeof(int));
-#     else
-          int *x = (int *)alloc::allocate(sizeof(int));
-#     endif
+      int *x = (int *)gc_alloc::allocate(sizeof(int));
 #   endif
     *x = 29;
-#   ifdef USE_STD_ALLOCATOR
+#   ifndef DONT_USE_STD_ALLOCATOR
       *xptr = x;
       x = 0;
 #   endif
@@ -250,7 +251,9 @@ int APIENTRY WinMain(
             D* d;
             F* f;
             d = ::new (USE_GC, D::CleanUp, (void*)(GC_word)i) D( i );
+            (void)d;
             f = new F;
+            (void)f;
             if (0 == i % 10) delete c;}
 
             /* Allocate a very large number of collectable As and Bs and
@@ -259,6 +262,7 @@ int APIENTRY WinMain(
         for (i = 0; i < 1000000; i++) {
             A* a;
             a = new (USE_GC) A( i );
+            (void)a;
             B* b = new B( i );
             b = new (USE_GC) B( i );
             if (0 == i % 10) {
@@ -291,11 +295,10 @@ int APIENTRY WinMain(
         D::Test();
         F::Test();}
 
-#   ifdef USE_STD_ALLOCATOR
+#   ifndef DONT_USE_STD_ALLOCATOR
       x = *xptr;
 #   endif
     my_assert (29 == x[0]);
     GC_printf( "The test appears to have succeeded.\n" );
     return( 0 );
 }
-

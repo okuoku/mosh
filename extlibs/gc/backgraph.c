@@ -159,7 +159,7 @@ static GC_bool is_in_progress(ptr_t p)
   return FALSE;
 }
 
-GC_INLINE void pop_in_progress(ptr_t p)
+GC_INLINE void pop_in_progress(ptr_t p GC_ATTR_UNUSED)
 {
   --n_in_progress;
   GC_ASSERT(in_progress_space[n_in_progress] == p);
@@ -209,7 +209,7 @@ static void ensure_struct(ptr_t p)
     }
     be -> height = HEIGHT_UNKNOWN;
     be -> height_gc_no = (unsigned short)(GC_gc_no - 1);
-    GC_ASSERT(be >= back_edge_space);
+    GC_ASSERT((word)be >= (word)back_edge_space);
     SET_OH_BG_PTR(p, (word)be | FLAG_MANY);
   }
 }
@@ -275,7 +275,7 @@ static void per_object_helper(struct hblk *h, word fn)
   do {
     f((ptr_t)(h -> hb_body + i), sz, descr);
     i += (int)sz;
-  } while (i + (int)sz <= BYTES_TO_WORDS(HBLKSIZE));
+  } while ((word)i + sz <= BYTES_TO_WORDS(HBLKSIZE));
 }
 
 GC_INLINE void GC_apply_to_each_object(per_object_func f)
@@ -283,8 +283,8 @@ GC_INLINE void GC_apply_to_each_object(per_object_func f)
   GC_apply_to_all_blocks(per_object_helper, (word)f);
 }
 
-/*ARGSUSED*/
-static void reset_back_edge(ptr_t p, size_t n_bytes, word gc_descr)
+static void reset_back_edge(ptr_t p, size_t n_bytes GC_ATTR_UNUSED,
+                            word gc_descr GC_ATTR_UNUSED)
 {
   /* Skip any free list links, or dropped blocks */
   if (GC_HAS_DEBUG_INFO(p)) {
@@ -327,7 +327,7 @@ static void add_back_edges(ptr_t p, size_t n_bytes, word gc_descr)
     if((gc_descr & GC_DS_TAGS) != GC_DS_LENGTH) {
       gc_descr = n_bytes;
     }
-  while (currentp < (word *)(p + gc_descr)) {
+  while ((word)currentp < (word)(p + gc_descr)) {
     word current = *currentp++;
     FIXUP_POINTER(current);
     if (current >= (word)GC_least_plausible_heap_addr &&
@@ -400,8 +400,8 @@ STATIC ptr_t GC_deepest_obj = NULL;
 /* next GC.                                                             */
 /* Set GC_max_height to be the maximum height we encounter, and         */
 /* GC_deepest_obj to be the corresponding object.                       */
-/*ARGSUSED*/
-static void update_max_height(ptr_t p, size_t n_bytes, word gc_descr)
+static void update_max_height(ptr_t p, size_t n_bytes GC_ATTR_UNUSED,
+                              word gc_descr GC_ATTR_UNUSED)
 {
   if (GC_is_marked(p) && GC_HAS_DEBUG_INFO(p)) {
     word p_height = 0;
@@ -458,7 +458,7 @@ GC_INNER void GC_traverse_back_graph(void)
 
 void GC_print_back_graph_stats(void)
 {
-  GC_printf("Maximum backwards height of reachable objects at GC %lu is %ld\n",
+  GC_printf("Maximum backwards height of reachable objects at GC %lu is %lu\n",
             (unsigned long) GC_gc_no, (unsigned long)GC_max_height);
   if (GC_max_height > GC_max_max_height) {
     GC_max_max_height = GC_max_height;

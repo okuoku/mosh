@@ -71,7 +71,8 @@ GC_EXTERN unsigned GC_n_mark_procs;
 
 typedef struct GC_ms_entry {
     ptr_t mse_start;    /* First word of object, word aligned.  */
-    GC_word mse_descr;  /* Descriptor; low order two bits are tags,     */
+    union word_ptr_ao_u mse_descr;
+                        /* Descriptor; low order two bits are tags,     */
                         /* as described in gc_mark.h.                   */
 } mse;
 
@@ -81,6 +82,7 @@ GC_EXTERN mse * GC_mark_stack_limit;
 
 #ifdef PARALLEL_MARK
   GC_EXTERN mse * volatile GC_mark_stack_top;
+                                /* FIXME: Use union to avoid casts to AO_t */
 #else
   GC_EXTERN mse * GC_mark_stack_top;
 #endif
@@ -136,11 +138,11 @@ GC_INNER mse * GC_signal_mark_stack_overflow(mse *msp);
     GC_ASSERT(!HBLK_IS_FREE(hhdr)); \
     if (_descr != 0) { \
         mark_stack_top++; \
-        if (mark_stack_top >= mark_stack_limit) { \
+        if ((word)mark_stack_top >= (word)(mark_stack_limit)) { \
           mark_stack_top = GC_signal_mark_stack_overflow(mark_stack_top); \
         } \
         mark_stack_top -> mse_start = (obj); \
-        mark_stack_top -> mse_descr = _descr; \
+        mark_stack_top -> mse_descr.w = _descr; \
     } \
 }
 
@@ -177,7 +179,7 @@ exit_label: ; \
 #   define OR_WORD_EXIT_IF_SET(addr, bits, exit_label) \
         { \
           if (!(*(addr) & (bits))) { \
-            AO_or((AO_t *)(addr), (bits)); \
+            AO_or((volatile AO_t *)(addr), (AO_t)(bits)); \
           } else { \
             goto exit_label; \
           } \
@@ -271,7 +273,7 @@ exit_label: ; \
           gran_displ = 0; \
           GC_ASSERT(hhdr -> hb_sz > HBLKSIZE || \
                     hhdr -> hb_block == HBLKPTR(current)); \
-          GC_ASSERT((ptr_t)(hhdr -> hb_block) <= (ptr_t) current); \
+          GC_ASSERT((word)hhdr->hb_block <= (word)(current)); \
         } else { \
           size_t obj_displ = GRANULES_TO_BYTES(gran_offset) \
                              + byte_offset; \
@@ -327,7 +329,7 @@ exit_label: ; \
           } \
           GC_ASSERT(hhdr -> hb_sz > HBLKSIZE || \
                     hhdr -> hb_block == HBLKPTR(current)); \
-          GC_ASSERT((ptr_t)(hhdr -> hb_block) < (ptr_t) current); \
+          GC_ASSERT((word)hhdr->hb_block < (word)(current)); \
         } else { \
           /* Accurate enough if HBLKSIZE <= 2**15.      */ \
           GC_STATIC_ASSERT(HBLKSIZE <= (1 << 15)); \
@@ -375,35 +377,31 @@ exit_label: ; \
 #if NEED_FIXUP_POINTER
     /* Try both the raw version and the fixed up one.   */
 # define GC_PUSH_ONE_STACK(p, source) \
-      if ((ptr_t)(p) >= (ptr_t)GC_least_plausible_heap_addr \
-          && (ptr_t)(p) < (ptr_t)GC_greatest_plausible_heap_addr) { \
+      if ((word)(p) >= (word)GC_least_plausible_heap_addr \
+          && (word)(p) < (word)GC_greatest_plausible_heap_addr) { \
          PUSH_ONE_CHECKED_STACK(p, source); \
       } \
       FIXUP_POINTER(p); \
-      if ((ptr_t)(p) >= (ptr_t)GC_least_plausible_heap_addr \
-          && (ptr_t)(p) < (ptr_t)GC_greatest_plausible_heap_addr) { \
+      if ((word)(p) >= (word)GC_least_plausible_heap_addr \
+          && (word)(p) < (word)GC_greatest_plausible_heap_addr) { \
          PUSH_ONE_CHECKED_STACK(p, source); \
       }
 #else /* !NEED_FIXUP_POINTER */
 # define GC_PUSH_ONE_STACK(p, source) \
-      if ((ptr_t)(p) >= (ptr_t)GC_least_plausible_heap_addr \
-          && (ptr_t)(p) < (ptr_t)GC_greatest_plausible_heap_addr) { \
+      if ((word)(p) >= (word)GC_least_plausible_heap_addr \
+          && (word)(p) < (word)GC_greatest_plausible_heap_addr) { \
          PUSH_ONE_CHECKED_STACK(p, source); \
       }
 #endif
 
-
-/*
- * As above, but interior pointer recognition as for
- * normal heap pointers.
- */
-#define GC_PUSH_ONE_HEAP(p,source) \
-    FIXUP_POINTER(p); \
-    if ((ptr_t)(p) >= (ptr_t)GC_least_plausible_heap_addr \
-         && (ptr_t)(p) < (ptr_t)GC_greatest_plausible_heap_addr) { \
-      GC_mark_stack_top = GC_mark_and_push( \
-                            (void *)(p), GC_mark_stack_top, \
-                            GC_mark_stack_limit, (void * *)(source)); \
+/* As above, but interior pointer recognition as for normal heap pointers. */
+#define GC_PUSH_ONE_HEAP(p,source,mark_stack_top) \
+    { \
+      FIXUP_POINTER(p); \
+      if ((word)(p) >= (word)GC_least_plausible_heap_addr \
+          && (word)(p) < (word)GC_greatest_plausible_heap_addr) \
+        mark_stack_top = GC_mark_and_push((void *)(p), mark_stack_top, \
+                                GC_mark_stack_limit, (void * *)(source)); \
     }
 
 /* Mark starting at mark stack entry top (incl.) down to        */
@@ -416,6 +414,8 @@ GC_INNER mse * GC_mark_from(mse * top, mse * bottom, mse *limit);
         GC_mark_stack_top = GC_mark_from(GC_mark_stack_top, \
                                          GC_mark_stack, \
                                          GC_mark_stack + GC_mark_stack_size);
+
+#define GC_mark_stack_empty() ((word)GC_mark_stack_top < (word)GC_mark_stack)
 
 /*
  * Mark from one finalizable object using the specified

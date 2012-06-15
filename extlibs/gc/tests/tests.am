@@ -1,5 +1,4 @@
 #
-#
 # THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
 # OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
 #
@@ -9,15 +8,8 @@
 # provided the above notices are retained, and a notice that the code was
 # modified is included with the above copyright notice.
 
-
-## FIXME: trace_test doesn't work on macosx 10.3
-## gcc -g -O2 -o .libs/tracetest trace_test.o  ../.libs/libgc.dylib -lpthread
-## ld: Undefined symbols:
-## _GC_generate_random_backtrace
-
 # Common libs to _LDADD for all tests.
 test_ldadd = $(top_builddir)/libgc.la $(EXTRA_TEST_LIBS)
-
 
 TESTS += gctest$(EXEEXT)
 check_PROGRAMS += gctest
@@ -44,6 +36,11 @@ TESTS += hugetest$(EXEEXT)
 check_PROGRAMS += hugetest
 hugetest_SOURCES = tests/huge_test.c
 hugetest_LDADD = $(test_ldadd)
+
+TESTS += realloc_test$(EXEEXT)
+check_PROGRAMS += realloc_test
+realloc_test_SOURCES = tests/realloc_test.c
+realloc_test_LDADD = $(test_ldadd)
 
 TESTS += staticrootstest$(EXEEXT)
 check_PROGRAMS += staticrootstest
@@ -73,6 +70,11 @@ check_PROGRAMS += threadkey_test
 threadkey_test_SOURCES = tests/threadkey_test.c
 threadkey_test_LDADD = $(test_ldadd)
 
+TESTS += subthread_create$(EXEEXT)
+check_PROGRAMS += subthread_create
+subthread_create_SOURCES = tests/subthread_create.c
+subthread_create_LDADD = $(test_ldadd)
+
 TESTS += initsecondarythread$(EXEEXT)
 check_PROGRAMS += initsecondarythread
 initsecondarythread_SOURCES = tests/initsecondarythread.c
@@ -84,8 +86,19 @@ TESTS += test_cpp$(EXEEXT)
 check_PROGRAMS += test_cpp
 test_cpp_SOURCES = tests/test_cpp.cc
 if AVOID_CPP_LIB
-test_cpp_LDADD = gc_cpp.o $(test_ldadd)
+test_cpp_LDADD = gc_cpp.o $(test_ldadd) $(CXXLIBS)
 else
-test_cpp_LDADD = libgccpp.la $(test_ldadd)
+test_cpp_LDADD = libgccpp.la $(test_ldadd) $(CXXLIBS)
 endif
+endif
+
+if ENABLE_DISCLAIM
+TESTS += disclaim_test
+check_PROGRAMS += disclaim_test
+disclaim_test_SOURCES = tests/disclaim_test.c
+disclaim_test_LDADD = $(test_ldadd)
+TESTS += disclaim_bench
+check_PROGRAMS += disclaim_bench
+disclaim_bench_SOURCES = tests/disclaim_bench.c
+disclaim_bench_LDADD = $(test_ldadd)
 endif

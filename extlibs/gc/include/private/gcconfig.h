@@ -37,6 +37,18 @@
 
 /* Machine specific parts contributed by various people.  See README file. */
 
+#if defined(__ANDROID__) && !defined(PLATFORM_ANDROID)
+  /* __ANDROID__ macro is defined by Android NDK gcc.   */
+# define PLATFORM_ANDROID 1
+#endif
+
+#if defined(__SYMBIAN32__) && !defined(SYMBIAN)
+# define SYMBIAN
+# ifdef __WINS__
+#   pragma data_seg(".data2")
+# endif
+#endif
+
 /* First a unified test for Linux: */
 # if (defined(linux) || defined(__linux__) || defined(PLATFORM_ANDROID)) \
      && !defined(LINUX) && !defined(__native_client__)
@@ -73,7 +85,8 @@
 # if defined(__arm) || defined(__arm__) || defined(__thumb__)
 #    define ARM32
 #    if !defined(LINUX) && !defined(NETBSD) && !defined(OPENBSD) \
-        && !defined(DARWIN) && !defined(_WIN32) && !defined(__CEGCC__)
+        && !defined(DARWIN) && !defined(_WIN32) && !defined(__CEGCC__) \
+        && !defined(SYMBIAN)
 #      define NOSYS
 #      define mach_type_known
 #    endif
@@ -304,12 +317,14 @@
 #   define M68K
 #   define mach_type_known
 # endif
-# if defined(THINK_C) || defined(__MWERKS__) && !defined(__powerc)
+# if defined(THINK_C) \
+     || (defined(__MWERKS__) && !defined(__powerc) && !defined(SYMBIAN))
 #   define M68K
 #   define MACOS
 #   define mach_type_known
 # endif
-# if defined(__MWERKS__) && defined(__powerc) && !defined(__MACH__)
+# if defined(__MWERKS__) && defined(__powerc) && !defined(__MACH__) \
+     && !defined(SYMBIAN)
 #   define POWERPC
 #   define MACOS
 #   define mach_type_known
@@ -409,8 +424,9 @@
 #   define MSWINCE
 #   define mach_type_known
 # else
-#   if (defined(_MSDOS) || defined(_MSC_VER)) && (_M_IX86 >= 300) \
-        || defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__)
+#   if ((defined(_MSDOS) || defined(_MSC_VER)) && (_M_IX86 >= 300)) \
+       || (defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__) \
+           && !defined(SYMBIAN))
 #     if defined(__LP64__) || defined(_WIN64)
 #       define X86_64
 #     else
@@ -462,7 +478,7 @@
 #   define NOSYS
 #   define mach_type_known
 # endif
-/* Ivan Demakov */
+
 # if defined(__WATCOMC__) && defined(__386__)
 #   define I386
 #   if !defined(OS2) && !defined(MSWIN32) && !defined(DOS4GW)
@@ -495,6 +511,14 @@
     /* FIXME: Should recognize Integrity series? */
 #   define MIPS
 #   define NONSTOP
+#   define mach_type_known
+# endif
+# if defined(__hexagon__) && defined(LINUX)
+#    define HEXAGON
+#    define mach_type_known
+# endif
+
+# if defined(SYMBIAN)
 #   define mach_type_known
 # endif
 
@@ -547,6 +571,7 @@
                     /*                  Handles 32 and 64-bit variants. */
                     /*             CRIS       ==> Axis Etrax            */
                     /*             M32R       ==> Renesas M32R          */
+                    /*             HEXAGON    ==> Qualcomm Hexagon      */
 
 
 /*
@@ -675,8 +700,20 @@
 /* __builtin_unwind_init() to push the relevant registers onto the stack. */
 # if defined(__GNUC__) && ((__GNUC__ >= 3) \
                            || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8)) \
-                       && !defined(__INTEL_COMPILER) && !defined(__PATHCC__)
+     && !defined(__INTEL_COMPILER) && !defined(__PATHCC__) \
+     && !(defined(POWERPC) && defined(DARWIN)) /* for MacOS X 10.3.9 */ \
+     && !defined(RTEMS) \
+     && !defined(__clang__) /* since no-op in clang (3.0) */
 #   define HAVE_BUILTIN_UNWIND_INIT
+# endif
+
+# ifdef SYMBIAN
+#   define MACH_TYPE "SYMBIAN"
+#   define OS_TYPE "SYMBIAN"
+#   define CPP_WORDSZ 32
+#   define ALIGNMENT 4
+#   define DATASTART NULL
+#   define DATAEND NULL
 # endif
 
 # define STACK_GRAN 0x1000000
@@ -878,7 +915,6 @@
 #     define ALIGNMENT 4
 #     define OS_TYPE "NETBSD"
 #     define HEURISTIC2
-      extern char etext[];
       extern ptr_t GC_data_start;
 #     define DATASTART GC_data_start
 #     define DYNAMIC_LOADING
@@ -1094,8 +1130,7 @@
 #     define ALIGNMENT 4
                         /* Appears to hold for all "32 bit" compilers   */
                         /* except Borland.  The -a4 option fixes        */
-                        /* Borland.                                     */
-                        /* Ivan Demakov: For Watcom the option is -zp4. */
+                        /* Borland.  For Watcom the option is -zp4.     */
 #   endif
 #   ifdef SEQUENT
 #       define OS_TYPE "SEQUENT"
@@ -1188,7 +1223,8 @@
 #   ifdef NACL
 #      define OS_TYPE "NACL"
        extern int etext[];
-#      define DATASTART ((ptr_t)((((word) (etext)) + 0xfff) & ~0xfff))
+/* #define DATASTART ((ptr_t)((((word) (etext)) + 0xfff) & ~0xfff)) */
+#      define DATASTART ((ptr_t)0x10000000)
        extern int _end[];
 #      define DATAEND (_end)
 #      undef STACK_GRAN
@@ -1342,6 +1378,7 @@
 #       else
 #           define SIG_SUSPEND SIGUSR1
 #           define SIG_THR_RESTART SIGUSR2
+                /* SIGTSTP and SIGCONT could be used alternatively.     */
 #       endif
 #       define FREEBSD_STACKBOTTOM
 #       ifdef __ELF__
@@ -1381,10 +1418,13 @@
 #       include <sys/unistd.h>
         extern int etext[];
         extern int end[];
-        extern void *InitStackBottom;
+        void *rtems_get_stack_bottom(void);
+#       define InitStackBottom rtems_get_stack_bottom()
 #       define DATASTART ((ptr_t)etext)
 #       define DATAEND ((ptr_t)end)
 #       define STACKBOTTOM ((ptr_t)InitStackBottom)
+#       define SIG_SUSPEND SIGUSR1
+#       define SIG_THR_RESTART SIGUSR2
 #   endif
 #   ifdef DOS4GW
 #     define OS_TYPE "DOS4GW"
@@ -1454,10 +1494,18 @@
 #     define DYNAMIC_LOADING
       extern int _end[];
 #     define DATAEND (ptr_t)(_end)
+#     pragma weak __data_start
       extern int __data_start[];
 #     define DATASTART ((ptr_t)(__data_start))
-#     define CPP_WORDSZ _MIPS_SZPTR
-#     define ALIGNMENT (_MIPS_SZPTR/8)
+#     ifdef _MIPS_SZPTR
+#       define CPP_WORDSZ _MIPS_SZPTR
+#       define ALIGNMENT (_MIPS_SZPTR/8)
+#     else
+#       define ALIGNMENT 4
+#     endif
+#     ifndef HBLKSIZE
+#       define HBLKSIZE 4096
+#     endif
 #     if __GLIBC__ == 2 && __GLIBC_MINOR__ >= 2 || __GLIBC__ > 2
 #       define LINUX_STACKBOTTOM
 #     else
@@ -1529,7 +1577,6 @@
 #     define ALIGNMENT 4
 #     define HEURISTIC2
 #     ifdef __ELF__
-        extern int etext[];
         extern ptr_t GC_data_start;
 #       define DATASTART GC_data_start
 #       define NEED_FIND_LIMIT
@@ -1670,6 +1717,7 @@
 /* MPROTECT_VDB is not yet supported at all on FreeBSD/alpha. */
 #       define SIG_SUSPEND SIGUSR1
 #       define SIG_THR_RESTART SIGUSR2
+                /* SIGTSTP and SIGCONT could be used alternatively.     */
 #       define FREEBSD_STACKBOTTOM
 #       ifdef __ELF__
 #           define DYNAMIC_LOADING
@@ -1938,7 +1986,9 @@
 #   ifdef DARWIN
       /* iPhone */
 #     define OS_TYPE "DARWIN"
-#     define DYNAMIC_LOADING
+#     ifndef GC_DONT_REGISTER_MAIN_STATIC_DATA
+#       define DYNAMIC_LOADING
+#     endif
 #     define DATASTART ((ptr_t) get_etext())
 #     define DATAEND   ((ptr_t) get_end())
 #     define STACKBOTTOM ((ptr_t) 0x30000000)
@@ -1952,7 +2002,9 @@
       /* FIXME: There seems to be some issues with trylock hanging on   */
       /* darwin. This should be looked into some more.                  */
 #     define NO_PTHREAD_TRYLOCK
-#     define NO_DYLD_BIND_FULLY_IMAGE
+#     ifndef NO_DYLD_BIND_FULLY_IMAGE
+#       define NO_DYLD_BIND_FULLY_IMAGE
+#     endif
 #   endif
 #   ifdef OPENBSD
 #     define ALIGNMENT 4
@@ -2045,7 +2097,6 @@
 #   define OS_TYPE "LINUX"
 #   define DYNAMIC_LOADING
 #   define LINUX_STACKBOTTOM
-#   define USE_GENERIC_PUSH_REGS
 #   define SEARCH_FOR_DATA_START
     extern int _end[];
 #   define DATAEND (_end)
@@ -2069,8 +2120,13 @@
 
 # ifdef X86_64
 #   define MACH_TYPE "X86_64"
-#   define ALIGNMENT 8
-#   define CPP_WORDSZ 64
+#   ifdef __ILP32__
+#     define ALIGNMENT 4
+#     define CPP_WORDSZ 32
+#   else
+#     define ALIGNMENT 8
+#     define CPP_WORDSZ 64
+#   endif
 #   ifndef HBLKSIZE
 #     define HBLKSIZE 4096
 #   endif
@@ -2123,6 +2179,7 @@
           /* At present, there's a bug in GLibc getcontext() on         */
           /* Linux/x64 (it clears FPU exception mask).  We define this  */
           /* macro to workaround it.                                    */
+          /* FIXME: This seems to be fixed in GLibc v2.14.              */
 #         define GETCONTEXT_FPU_EXCMASK_BUG
 #       endif
 #   endif
@@ -2159,6 +2216,7 @@
 #       else
 #           define SIG_SUSPEND SIGUSR1
 #           define SIG_THR_RESTART SIGUSR2
+                /* SIGTSTP and SIGCONT could be used alternatively.     */
 #       endif
 #       define FREEBSD_STACKBOTTOM
 #       ifdef __ELF__
@@ -2171,12 +2229,14 @@
 #   endif
 #   ifdef NETBSD
 #       define OS_TYPE "NETBSD"
-#       ifdef __ELF__
-#           define DYNAMIC_LOADING
-#       endif
 #       define HEURISTIC2
-        extern char etext[];
-#       define SEARCH_FOR_DATA_START
+#       ifdef __ELF__
+            extern ptr_t GC_data_start;
+#           define DATASTART GC_data_start
+#           define DYNAMIC_LOADING
+#       else
+#           define SEARCH_FOR_DATA_START
+#       endif
 #   endif
 #   ifdef SOLARIS
 #       define OS_TYPE "SOLARIS"
@@ -2237,6 +2297,32 @@
 #   endif
 # endif /* X86_64 */
 
+# ifdef HEXAGON
+#   define CPP_WORDSZ 32
+#   define MACH_TYPE "HEXAGON"
+#   define ALIGNMENT 4
+#   ifdef LINUX
+#       define OS_TYPE "LINUX"
+#       define LINUX_STACKBOTTOM
+#       define MPROTECT_VDB
+#       ifdef __ELF__
+#            define DYNAMIC_LOADING
+#            include <features.h>
+#            if defined(__GLIBC__) && __GLIBC__ >= 2
+#                define SEARCH_FOR_DATA_START
+#            else
+#                error --> unknown Hexagon libc configuration
+#            endif
+             extern int _end[];
+#            define DATAEND (ptr_t)(_end)
+#       else
+#            error --> bad Hexagon Linux configuration
+#       endif
+#   else
+#       error --> unknown Hexagon OS configuration
+#   endif
+# endif
+
 #if defined(LINUX_STACKBOTTOM) && defined(NO_PROC_STAT) \
     && !defined(USE_LIBC_PRIVATES)
     /* This combination will fail, since we have no way to get  */
@@ -2253,7 +2339,8 @@
 #   define USE_MMAP_ANON
 #endif
 
-#if defined(GC_LINUX_THREADS) && defined(REDIRECT_MALLOC)
+#if defined(GC_LINUX_THREADS) && defined(REDIRECT_MALLOC) \
+    && !defined(USE_PROC_FOR_LIBRARIES)
     /* Nptl allocates thread stacks with mmap, which is fine.  But it   */
     /* keeps a cache of thread stacks.  Thread stacks contain the       */
     /* thread control blocks.  These in turn contain a pointer to       */
@@ -2294,6 +2381,14 @@
 #ifndef DATAEND
   extern int end[];
 # define DATAEND (ptr_t)(end)
+#endif
+
+#if defined(PLATFORM_ANDROID) && !defined(THREADS) \
+    && !defined(USE_GET_STACKBASE_FOR_MAIN)
+  /* Always use pthread_attr_getstack on Android ("-lpthread" option is  */
+  /* not needed to be specified manually) since GC_linux_main_stack_base */
+  /* causes app crash if invoked inside Dalvik VM.                       */
+# define USE_GET_STACKBASE_FOR_MAIN
 #endif
 
 #if (defined(SVR4) || defined(PLATFORM_ANDROID)) && !defined(GETPAGESIZE)
@@ -2380,6 +2475,15 @@
 # define GC_DISABLE_INCREMENTAL
 #endif
 
+#if (defined(MSWIN32) || defined(MSWINCE)) && !defined(USE_WINALLOC)
+  /* USE_WINALLOC is only an option for Cygwin. */
+# define USE_WINALLOC
+#endif
+
+#ifdef USE_WINALLOC
+# undef USE_MMAP
+#endif
+
 #if defined(GC_DISABLE_INCREMENTAL) || defined(MANUAL_VDB)
 # undef GWW_VDB
 # undef MPROTECT_VDB
@@ -2451,6 +2555,11 @@
 # endif
 #endif
 
+#if defined(LINUX) && (defined(USE_PROC_FOR_LIBRARIES) || defined(IA64) \
+                       || !defined(SMALL_CONFIG))
+# define NEED_PROC_MAPS
+#endif
+
 #if defined(LINUX) || defined(HURD) || defined(__GLIBC__)
 # define REGISTER_LIBRARIES_EARLY
   /* We sometimes use dl_iterate_phdr, which may acquire an internal    */
@@ -2510,6 +2619,10 @@
 # define THREADS
 #endif
 
+#if defined(PARALLEL_MARK) && !defined(THREADS)
+# error "invalid config - PARALLEL_MARK requires GC_THREADS"
+#endif
+
 #if defined(UNIX_LIKE) && defined(THREADS) && !defined(NO_CANCEL_SAFE) \
     && !defined(PLATFORM_ANDROID)
   /* Make the code cancellation-safe.  This basically means that we     */
@@ -2531,6 +2644,16 @@
 # define IF_CANCEL(x) x
 #else
 # define IF_CANCEL(x) /* empty */
+#endif
+
+#if !defined(CAN_HANDLE_FORK) && !defined(NO_HANDLE_FORK) \
+    && ((defined(GC_PTHREADS) && !defined(HURD) && !defined(NACL) \
+         && !defined(PLATFORM_ANDROID) && !defined(GC_WIN32_PTHREADS) \
+         && !defined(USE_WINALLOC)) \
+        || (defined(DARWIN) && defined(MPROTECT_VDB)) || defined(HANDLE_FORK))
+  /* Attempts (where supported and requested) to make GC_malloc work in */
+  /* a child process fork'ed from a multi-threaded parent.              */
+# define CAN_HANDLE_FORK
 #endif
 
 #if !defined(USE_MARK_BITS) && !defined(USE_MARK_BYTES) \

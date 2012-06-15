@@ -9,6 +9,8 @@
 #include "gc.h"
 #include "gc_backptr.h"
 
+#ifndef GC_VISIBILITY_HIDDEN_SET
+
 struct treenode {
     struct treenode *x;
     struct treenode *y;
@@ -41,7 +43,7 @@ int main(void)
     root[i] = libsrl_mktree(12);
     GC_gcollect();
   }
-  for (i = 0; i < sizeof(struct treenode); ++i) {
+  for (i = 0; i < (int)sizeof(struct treenode); ++i) {
     if (staticroot[i] != 0x42)
       return -1;
   }
@@ -49,9 +51,21 @@ int main(void)
     root[i] = libsrl_mktree(12);
     GC_gcollect();
   }
-  for (i = 0; i < sizeof(struct treenode); ++i) {
+  for (i = 0; i < (int)sizeof(struct treenode); ++i) {
     if (staticroot[i] != 0x42)
       return -1;
   }
   return 0;
 }
+
+#else
+
+/* Skip since symbols defined in staticrootslib are not visible */
+
+int main(void)
+{
+  printf("staticrootstest skipped\n");
+  return 0;
+}
+
+#endif

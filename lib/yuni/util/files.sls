@@ -252,7 +252,8 @@
             (not (string=? cur ".."))
             (not (string=? cur ".")))
        (directory-walk my-path proc))
-      ((file-regular? my-path)
+      ((and (file-regular? my-path)
+            (not (file-directory? my-path)))
        (proc my-path))))
   (for-each (lambda (e) (do-walk pth e)) (directory-list pth)))
 

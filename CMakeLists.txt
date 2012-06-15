@@ -906,3 +906,16 @@ elseif(APPLE)
 endif()
 SET(CPACK_PACKAGE_EXECUTABLES ${MOSH_EXECUTABLE_NAME})
 INCLUDE(CPack)
+
+# Generate test script
+if(WIN32)
+    configure_file(cmake/testmosh.bat.in 
+        ${CMAKE_CURRENT_BINARY_DIR}/testmosh.bat
+        @ONLY
+        NEWLINE_STYLE DOS)
+    if(EXISTS ${MOSH_GMP_DIR}/mpir.dll)
+        configure_file(${MOSH_GMP_DIR}/mpir.dll
+            ${CMAKE_CURRENT_BINARY_DIR}/mpir.dll
+            COPYONLY)
+    endif()
+endif()

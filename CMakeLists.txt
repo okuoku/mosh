@@ -111,12 +111,12 @@ add_definitions(-DHAVE_CONFIG_H
     -DDONT_ADD_BYTE_AT_END=1
     )
 
-if(NOT CMAKE_HOST_WIN32)
+if(NOT WIN32)
     add_definitions(-DHANDLE_FORK=1)
-endif(NOT CMAKE_HOST_WIN32)
+endif()
 
 # OS Settings
-if(CMAKE_HOST_WIN32)
+if(WIN32)
     add_definitions(-DMOSH_HOST_OS=\"win32\")
     add_definitions(-DLINE_FEED_CODE_CRLF=1)
     # we set ARCH_* here. (Win32 only. when at other O/S, these flags are
@@ -169,7 +169,7 @@ else() # so it is UNIX
     add_definitions(-DLINE_FEED_CODE_LF=1)
 endif()
 
-if(CMAKE_HOST_WIN32)
+if(WIN32)
 add_definitions(
     -DWINVER=0x501
     -DGC_NOT_DLL
@@ -177,7 +177,7 @@ add_definitions(
     )
 set(ARCH_INCLUDE "${PROJECT_SOURCE_DIR}/src/win/include"
     "${PROJECT_SOURCE_DIR}/src/win32")
-endif(CMAKE_HOST_WIN32)
+endif()
 
 # includes
 CHECK_INCLUDE_FILE(alloca.h HAVE_ALLOCA_H)
@@ -232,7 +232,7 @@ endif(HAVE_STDARG_H)
 # => GMP_INCLUDE_DIR, GMP_LIBRARY
 
 set(GMP_SEARCH true)
-if(CMAKE_HOST_APPLE)
+if(APPLE)
     # use GMP.framework
     # set(CMAKE_FRAMEWORK_PATH .)
 elseif(MSVC)
@@ -240,7 +240,7 @@ elseif(MSVC)
     set(GMP_INCLUDE_DIR ${MOSH_GMP_DIR})
     set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.lib)
     set(GMP_SEARCH false)
-endif(CMAKE_HOST_APPLE)
+endif()
 
 if(GMP_SEARCH)
 find_path(GMP_INCLUDE_DIR gmp.h)
@@ -630,7 +630,7 @@ if(NOT WIN32)
     list(APPEND mosh_core_srcs ${mosh_posix_srcs})
 endif()
 
-if(CMAKE_HOST_WIN32)
+if(WIN32)
 set(mosh_win32_srcs
 src/win32/process.c)
 source_group(win32 FILES ${mosh_win32_srcs})
@@ -641,7 +641,7 @@ src/win/win.cpp
 src/win/mosh.rc)
 set_source_files_properties(${mosh_core_cxxsrcs}
     PROPERTIES COMPILE_FLAGS "-D_UNICODE -DUNICODE -DWIN32_LEAN_AND_MEAN")
-endif(CMAKE_HOST_WIN32)
+endif()
 
 configure_file(cmake/config-cmake.h.in
     ${PROJECT_BINARY_DIR}/cmake/config.h)

@@ -757,7 +757,7 @@ if(MOSHPLUGIN_CURSES)
         if(EXISTS ${MOSHPLUGIN_CURSES_NMOSH_DIR})
             add_mosh_plugin(mosh_curses_gui src/ext/curses/mosh_curses.c)
             add_subdirectory(${MOSHPLUGIN_CURSES_NMOSH_DIR} pdcurses) # => pdcurses_win32a
-            target_link_libraries(mosh_curses pdcurses_win32a)
+            target_link_libraries(mosh_curses pdcurses_win32)
             target_link_libraries(mosh_curses_gui pdcurses_win32a)
             include_directories(AFTER ${MOSHPLUGIN_CURSES_NMOSH_DIR})
         else()
@@ -829,6 +829,8 @@ endif()
 
 # tests
 
+add_custom_target(TestTargets) 
+
 add_library(testinggc EXCLUDE_FROM_ALL
     ${gc_srcs})
 add_library(testingmosh EXCLUDE_FROM_ALL
@@ -851,12 +853,15 @@ endif(MSVC)
 target_link_libraries(gctest${testname} testinggc ${arch_libs})
 set_target_properties(gctest${testname} PROPERTIES FOLDER Test)
 add_test(gctest-${testname} gctest${testname})
+add_dependencies(TestTargets gctest${testname})
 endmacro(add_gcguitest)
+
 macro(add_gctest testname)
 add_executable(gctest${testname} EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
 target_link_libraries(gctest${testname} testinggc ${arch_libs})
 set_target_properties(gctest${testname} PROPERTIES FOLDER Test)
 add_test(gctest-${testname} gctest${testname})
+add_dependencies(TestTargets gctest${testname})
 endmacro(add_gctest)
 
 add_gcguitest(test) # gctest is GUI app in win32.. some historical reason
@@ -882,6 +887,7 @@ add_executable(moshtest${testname} EXCLUDE_FROM_ALL ${gtest_srcs} src/${testname
 target_link_libraries(moshtest${testname} testingmosh testinggc ${GMP_LIBRARY} ${arch_libs})
 set_target_properties(moshtest${testname} PROPERTIES FOLDER Test)
 add_test(mosh-${testname} moshtest${testname})
+add_dependencies(TestTargets moshtest${testname})
 endmacro(add_moshcoretest)
 
 add_moshcoretest(ObjectTest)

@@ -16,7 +16,6 @@
 
 /*** Socket Functions ... ***/
 
-// FIXME: getaddrinfo is not compatible with boehm GC..?
 static struct addrinfo * 
 save_addrinfo(struct addrinfo *ai, int do_free_p){
     struct addrinfo *p;
@@ -38,7 +37,20 @@ save_addrinfo(struct addrinfo *ai, int do_free_p){
     return p;
 }
 
-/* proto: 0:TCP 1:UDP */
+int
+socket_name_family(void *ap){
+    struct addrinfo *ai = (struct addrinfo *)ap;
+    switch(ai->ai_family){
+        case AF_INET:
+            return 4;
+        case AF_INET6:
+            return 6;
+        default:
+            return 0;
+    }
+}
+
+/* proto: 1:TCP 2:UDP */
 int
 socket_getaddrinfo(char* name,char* servicename, void* ret_addrinfo, int mode, int proto){
     int ret;
@@ -166,6 +178,31 @@ socket_accept(int fd,void* ret_name,int* ret_len){
         }
     }else{
         return ret;
+    }
+}
+
+void
+socket_sockaddr_read(void* sp,int *ret_family, void** ret_addr,int* ret_len,int* ret_port){
+    struct sockaddr* sa = (struct sockaddr *)sp;
+    struct sockaddr_in* s4 = (struct sockaddr_in *)sp;
+    struct sockaddr_in6* s6 = (struct sockaddr_in6 *)sp;
+
+    switch(sa->sa_family){
+        case AF_INET:
+            *ret_family = 4;
+            memcpy(ret_addr,&s4->sin_addr,4);
+            *ret_len = 4;
+            *ret_port = s4->sin_port;
+            break;
+        case AF_INET6:
+            *ret_family = 6;
+            memcpy(ret_addr,&s6->sin6_addr,16);
+            *ret_len = 16;
+            *ret_port = s6->sin6_port;
+            break;
+        default: /* Domain socket ?? */
+            *ret_family = 0;
+            break;
     }
 }
 

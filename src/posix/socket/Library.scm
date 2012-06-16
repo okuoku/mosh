@@ -12,5 +12,7 @@
   (int socket_listen (int int))
   (int socket_connect (int void* int))
   (int socket_accept (int void* void*))
+  (int socket_name_family (void*))
+  (void socket_sockaddr_read (void* void* void* void* void*))
   (void socket_addrinfo_read (void* void* void* void* void*))
   (void socket_setnodelay (int)))

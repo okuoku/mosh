@@ -17,12 +17,14 @@
 ;; Socket
 ;; FIXME: Connect and Listen are not async yet...
 (define (queue-connect Q name callback)
-  (let ((fd (socket_create 0 1)))
+  (let* ((family (inetname-family name))
+         (fd (socket_create family 1)))
     (socket_connect fd name)
     (callback fd)))
 
 (define (queue-listen Q name callback)
-  (let ((fd (socket_create 0 1)))
+  (let* ((family (inetname-family name))
+         (fd (socket_create family 1)))
     (socket_bind fd name)
     (socket_listen fd 5)
     (queue-register-fd/read Q fd (^[fd _] (callback fd)))))

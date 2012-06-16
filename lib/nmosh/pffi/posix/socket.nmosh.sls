@@ -10,6 +10,8 @@
            socket_accept
            socket_addrinfo_read
            socket_setnodelay
+           inetname-port ;;FIXME
+           inetname-family
            )
          (import (rnrs)
                  (yuni core)
@@ -33,23 +35,33 @@
 (define* (addrinfo->pointer (addrinfo))
   (let-with addrinfo (ptr) ptr))
 
-(define* inetname (name len))
+(define* inetname (sockaddr name len family port)) ;; FIXME: accept should return addr/port pair
 
 (define (make-inetname ptr len)
   (let* ((bv (make-bytevector len))
          (bv-ptr (bytevector-pointer bv)))
     (pointer-copy! ptr bv-ptr len)
-    (make inetname 
-      (name bv)
-      (len len))))
+    (make-inetname/sockaddr bv)))
 
-(define (make-inetname/bytevector bv len)
-  (make inetname 
-    (name bv)
-    (len len)))
+(define (make-inetname/sockaddr bv)
+  (let ((addr-box (make-bytevector 16)) ;; Enough for IPv6
+        (len-box (make-int-box))
+        (family-box (make-int-box))
+        (port-box (make-int-box)))
+    (stub:socket_sockaddr_read bv family-box addr-box len-box port-box)
+    (let ((family (int-box-ref family-box)))
+      (case family
+        ((4 6)
+         (make inetname
+               (family family)
+               (sockaddr bv)
+               (len (bytevector-length bv))
+               (name addr-box)
+               (port (int-box-ref port-box))))
+        (else #f)))))
 
 (define* (inetname-values (inetname))
-  (let-with inetname (name len) (values name len)))
+  (let-with inetname (sockaddr len) (values sockaddr len)))
 
 (define* (inetname-name (inetname))
   (receive (name len) (inetname-values inetname)
@@ -58,6 +70,11 @@
 (define* (inetname-len (inetname))
   (receive (name len) (inetname-values inetname)
     len))
+
+(define* (inetname-port (inetname))
+  (let-with inetname (port) port))
+(define* (inetname-family (inetname))
+  (let-with inetname (family) family))
 
 ;; mode 0/4/6, proto 0/1(TCP)/2(UDP)
 (define (socket_getaddrinfo name service mode proto)
@@ -79,18 +96,19 @@
   (stub:socket_freeaddrinfo (addrinfo->pointer addrinfo)))
 
 (define* (socket_bind (fd) (inetname))
-  (receive (name len) (inetname-values inetname)
+  (receive (sockaddr len) (inetname-values inetname)
+    (write (list 'bind: sockaddr ))(newline)
     (stub:socket_bind (fd->int fd)
-                      name
+                      sockaddr
                       len)))
 
 (define* (socket_listen (fd) n)
   (stub:socket_listen (fd->int fd) n))
 
 (define* (socket_connect (fd) (inetname))
-  (receive (name len) (inetname-values inetname)
+  (receive (sockaddr len) (inetname-values inetname)
     (stub:socket_connect (fd->int fd)
-                         name
+                         sockaddr
                          len)))
 
 (define* (socket_accept (fd)) ;; => fd inetname / #f
@@ -104,7 +122,7 @@
       (if (< r 1)
         (values #f #f)
         (values (int->fd r)
-                (make-inetname/bytevector bv len))))))
+                (make-inetname/sockaddr bv len))))))
 
 (define* (socket_addrinfo_read (addrinfo)) ;; => inetname addrinfo/#f
   (let ((box-addr (make-ptr-box))

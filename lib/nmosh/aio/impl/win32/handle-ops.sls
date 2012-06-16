@@ -5,6 +5,7 @@
            win32-handle-stream
 
            ;; external
+           queue-open-serialport0
            queue-read0
            queue-write0
            ; queue-close0 was moved to socket-ops
@@ -31,6 +32,14 @@
                       (h win32-handle))))
     (queue-register-handle Q win32-handle stream)
     stream))
+
+(define* (queue-open-serialport0 (Q) devname baudrate) ;; => stream
+  (let ((h (win32_handle_open devname 5)))
+    (cond
+      (h
+        (win32_handle_setbaud h baudrate)
+        (handle->stream Q h))
+      (else #f))))
 
 (define* (queue-read0 (Q) (win32-handle-stream) cb)
   ;; cb = (^[handle buf len] ...)
@@ -71,7 +80,9 @@
                                          BLKSIZE
                                          next-buf
                                          ovl/read)))
-        ((= err 259) ;; ERROR_NO_MORE_ITEMS
+        ((or
+           ;(= err 258) ;; WAIT_TIMEOUT
+           (= err 259)) ;; ERROR_NO_MORE_ITEMS
          ;(display (list 'READ-ZERO1: (handle->pointer h)))(newline)
          ;; Queue next read
          (~ win32-handle-stream 'buf/read := next-buf) 
@@ -133,7 +144,7 @@
             )))))
 
   (let-with win32-handle-stream (ovl/write h)
-    ;(display (list 'write: buflen))(newline)
+    ;(display (list 'write: buflen ovl/write))(newline)
     (win32_overlapped_setmydata ovl/write (object->pointer callback))
     (check (win32_handle_write_async h
                                      0 ;; FIXME: Feed offset

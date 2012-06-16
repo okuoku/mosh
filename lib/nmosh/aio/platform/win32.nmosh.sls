@@ -13,32 +13,13 @@
                  queue-read0
                  queue-close0
                  queue-spawn0
+                 queue-open-serialport0
                  resolve-socketname/4
                  resolve-socketname/6
                  inetname-port
                  queue-listen
                  queue-accept
                  queue-connect
-                 ;; I/O objects constructors
-                 ;discard
-                 ;std/in
-                 ;std/out
-                 ;std/err
-                 ;file/in
-                 ;file/out
-                 ;file/overwrite
-                 ;file/append
-                 ;pipe/push
-                 ;pipe/pull
-                 ;pipe/in
-
-                 ;; process
-                 ;queue-process-launch
-                 ;process-kill
-
-                 ;; GUI related
-                 ;queue-create-window
-                 ;dispose-io-object
                  queue-window-register
                  queue-window-destroy
                  )

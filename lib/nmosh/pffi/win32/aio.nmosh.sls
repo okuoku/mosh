@@ -15,6 +15,7 @@
                  win32_process_wait_async
                  win32_handle_open
                  win32_handle_close
+                 win32_handle_setbaud
 
                  ;; sockets
                  win32_sockaddr_storage_size
@@ -226,6 +227,9 @@
       (if (= 0 (pointer->integer r))
         #f ; Error
         (pointer->handle r)))))
+
+(define* (win32_handle_setbaud (h win32-handle) baudrate)
+  (stub:win32_handle_setbaud (handle->pointer h) baudrate))
 
 (define* (win32_handle_close (h win32-handle))
   (let ((handle (handle->pointer h)))

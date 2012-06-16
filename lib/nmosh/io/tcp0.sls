@@ -5,8 +5,7 @@
            start-read
            socket-write
            socket-accept
-           socket-close
-           )
+           socket-close)
          (import (rnrs)
                  (shorten)
                  (nmosh aio platform)

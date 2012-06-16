@@ -244,6 +244,7 @@ win32_handle_wait(HANDLE h){
 
 int
 win32_handle_setbaud(HANDLE h,int b){
+    COMMTIMEOUTS theCommTimeouts;
     DCB theDcb;
     theDcb.DCBlength = sizeof(DCB);
     theDcb.BaudRate =  b;
@@ -260,12 +261,20 @@ win32_handle_setbaud(HANDLE h,int b){
     theDcb.fNull = FALSE;
     theDcb.fRtsControl = RTS_CONTROL_ENABLE;
     theDcb.fAbortOnError = FALSE;
+    theDcb.EofChar = 0;
+    theDcb.XonChar = 0x11;
+    theDcb.XoffChar = 0x13;
     theDcb.wReserved = 0;
-    theDcb.XonLim = -1;
-    theDcb.XoffLim = -1;
+    theDcb.XonLim = 9999; /* ???? */
+    theDcb.XoffLim = 9999; /* ???? */
     theDcb.ByteSize = 8;
     theDcb.Parity = NOPARITY;
     theDcb.StopBits = ONESTOPBIT;
+    ZeroMemory(&theCommTimeouts,sizeof(COMMTIMEOUTS));
+    theCommTimeouts.ReadIntervalTimeout = MAXDWORD;
+    theCommTimeouts.ReadTotalTimeoutMultiplier = MAXDWORD;
+    theCommTimeouts.ReadTotalTimeoutConstant = MAXDWORD-1; /* FIXME: WHY? */
+    SetCommTimeouts(h,&theCommTimeouts);
     return SetCommState(h,&theDcb);
 
 }
@@ -454,28 +463,33 @@ win32_handle_open(wchar_t* path, int mode){ /* => NULL if fail */
         default:
             return 0;
         case 1:
+            sharemode = FILE_SHARE_READ;
             disposition = CREATE_ALWAYS;
             accessmode = GENERIC_READ|GENERIC_WRITE;
             break;
         case 2:
+            sharemode = FILE_SHARE_READ;
             disposition = OPEN_EXISTING;
             accessmode = GENERIC_READ|GENERIC_WRITE;
             break;
         case 3:
+            sharemode = FILE_SHARE_READ;
             disposition = TRUNCATE_EXISTING;
             accessmode = GENERIC_READ|GENERIC_WRITE;
             break;
         case 4:
+            sharemode = 0;
             disposition = OPEN_EXISTING;
             accessmode = GENERIC_READ;
             break;
         case 5:
+            sharemode = 0;
             disposition = OPEN_EXISTING;
             accessmode = GENERIC_READ|GENERIC_WRITE;
             break;
     }
-    h = CreateFile(path,accessmode,sharemode,NULL,disposition,
-                   FILE_ATTRIBUTE_NORMAL, NULL);
+    h = CreateFileW(path,accessmode,sharemode,NULL,disposition,
+                   FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED, NULL);
     if(h == INVALID_HANDLE_VALUE){
         return 0;
     }else{

@@ -608,6 +608,10 @@ src/OSCompatThread.cpp
 src/VMFactory.cpp
 src/OSCompat.cpp
 src/stubs.cpp
+src/generic/boehmgc-stubs.c
+)
+
+set(mosh_posix_srcs
 src/posix/terminal/terminal.c
 src/posix/spawn/posixspawn.c
 src/posix/environ/mosh-environ.c
@@ -619,10 +623,12 @@ src/posix/debugee/posix_debugee.c
 src/bsd/kqueue/kqueue_stubs.c
 src/posix/wait3/wait3.c
 src/posix/pthread/mosh_pthread.c
-src/generic/boehmgc-stubs.c
 )
 
 set(mosh_core_srcs ${mosh_core_cxxsrcs} ${ffi_stub})
+if(NOT WIN32)
+    list(APPEND mosh_core_srcs ${mosh_posix_srcs})
+endif()
 
 if(CMAKE_HOST_WIN32)
 set(mosh_win32_srcs

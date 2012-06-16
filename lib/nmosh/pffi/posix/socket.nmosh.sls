@@ -97,7 +97,6 @@
 
 (define* (socket_bind (fd) (inetname))
   (receive (sockaddr len) (inetname-values inetname)
-    (write (list 'bind: sockaddr ))(newline)
     (stub:socket_bind (fd->int fd)
                       sockaddr
                       len)))

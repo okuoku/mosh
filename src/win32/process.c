@@ -242,6 +242,34 @@ win32_handle_wait(HANDLE h){
 	return 1;
 }
 
+int
+win32_handle_setbaud(HANDLE h,int b){
+    DCB theDcb;
+    theDcb.DCBlength = sizeof(DCB);
+    theDcb.BaudRate =  b;
+    theDcb.fBinary = TRUE;
+    theDcb.fParity = FALSE;
+    theDcb.fOutxCtsFlow = FALSE;
+    theDcb.fOutxDsrFlow = FALSE;
+    theDcb.fDtrControl = DTR_CONTROL_ENABLE;
+    theDcb.fDsrSensitivity = FALSE;
+    theDcb.fTXContinueOnXoff = TRUE;
+    theDcb.fOutX = FALSE;
+    theDcb.fInX = FALSE;
+    theDcb.fErrorChar = FALSE;
+    theDcb.fNull = FALSE;
+    theDcb.fRtsControl = RTS_CONTROL_ENABLE;
+    theDcb.fAbortOnError = FALSE;
+    theDcb.wReserved = 0;
+    theDcb.XonLim = -1;
+    theDcb.XoffLim = -1;
+    theDcb.ByteSize = 8;
+    theDcb.Parity = NOPARITY;
+    theDcb.StopBits = ONESTOPBIT;
+    return SetCommState(h,&theDcb);
+
+}
+
 uintptr_t
 win32_create_named_pipe(wchar_t* name){
 	HANDLE h;

@@ -21,6 +21,7 @@ int win32_process_wait_async(uintptr_t h,uintptr_t iocp,uintptr_t key,uintptr_t 
 //int win32_process_get_result(void* p);
 //int win32_cancelioex(void* h,void* ovl);
 int win32_handle_close(void* h);
+int win32_handle_setbaud(void* h,int b);
 
 //winsock
 int win32_sockaddr_storage_size(void);

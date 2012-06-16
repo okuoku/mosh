@@ -15,6 +15,7 @@
   (int win32_handle_close (void*))
   (int win32_handle_read_async (void* int int int void* void*))
   (int win32_handle_write_async (void* int int int void* void*))
+  (int win32_handle_setbaud (void* int))
   (void* win32_handle_open (void* int))
   (void* win32_process_redirected_child2 (void* void* void* void* void* int int int))
   (void* win32_create_named_pipe_async (void*))

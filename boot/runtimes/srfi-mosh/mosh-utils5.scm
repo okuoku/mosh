@@ -524,16 +524,22 @@
 (define preload-list '())
 (define preload-offset 0)
 (define preload-port #f)
+(define preload-core-list '())
+(define preload-core-offset 0)
+(define preload-core-port #f)
 
-(define (ca-preload-path)
-  ;; nmosh-preload.fasl 
-  ;;  
-  (define BASENAME "nmosh-preload.fasl")
+(define (%ca-gen-preload-path basename)
   (cond
     ((or %nmosh-prefixless-mode %nmosh-portable-mode)
-      (string-append (mosh-executable-path) BASENAME))
+      (string-append (mosh-executable-path) basename))
     (else
-      (string-append CACHEPATH BASENAME))))
+      (string-append CACHEPATH basename))) )
+
+(define (ca-preload-path)
+  (%ca-gen-preload-path "nmosh-preload.fasl"))
+
+(define (ca-preload-core-path)
+  (%ca-gen-preload-path "nmosh-preload-core.fasl"))
 
 (define (ca-preload-lookup-itr cur name)
   (and (pair? cur)
@@ -541,16 +547,39 @@
          (ca-preload-register (caar cur) (cdar cur))
          (ca-preload-lookup-itr (cdr cur) name))))
 
+(define (ca-preload-lookup-itr/core cur name)
+  (and (pair? cur)
+       (if (equal? (caar cur) name)
+         (ca-preload-register/core (caar cur) (cdar cur))
+         (ca-preload-lookup-itr/core (cdr cur) name))))
+
 (define (ca-preload-enable)
   (define path (ca-preload-path))
-  (define p (and path (open-file-input-port path)))
-  (set! preload-list (fasl-read p))
-  (set! preload-offset (port-position p))
-  (set! preload-port p))
+  (define p (and path 
+                 (file-exists? path)
+                 (open-file-input-port path)))
+  (define path/core (ca-preload-core-path))
+  (define p/core (and path/core 
+                      (file-exists? path/core)
+                      (open-file-input-port path/core)))
+  (when p
+    (PCK 'PRELOAD/USER: path)
+    (set! preload-list (fasl-read p)) 
+    (set! preload-offset (port-position p)) 
+    (set! preload-port p)) 
+  (when p/core
+    (PCK 'PRELOAD/CORE: path/core)
+    (set! preload-core-list (fasl-read p/core))
+    (set! preload-core-offset (port-position p/core))
+    (set! preload-core-port p/core))
+  (unless (or p p/core)
+    (PCK 'PRELOAD: "No preload file")))
 
 (define (ca-preload-disable)
   (set! preload-list '())
-  (set! preload-port #f))
+  (set! preload-port #f)
+  (set! preload-core-list '())
+  (set! preload-core-port #f))
 
 (define (ca-preload-register name address) ;; => true
   (PCK 'PRELOAD: name 'at address)
@@ -559,9 +588,18 @@
   ;; FIXME: return fail if we failed to load cache image?
   #t)
 
+(define (ca-preload-register/core name address) ;; => true
+  (PCK 'PRELOAD/CORE: name 'at address)
+  (set-port-position! preload-core-port (+ preload-core-offset address))
+  (ca-runcache (fasl-read preload-core-port))
+  ;; FIXME: return fail if we failed to load cache image?
+  #t)
+
 (define (ca-preload-realize name recompile?) ;; => boolean
-  (and preload-port
-       (ca-preload-lookup-itr preload-list name)))
+  (or (and preload-port
+           (ca-preload-lookup-itr preload-list name))
+      (and preload-core-port
+           (ca-preload-lookup-itr/core preload-core-list name))) )
 
 ;;------------------------------------------------
 ;; library file name

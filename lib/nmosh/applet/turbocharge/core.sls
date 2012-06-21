@@ -27,6 +27,12 @@
            ;; Network RPC
            (nmosh net msgpack)
 
+           ;; Misc
+           (nmosh gc)
+           (nmosh finalizers)
+           (nmosh weak-vectors)
+           (nmosh ui deco)
+
            ;; SRFIs
            (prefix (srfi :1) srfi-1-)
            (srfi :2)

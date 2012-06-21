@@ -18,6 +18,7 @@
                  queue-spawn0
 
                  queue-invoke-ffithread
+                 inetname-port
                  )
          (import (nmosh aio impl posix posix-socket)
                  (nmosh aio impl posix fd-ops)

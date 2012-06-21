@@ -5,6 +5,8 @@
            queue-connect
            resolve-socketname/4
            resolve-socketname/6
+
+           inetname-port
            )
          (import (rnrs)
                  (shorten)

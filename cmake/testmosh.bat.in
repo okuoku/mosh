@@ -1,0 +1,1 @@
+%~dp0@MOSH_EXECUTABLE_NAME@ --loadpath=@CMAKE_CURRENT_LIST_DIR@ %*

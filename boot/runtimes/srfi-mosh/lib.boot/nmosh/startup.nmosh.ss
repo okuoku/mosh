@@ -29,10 +29,10 @@
 
 (define (enter-debugger c trace)
   (define (fallback x)
-    (display "Couldn't start debugger, now using minidebug.\n" (current-error-port))
+    (display "Couldn't start script debugger, now using minidebug.\n" (current-error-port))
     (call-with-port (current-error-port) 
 		    (lambda (p) (minidebug p c trace))))
-  (display "launching debugger...\n" (current-error-port))
+  (display "Launching script debugger...\n" (current-error-port))
   (DEBUGMODE-ON)
   (set-symbol-value! '%nmosh-fail-condition c)
   (set-symbol-value! '%nmosh-fail-trace trace)

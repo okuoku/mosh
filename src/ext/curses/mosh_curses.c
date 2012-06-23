@@ -296,7 +296,6 @@ mcur_resize_term(void){
 static int acquired = 0;
 static uintptr_t
 keyloop(uintptr_t in0,uintptr_t in1,uintptr_t* out0,uintptr_t* out1){
-    int r;
     wint_t w;
     if(!acquired){
         acquired = 1;

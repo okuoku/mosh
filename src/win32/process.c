@@ -677,7 +677,7 @@ thread_waiter(void* p){
 	}
 }
 
-typedef uintptr_t (*ffithread_callback_t)(uintptr_t in0,uintptr_t in1,uintptr_t out0,uintptr_t out1);
+typedef uintptr_t (*ffithread_callback_t)(uintptr_t in0,uintptr_t in1,uintptr_t* out0,uintptr_t* out1);
 
 typedef struct{
     HANDLE iocp;
@@ -695,7 +695,7 @@ thread_ffithread(void* p){
     ffithread_data* x = (ffithread_data *)p;
     for(;;){
         continue_p = x->func(x->in0,x->in1,&out0,&out1);
-        emit_queue_event(x->iocp,out0,out1,x->ovl);
+        emit_queue_event(x->iocp,out0,out1,(uintptr_t)x->ovl);
         if(!continue_p){
             free(p);
             break;
@@ -708,10 +708,10 @@ void
 win32_invoke_ffithread(HANDLE iocp,uintptr_t func,uintptr_t in0,uintptr_t in1,uintptr_t overlapped){
     ffithread_data* p = malloc(sizeof(ffithread_data));
     p->iocp = iocp;
-    p->ovl = overlapped;
+    p->ovl = (LPOVERLAPPED)overlapped;
     p->in0 = in0;
     p->in1 = in1;
-    p->func = func;
+    p->func = (ffithread_callback_t)func;
     _beginthread(thread_ffithread,0,p);
 }
 

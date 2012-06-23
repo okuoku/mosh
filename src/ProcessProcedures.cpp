@@ -163,7 +163,7 @@ Object scheme::internalPipeEx(VM* theVM, int argc, const Object* argv)
 Object scheme::internalExecEx(VM* theVM, int argc, const Object* argv)
 {
     DeclareProcedureName("%exec");
-#ifdef MONA
+#if defined(_WIN32) || defined(MONA)
     return callImplementationRestrictionAfter(theVM, procedureName, "not implmented", Pair::list1(argv[0]));
 #else
     checkArgumentLength(3);

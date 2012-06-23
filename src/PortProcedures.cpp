@@ -926,6 +926,15 @@ Object scheme::deleteFileEx(VM* theVM, int argc, const Object* argv)
     } else {
         return Object::Undef;
     }
+#elif defined(_WIN32)
+    if(File::deleteFileOrDirectory(text->data())){
+        return Object::Undef;
+    }else{
+        callIoFileNameErrorAfter(theVM, procedureName,
+                                 "can't delete file",
+                                 argv[0]);
+        return Object::Undef;
+    }
 #else
     if (-1 == unlink(text->data().ascii_c_str())) {
         callIoFileNameErrorAfter(theVM, procedureName,

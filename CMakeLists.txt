@@ -27,6 +27,25 @@ option(MOSH_DEBUG_VERSION "build Debug version of mosh interpreter" OFF)
 option(MOSH_GC_PARALLEL_MARK "Boehm GC: Turn on parallel-marking" OFF)
 set(MOSH_EXECUTABLE_NAME "nmosh" CACHE STRING "Interpreter executable name")
 
+# Pick-up GStreamer SDK from fluendo
+
+# Win32, from environment variable GSTREAMER_SDK_ROOT_X86
+if(WIN32 AND (NOT CMAKE_CL_64))
+    if(EXISTS $ENV{GSTREAMER_SDK_ROOT_X86})
+        message(STATUS 
+            "Using GStreamer SDK(32bit) from $ENV{GSTREAMER_SDK_ROOT_X86}")
+        list(APPEND CMAKE_FIND_ROOT_PATH $ENV{GSTREAMER_SDK_ROOT_X86})
+        if(NOT MSVC)
+            set(CAIRO_LIBRARY $ENV{GSTREAMER_SDK_ROOT_X86}/lib/libcairo.dll.a)
+        endif()
+        # FIXME: WHY?
+        include_directories($ENV{GSTREAMER_SDK_ROOT_X86}/lib/glib-2.0/include)
+    endif()
+endif()
+# Apple , from GStreamer framework (Not Yet)
+
+# MOSH
+
 # only ONE runtime source will be allowed.
 set(nmosh_runtime_src
 src/nmosh_image.cpp)
@@ -782,17 +801,9 @@ else()
     set(CAIROLIB "libcairo.so")
 endif()
 
-find_path(CAIRO_INCLUDE_DIR cairo.h
-    /usr/local/include/cairo
-    /usr/include/cairo
-    ~/Library/Frameworks
-    /Library/Frameworks)
+find_path(CAIRO_INCLUDE_DIR cairo/cairo.h)
 
-find_file(CAIRO_LIBRARY ${CAIROLIB}
-    /usr/local/lib
-    /usr/lib
-    ~/Library/Frameworks
-    /Library/Frameworks)
+find_file(CAIRO_LIBRARY ${CAIROLIB})
 
 if(CAIRO_INCLUDE_DIR)
     option(MOSHPLUGIN_CAIRO "build nmosh cairo 2D vector graphics plugin" ON)

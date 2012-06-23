@@ -789,6 +789,22 @@ if(MOSHPLUGIN_CURSES)
     endif()
 endif(MOSHPLUGIN_CURSES)
 
+# GTK2
+find_package(GTK)
+find_package(GTK2)
+option(MOSHPLUGIN_GOBJECT "build nmosh GObject plugin" OFF)
+if(MOSHPLUGIN_GOBJECT)
+    add_mosh_plugin(mosh_gobj src/ext/gobject/mgobj.c)
+    include_directories(AFTER ${GTK2_GLIB_INCLUDE_DIR})
+    if(NOT GTK2_GTHREAD_LIBRARY)
+        find_library(GTK2_GTHREAD_LIBRARY gthread-2.0)
+    endif()
+    target_link_libraries(mosh_gobj ${GTK2_GLIB_LIBRARY}
+        ${GTK2_GOBJECT_LIBRARY}
+        ${GTK2_GTHREAD_LIBRARY}
+        )
+endif()
+
 # Cairo
 
 # handwritten..
@@ -805,6 +821,10 @@ find_path(CAIRO_INCLUDE_DIR cairo/cairo.h)
 
 find_file(CAIRO_LIBRARY ${CAIROLIB})
 
+if(NOT CAIRO_LIBRARY AND GTK2_CAIRO_LIBRARY)
+    set(CAIRO_LIBRARY ${GTK2_CAIRO_LIBRARY})
+endif()
+
 if(CAIRO_INCLUDE_DIR)
     option(MOSHPLUGIN_CAIRO "build nmosh cairo 2D vector graphics plugin" ON)
 else()
@@ -815,22 +835,6 @@ if(MOSHPLUGIN_CAIRO)
     add_mosh_plugin(mosh_cairo src/ext/cairo/moshcairo.c)
     target_link_libraries(mosh_cairo ${CAIRO_LIBS} ${CAIRO_LIBRARY})
     include_directories(AFTER ${CAIRO_INCLUDE_DIR})
-endif()
-
-# GTK2
-find_package(GTK)
-find_package(GTK2)
-option(MOSHPLUGIN_GOBJECT "build nmosh GObject plugin" OFF)
-if(MOSHPLUGIN_GOBJECT)
-    add_mosh_plugin(mosh_gobj src/ext/gobject/mgobj.c)
-    include_directories(AFTER ${GTK2_GLIB_INCLUDE_DIR})
-    if(NOT GTK2_GTHREAD_LIBRARY)
-        find_library(GTK2_GTHREAD_LIBRARY gthread-2.0)
-    endif()
-    target_link_libraries(mosh_gobj ${GTK2_GLIB_LIBRARY}
-        ${GTK2_GOBJECT_LIBRARY}
-        ${GTK2_GTHREAD_LIBRARY}
-        )
 endif()
 
 # Win32 plugins

@@ -5,7 +5,6 @@
   (libname: mosh-curses)
   #(ret name args)
   (int mcur_getch)
-  (void mcur_acquire)
   (void mcur_release)
   (void mcur_refresh)
   (void mcur_mouse_enable)

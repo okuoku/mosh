@@ -47,7 +47,6 @@ mcur_getch(void){
     return getch();
 }
 
-MOSHEXPORT
 void 
 mcur_acquire(void){
 #ifdef XCURSES /* for PDCurses ...*/

@@ -129,7 +129,8 @@
       'ok
       )))
 
-(define (screen-create callback) ;; => screen
+(define (screen-create callback init-cb) ;; => undef
+  ;; init-cb = ^screen
   ;; callback = ^[type arg0 arg1 arg2 arg3]
   ;;  type = key | mouse? | ...
   ;;  key = arg0:char/sym
@@ -142,33 +143,40 @@
         (else
           (integer->char x)))
       x))
+  (define self #f)
+  (define initialized? #f)
+  (define (initialize)
+    (~ self 'height := (mcur_lines))
+    (~ self 'width := (mcur_cols))
+    (screen-clear self)
+    (init-cb self))
   (define (handler type arg0 arg1 arg2 arg3)
     (case type
       ((key)
        (cond
+         ((= arg0 0) ;; Initialize event
+          (initialize))
          ((= arg0 key-resize)
           (when pdcurses?
             (mcur_resize_term))
-          ;; Resize screen buffer
+          ;; FIXME: Resize screen buffer here
           (mcur_refresh))
          (else
            (callback 'key (translate arg0) #f #f #f))))
       (else ;; unknown
         'ok)))
+  (set! self (make screen
+                   (cur-x 0)
+                   (cur-y 0)
+                   (input-buffer "")
+                   (height #f)
+                   (width #f)))
   (curses-acquire handler)
-  (let ((r (make screen
-                 (cur-x 0)
-                 (cur-y 0)
-                 (input-buffer "")
-                 (height (mcur_lines))
-                 (width (mcur_cols))))) 
-    (screen-clear r)
-    r))
+  #t)
 
 (define (curses-acquire callback)
   (define (cb ret chr)
     (callback 'key chr #f #f #f))
-  (mcur_acquire)
   (queue-invoke-ffithread nmosh-io-master-queue
                           keyloop
                           0

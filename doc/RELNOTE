@@ -20,6 +20,9 @@ About This Release
 
 Changes:
 
+    VM:
+        BoehmGC was updated to upstream 7.3alpha.
+
     TinyCLOS:
         A bool value next-method? available within method definition. See
         Issue 216 for details.
@@ -33,17 +36,25 @@ Changes:
         filename will be prefixed with "@"(at).
 
         nmosh learned "turbocharge"(precompile every standard libraries)
-        feature. To update precompiled libraries,
-
+        feature.
+        nmosh -R option will activate precompiled archive.
+        
+         To update precompiled libraries:
           nmosh -T turbocharge
 
-        nmosh -R option will activate precompiled archive.
+         To verify turbocharge works:
+          nmosh -R --verbose
+
+         To use applet with turbocharged libraries:
+          nmosh -RT applet-name
 
          Warning: turbocharged cache will not automatically update; ie. you
          will have to update turbocharge when you installed new nmosh on your
          system.
 
     Build system:
+        nmosh CMake builds now can be compiled with VisualStudio 2012 RC.
+
         nmosh CMake builds now built with clang compiler on MacOS 10.7 or later.
 
         nmosh CMake builds now installs "testmosh.bat" to test built nmosh.exe

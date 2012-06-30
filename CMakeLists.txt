@@ -1,5 +1,6 @@
 # please check doc/README.CMake for instructions
 
+set(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
 cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
@@ -12,6 +13,8 @@ include(CheckIncludeFile)
 include(CheckFunctionExists)
 include(CheckTypeSize)
 ENABLE_TESTING()
+
+find_package(PkgConfig)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -807,25 +810,35 @@ endif()
 
 # Cairo
 
-# handwritten..
+if(PKG_CONFIG_FOUND)
+    pkg_check_modules(PKG_CAIRO cairo)
+endif()
 
-set(CAIRO_LIBS "" CACHE STRING "additional cairo libraries")
-
-if(MSVC)
-    set(CAIROLIB "cairo.lib")
+if(PKG_CAIRO_FOUND)
+    # Use pkg-config data
+    link_directories(${PKG_CAIRO_LIBRARY_DIRS})
+    set(CAIRO_LIBRARY ${PKG_CAIRO_LIBRARIES})
+    set(CAIRO_INCLUDE_DIR ${PKG_CAIRO_INCLUDE_DIRS})
 else()
-    set(CAIROLIB "libcairo.so")
+    # handwritten..
+
+    set(CAIRO_LIBS "" CACHE STRING "additional cairo libraries")
+
+    if(MSVC)
+        set(CAIROLIB "cairo.lib")
+    else()
+        set(CAIROLIB "libcairo.so")
+    endif()
+
+    find_path(CAIRO_INCLUDE_DIR cairo/cairo.h)
+    find_file(CAIRO_LIBRARY ${CAIROLIB})
+
+    if(NOT CAIRO_LIBRARY AND GTK2_CAIRO_LIBRARY)
+        set(CAIRO_LIBRARY ${GTK2_CAIRO_LIBRARY})
+    endif()
 endif()
 
-find_path(CAIRO_INCLUDE_DIR cairo/cairo.h)
-
-find_file(CAIRO_LIBRARY ${CAIROLIB})
-
-if(NOT CAIRO_LIBRARY AND GTK2_CAIRO_LIBRARY)
-    set(CAIRO_LIBRARY ${GTK2_CAIRO_LIBRARY})
-endif()
-
-if(CAIRO_INCLUDE_DIR)
+if(PKG_CAIRO_FOUND OR CAIRO_INCLUDE_DIR)
     option(MOSHPLUGIN_CAIRO "build nmosh cairo 2D vector graphics plugin" ON)
 else()
     option(MOSHPLUGIN_CAIRO "build nmosh cairo 2D vector graphics plugin" OFF)
@@ -835,6 +848,48 @@ if(MOSHPLUGIN_CAIRO)
     add_mosh_plugin(mosh_cairo src/ext/cairo/moshcairo.c)
     target_link_libraries(mosh_cairo ${CAIRO_LIBS} ${CAIRO_LIBRARY})
     include_directories(AFTER ${CAIRO_INCLUDE_DIR})
+endif()
+
+# libusb
+if(PKG_CONFIG_FOUND)
+    # check module with pkgconfig
+    pkg_check_modules(PKG_LIBUSB1 libusb-1.0)
+endif()
+
+if(PKG_LIBUSB1_FOUND)
+    link_directories(${PKG_LIBUSB1_LIBRARY_DIRS})
+    set(LIBUSB1_LIBRARY ${PKG_LIBUSB1_LIBRARIES})
+    set(LIBUSB1_INCLUDE_DIR ${PKG_LIBUSB1_INCLUDE_DIRS})
+elseif(WIN32)
+    set(MOSHWIN32_LIBUSB1_PREFIX CACHE PATH "libusbx-win package prefix")
+    if(MOSHWIN32_LIBUSB1_PREFIX)
+        if(MSVC)
+            set(LIBUSB1_LIBRARY 
+                ${MOSHWIN32_LIBUSB1_PREFIX}/MS32/static/libusb-1.0.lib)
+        else()
+            set(LIBUSB1_LIBRARY
+                ${MOSHWIN32_LIBUSB1_PREFIX}/MinGW32/static/libusb-1.0.a)
+        endif()
+        set(LIBUSB1_INCLUDE_DIR
+            ${MOSHWIN32_LIBUSB1_PREFIX}/include/libusbx-1.0)
+    else()
+        message("libusb missing(MOSHWIN32_LIBUSB1_PREFIX)")
+    endif()
+else()
+    # Detect FreeBSD libusb
+    find_library(LIBUSB1_LIBRARY usb)
+endif()
+
+if(LIBUSB1_LIBRARY)
+    option(MOSHPLUGIN_LIBUSB1 "build nmosh libusb-1.0 plugin" ON)
+else()
+    option(MOSHPLUGIN_LIBUSB1 "build nmosh libusb-1.0 plugin" ON)
+endif()
+
+if(MOSHPLUGIN_LIBUSB1)
+    add_mosh_plugin(mosh_usb src/ext/libusb1/libusb1.c)
+    include_directories(AFTER ${LIBUSB1_INCLUDE_DIR})
+    target_link_libraries(mosh_usb ${LIBUSB1_LIBRARY})
 endif()
 
 # Win32 plugins

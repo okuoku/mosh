@@ -7,7 +7,7 @@ LIMITATIONS
 
 - Performance may _NOT_ optimal when compared with standard build.
 - Not every mosh features are supported. (eg. FFI call-back in Win64)
-- we recommend standard (autotools) build (ie. ./configure && make) for
+- We recommend standard (autotools) build (ie. ./configure && make) for
   system-installed (ie. /usr/local/bin/mosh) mosh.
 - Scheme code tests and some C++ tests are not covered by CTest.
 
@@ -16,12 +16,13 @@ LIMITATIONS
 
 In short, it's win32 only. Other platforms are may or may not work.
 
-- Microsoft Visual Studio 2010 SP1
-- Apple Xcode 3.x and Mac OS X 10.6 (amd64/i386 only)
-- Unix Makefile with GCC/G++ 4.3 or later
-- MinGW Makefile with TDM-GCC 4.6 or later
+We recommend Ninja generator if available.
 
-Other CMake generators are not tested.
+- Microsoft Visual Studio 2010 SP1
+- Microsoft Visual Studio 2012 RC
+- Apple Xcode 4.x and Mac OS X 10.7 (amd64/i386 only)
+- GCC/G++ 4.3 or later
+- TDM-GCC 4.6 or later
 
 1. Source code setup
 --------------------

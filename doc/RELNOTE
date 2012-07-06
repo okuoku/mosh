@@ -60,6 +60,9 @@ Changes:
         nmosh CMake builds now installs "testmosh.bat" to test built nmosh.exe
         on Win32.
 
+        nmosh CMake builds now recognizes GStreamer SDK on Win32. Get GStreamer
+        SDK from: http://docs.gstreamer.com/display/GstSDK/Home
+
         Autotools and CMake builds will install additional plugins (some shared
         objects suffixed with .mplg) for nmosh.
 

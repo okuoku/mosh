@@ -199,7 +199,14 @@ CONS(FN(win32_extent_get), \
 CONS(FN(win32_extent_disknumber), \
 CONS(FN(win32_extent_offset), \
 CONS(FN(win32_extent_length), \
-	NIL))))))))))))))
+CONS(FN(win32_console_setpalette), \
+CONS(FN(win32_console_setcolor), \
+CONS(FN(win32_console_p), \
+CONS(FN(win32_console_getsize), \
+CONS(FN(win32_console_setpos), \
+CONS(FN(win32_console_settitle), \
+CONS(FN(win32_getstdhandle), \
+	NIL)))))))))))))))))))))
 #endif
 
 #define LIBDATA_BOEHMGC_STUBS CONS(SYM("boehmgc-stubs"), \

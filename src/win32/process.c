@@ -1738,7 +1738,7 @@ win32_extent_get(wchar_t* partition, void* out,int len,int* out_len){
             0,
             out,
             len,
-            out_len,
+            (PDWORD)out_len, /* FIXME: decl. as uint32_t* */
             NULL);
 	err = GetLastError();
     return b;
@@ -1763,4 +1763,99 @@ win32_extent_length(void* p,int id,int *upper,unsigned int *lower){
     *lower = vde->Extents[id].ExtentLength.u.LowPart;
 }
 
+/* Console related */
+void
+win32_console_setpalette(void* pal){
+    /* FIXME: ToDo */
+    /* GetConsoleScreenBufferInfoEx is Vista or later. */
+}
+
+void
+win32_console_setcolor(void* h, int fgidx, int bgidx){
+    SetConsoleTextAttribute((HANDLE)h, bgidx*16+fgidx);
+}
+
+int
+win32_console_p(void* h){ /* Non-zero for Console */
+    DWORD bogus;
+    return GetConsoleMode((HANDLE)h, &bogus);
+}
+
+/* Win32 console has scroll bar. So we will return 3+1 points. */
+/* We also return cursor position here. */
+void
+win32_console_getsize(void* h, 
+                      uint32_t* x, uint32_t* y, /* Total Size */
+                      uint32_t* cx0,uint32_t* cy0, /* Window dimension */
+                      uint32_t* cx1,uint32_t* cy1,
+                      uint32_t* curx, uint32_t* cury){
+    CONSOLE_SCREEN_BUFFER_INFO c;
+    int rx,ry,rcx0,rcy0,rcx1,rcy1,rcurx,rcury;
+    rx = ry = rcx0 = rcy0 = rcx1 = rcy1 = rcurx = rcury = 0;
+    if(GetConsoleScreenBufferInfo((HANDLE)h, &c)){
+        rx = c.dwSize.X;
+        ry = c.dwSize.Y;
+        rcx0 = c.srWindow.Left;
+        rcy0 = c.srWindow.Top;
+        rcx1 = c.srWindow.Right;
+        rcy1 = c.srWindow.Bottom;
+        rcurx = c.dwCursorPosition.X;
+        rcury = c.dwCursorPosition.Y;
+    }
+    if(x){
+        *x = rx;
+    }
+    if(y){
+        *y = ry;
+    }
+    if(cx0){
+        *cx0 = rcx0;
+    }
+    if(cy0){
+        *cy0 = rcy0;
+    }
+    if(cx1){
+        *cx1 = rcx1;
+    }
+    if(cy1){
+        *cy1 = rcy1;
+    }
+    if(curx){
+        *curx = rcurx;
+    }
+    if(cury){
+        *cury = rcury;
+    }
+}
+
+void
+win32_console_setpos(void* h,uint32_t x, uint32_t y){
+    COORD c;
+    c.X = x;
+    c.Y = y;
+    SetConsoleCursorPosition((HANDLE)h, c);
+}
+
+void
+win32_console_settitle(void* title){
+    SetConsoleTitle(title);
+}
+
+void*
+win32_getstdhandle(int fd){
+    DWORD q;
+    switch(fd){
+        case 0: /* STDIN */
+            q = STD_INPUT_HANDLE;
+            break;
+        case 1: /* STDOUT */
+            q = STD_OUTPUT_HANDLE;
+            break;
+        case 2: /* STDERR */
+            q = STD_ERROR_HANDLE;
+            break;
+        default: return INVALID_HANDLE_VALUE;
+    }
+    return GetStdHandle(q);
+}
 

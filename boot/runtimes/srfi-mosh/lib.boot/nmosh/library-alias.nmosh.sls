@@ -9,6 +9,12 @@
   '(
     (("win32")
      .
+     [ (nmosh ui deco platform) . (nmosh ui deco platform win32) ])
+    (("cygwin" "linux" "bsd" "darwin")
+     .
+     [ (nmosh ui deco platform) . (nmosh ui deco platform posix) ])
+    (("win32")
+     .
      [ (nmosh pffi locale) . (nmosh pffi win32 locale) ])
     (("cygwin" "linux" "bsd" "darwin")
      .

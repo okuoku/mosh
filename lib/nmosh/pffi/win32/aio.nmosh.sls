@@ -36,6 +36,9 @@
                  ;; for gui
                  win32-handle
                  handle->pointer
+
+                 ;; for console
+                 pointer->handle
                  )
          (import (rnrs)
                  (srfi :8)

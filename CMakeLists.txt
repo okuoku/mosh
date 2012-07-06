@@ -883,7 +883,7 @@ endif()
 if(LIBUSB1_LIBRARY)
     option(MOSHPLUGIN_LIBUSB1 "build nmosh libusb-1.0 plugin" ON)
 else()
-    option(MOSHPLUGIN_LIBUSB1 "build nmosh libusb-1.0 plugin" ON)
+    option(MOSHPLUGIN_LIBUSB1 "build nmosh libusb-1.0 plugin" OFF)
 endif()
 
 if(MOSHPLUGIN_LIBUSB1)

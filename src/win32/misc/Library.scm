@@ -20,7 +20,8 @@
   (int win32_console_setpalette (void* void*))
   (void win32_console_setcolor (void* int int))
   (int win32_console_p (void*))
-  (void win32_console_getsize (void* void* void* void* void* void* void*))
+  (void win32_console_getsize (void* void* void* void* void* void* void*
+                                     void* void*))
   (void win32_console_setpos (void* int int))
   (void win32_console_settitle (void*))
   (void* win32_getstdhandle (int))

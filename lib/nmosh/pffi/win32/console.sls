@@ -1,6 +1,7 @@
 (library (nmosh pffi win32 console)
          (export
            win32_console?
+           win32_console_setpalette
            win32_console_getsize
            win32_console_setpos
            win32_console_settitle
@@ -12,6 +13,7 @@
                  (nmosh pffi util)
                  (nmosh pffi win32 aio)
                  (nmosh pffi win32 util)
+                 (srfi :42)
                  (prefix (nmosh stubs win32-misc) stub:))
 
 (define* (win32_console? (h win32-handle))
@@ -22,7 +24,7 @@
   (let ((r (stub:win32_getstdhandle fd)))
     (pointer->handle r)))
 
-(define* (win32_console_getsize (h win32-handle)) ;; => w h x0 y0 x1 y1 cx cy
+(define* (win32_console_getsize (ha win32-handle)) ;; => w h x0 y0 x1 y1 cx cy
   (let ((w (make-int-box))
         (h (make-int-box))
         (x0 (make-int-box))
@@ -32,7 +34,7 @@
         (cx (make-int-box))
         (cy (make-int-box)))
     (stub:win32_console_getsize
-      (handle->pointer h)
+      (handle->pointer ha)
       w h x0 y0 x1 y1 cx cy)
     (values
       (int-box-ref w)
@@ -55,5 +57,12 @@
   (stub:win32_console_setcolor (handle->pointer h)
                                fg
                                bg))
+
+(define* (win32_console_setpalette (h win32-handle) l)
+  (define pal (make-bytevector (* 4 16)))
+  (do-ec (: i 16)
+         (bytevector-u32-native-set! pal (* 4 i) (list-ref l i)))
+  (not (= 0 (stub:win32_console_setpalette (handle->pointer h)
+                                           pal))))
 
 )

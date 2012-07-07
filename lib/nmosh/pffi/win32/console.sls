@@ -1,6 +1,7 @@
 (library (nmosh pffi win32 console)
          (export
            win32_console?
+           win32_console_getpalette
            win32_console_setpalette
            win32_console_getsize
            win32_console_setpos
@@ -64,5 +65,11 @@
          (bytevector-u32-native-set! pal (* 4 i) (list-ref l i)))
   (not (= 0 (stub:win32_console_setpalette (handle->pointer h)
                                            pal))))
+
+(define* (win32_console_getpalette (h win32-handle)) ;; => #f / l
+  (define pal (make-bytevector (* 4 16)))
+  (and (stub:win32_console_getpalette (handle->pointer h) pal)
+       (list-ec (: i 16)
+                (bytevector-u32-native-ref pal (* 4 i)))))
 
 )

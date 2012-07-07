@@ -9,6 +9,7 @@
                  deco-height
                  deco-set-palette!
                  deco-has-palette?
+                 deco-get-palette
                  deco-ident)
          (import (rnrs)
                  (match)
@@ -45,35 +46,35 @@
 
 (define (deco-has-palette? h) ;; => #f/rgb
   (if (eq? has-palette? 'undecided)
-    (let ((r (deco-set-palette/default! h)))
+    (let ((r (win32_console_getpalette h)))
       (set! has-palette? (if r 'rgb24 #f))
       has-palette?)
     has-palette?))
 
-(define default-palette
+(define default-palette ;; FIXME: unused 
   '(#x00000000 ;; 0
-    #x00000080 ;; 1
+    #x00800000 ;; 1
     #x00008000 ;; 2
-    #x00008080 ;; 3
-    #x00800000 ;; 4
+    #x00808000 ;; 3
+    #x00000080 ;; 4
     #x00800080 ;; 5
-    #x00808000 ;; 6
-    #x00808080 ;; 7
-    #x00000000 ;; 8?
-    #x000000ff ;; 9
+    #x00008080 ;; 6
+    #x00c0c0c0 ;; 7
+    #x00808080 ;; 8
+    #x00ff0000 ;; 9
     #x0000ff00 ;; 10
-    #x0000ffff ;; 11
-    #x00ff0000 ;; 12
+    #x00ffff00 ;; 11
+    #x000000ff ;; 12
     #x00ff00ff ;; 13
-    #x00ffff00 ;; 14
+    #x0000ffff ;; 14
     #x00ffffff ;; 15
     ))
 
-(define (deco-set-palette/default! h) ;; => boolean
-  (deco-set-palette! h default-palette))
-
 (define (deco-set-palette! h l)
   (win32_console_setpalette h l))
+
+(define (deco-get-palette h)
+  (win32_console_getpalette h))
 
 (define (deco-out h l)
   ;; ((fg bg str) ...)

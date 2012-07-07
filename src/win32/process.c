@@ -1779,13 +1779,28 @@ BOOL WINAPI (*getconsolescreenbufferinfoex)(HANDLE,
                                             consolescreenbufferinfoex*) = NULL;
 BOOL WINAPI (*setconsolescreenbufferinfoex)(HANDLE,
                                             consolescreenbufferinfoex*) = NULL;
+static int
+prepare_console_procs(void){
+    HANDLE hModule;
+    if (setconsolescreenbufferinfoex) return 1;
+    hModule = LoadLibraryA("kernel32.dll");
+    if(hModule){
+        getconsolescreenbufferinfoex = GetProcAddress(hModule, "GetConsoleScreenBufferInfoEx");
+        setconsolescreenbufferinfoex = GetProcAddress(hModule, "SetConsoleScreenBufferInfoEx");
+        if(getconsolescreenbufferinfoex){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+}
+
 int
 win32_console_setpalette(void* h,void* pal){
     /* GetConsoleScreenBufferInfoEx is Vista or later. */
     consolescreenbufferinfoex cex;
-    HANDLE hModule;
     BOOL b;
-    if(getconsolescreenbufferinfoex){
+    if(prepare_console_procs()){
         cex.size = sizeof(cex);
         b = getconsolescreenbufferinfoex((HANDLE)h, &cex);
         if(b){
@@ -1796,16 +1811,26 @@ win32_console_setpalette(void* h,void* pal){
             return 0;
         }
     }else{
-        hModule = LoadLibraryA("kernel32.dll");
-        if(hModule){
-            getconsolescreenbufferinfoex = GetProcAddress(hModule, "GetConsoleScreenBufferInfoEx");
-            setconsolescreenbufferinfoex = GetProcAddress(hModule, "SetConsoleScreenBufferInfoEx");
-            if(getconsolescreenbufferinfoex){
-                return win32_console_setpalette(h,pal);
-            }else{
-                return 0;
-            }
+        return 0;
+    }
+}
+
+int
+win32_console_getpalette(void* h,void* pal){
+    /* GetConsoleScreenBufferInfoEx is Vista or later. */
+    consolescreenbufferinfoex cex;
+    BOOL b;
+    if(prepare_console_procs()){
+        cex.size = sizeof(cex);
+        b = getconsolescreenbufferinfoex((HANDLE)h, &cex);
+        if(b){
+            memcpy(pal,cex.Palette,4 * 16);
+            return b;
+        }else{
+            return 0;
         }
+    }else{
+        return 0;
     }
 }
 

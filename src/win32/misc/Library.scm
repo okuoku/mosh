@@ -18,6 +18,7 @@
   (void win32_extent_offset (void* int void* void*))
   (void win32_extent_length (void* int void* void*))
   (int win32_console_setpalette (void* void*))
+  (int win32_console_getpalette (void* void*))
   (void win32_console_setcolor (void* int int))
   (int win32_console_p (void*))
   (void win32_console_getsize (void* void* void* void* void* void* void*

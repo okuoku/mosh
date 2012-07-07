@@ -7,12 +7,15 @@
                  (nmosh global-flags)
                  (nmosh library-alias)
 		 (primitives ca-load ca-preload-enable
+                             ca-preload-core
                              DEBUGMODE-ON set-symbol-value!))
 
 (define (startup)
   (set-symbol-value! '%nmosh-failproc enter-debugger)
   (set-symbol-value! 'show-profile show-profile)
   (init-library-alias-table)
+  (when (get-global-flag '%nmosh-preload-core)
+    (ca-preload-core))
   (when (get-global-flag '%nmosh-preload-mode)
     (ca-preload-enable))
   (let ((cl (command-line)))

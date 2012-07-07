@@ -558,22 +558,29 @@
   (define p (and path 
                  (file-exists? path)
                  (open-file-input-port path)))
-  (define path/core (ca-preload-core-path))
-  (define p/core (and path/core 
-                      (file-exists? path/core)
-                      (open-file-input-port path/core)))
-  (when p
-    (PCK 'PRELOAD/USER: path)
-    (set! preload-list (fasl-read p)) 
-    (set! preload-offset (port-position p)) 
-    (set! preload-port p)) 
+  (ca-preload-core)
   (when p/core
     (PCK 'PRELOAD/CORE: path/core)
     (set! preload-core-list (fasl-read p/core))
     (set! preload-core-offset (port-position p/core))
     (set! preload-core-port p/core))
-  (unless (or p p/core)
+  (unless p
     (PCK 'PRELOAD: "No preload file")))
+
+(define (do-ca-preload-core)
+  (define path/core (ca-preload-core-path))
+  (define p/core (and path/core 
+                      (file-exists? path/core)
+                      (open-file-input-port path/core)))
+  (when p/core
+    (PCK 'PRELOAD/CORE: path/core)
+    (set! preload-core-list (fasl-read p/core))
+    (set! preload-core-offset (port-position p/core))
+    (set! preload-core-port p/core)))
+
+(define (ca-preload-core)
+  (or preload-core-port
+      (do-ca-preload-core)))
 
 (define (ca-preload-disable)
   (set! preload-list '())

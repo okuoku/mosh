@@ -1764,10 +1764,49 @@ win32_extent_length(void* p,int id,int *upper,unsigned int *lower){
 }
 
 /* Console related */
-void
-win32_console_setpalette(void* pal){
-    /* FIXME: ToDo */
+typedef struct __consolescreenbufferinfoex{
+    ULONG size;
+    COORD conssize;
+    COORD pos;
+    WORD attr;
+    SMALL_RECT win;
+    COORD maxsize;
+    WORD popup;
+    BOOL fullscreen;
+    COLORREF Palette[16];
+}consolescreenbufferinfoex;
+BOOL WINAPI (*getconsolescreenbufferinfoex)(HANDLE,
+                                            consolescreenbufferinfoex*) = NULL;
+BOOL WINAPI (*setconsolescreenbufferinfoex)(HANDLE,
+                                            consolescreenbufferinfoex*) = NULL;
+int
+win32_console_setpalette(void* h,void* pal){
     /* GetConsoleScreenBufferInfoEx is Vista or later. */
+    consolescreenbufferinfoex cex;
+    HANDLE hModule;
+    BOOL b;
+    if(getconsolescreenbufferinfoex){
+        cex.size = sizeof(cex);
+        b = getconsolescreenbufferinfoex((HANDLE)h, &cex);
+        if(b){
+            memcpy(cex.Palette,pal,4 * 16);
+            b = setconsolescreenbufferinfoex((HANDLE)h, &cex);
+            return b;
+        }else{
+            return 0;
+        }
+    }else{
+        hModule = LoadLibraryA("kernel32.dll");
+        if(hModule){
+            getconsolescreenbufferinfoex = GetProcAddress(hModule, "GetConsoleScreenBufferInfoEx");
+            setconsolescreenbufferinfoex = GetProcAddress(hModule, "SetConsoleScreenBufferInfoEx");
+            if(getconsolescreenbufferinfoex){
+                return win32_console_setpalette(h,pal);
+            }else{
+                return 0;
+            }
+        }
+    }
 }
 
 void

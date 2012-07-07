@@ -92,7 +92,7 @@ int win32_extent_get(wchar_t *partition,void* out,int len,int*out_len);
 int win32_extent_disknumber(void* p,int id);
 void win32_extent_offset(void* p,int id,int* upper,unsigned int* lower);
 void win32_extent_length(void* p,int id,int* upper,unsigned int* lower);
-void win32_console_setpalette(void* pal);
+int win32_console_setpalette(void* h, void* pal);
 void win32_console_setcolor(void* h, int fgidx, int bgidx);
 int win32_console_p(void* h);
 void win32_console_getsize(void* h, uint32_t* x, uint32_t* y, uint32_t* cx0,

@@ -17,7 +17,7 @@
   (int win32_extent_disknumber (void* int))
   (void win32_extent_offset (void* int void* void*))
   (void win32_extent_length (void* int void* void*))
-  (void win32_console_setpalette (void*))
+  (int win32_console_setpalette (void* void*))
   (void win32_console_setcolor (void* int int))
   (int win32_console_p (void*))
   (void win32_console_getsize (void* void* void* void* void* void* void*))

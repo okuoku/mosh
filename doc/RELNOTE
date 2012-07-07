@@ -52,6 +52,10 @@ Changes:
          will have to update turbocharge when you installed new nmosh on your
          system.
 
+        CMake option MOSH_PRELOAD_CORE will activate above for core libraries.
+
+        NMOSH_CLICOLOR is now also work on Win32 console.
+
     Build system:
         nmosh CMake builds now can be compiled with VisualStudio 2012 RC.
 

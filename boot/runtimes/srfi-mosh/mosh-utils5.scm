@@ -559,11 +559,11 @@
                  (file-exists? path)
                  (open-file-input-port path)))
   (ca-preload-core)
-  (when p/core
-    (PCK 'PRELOAD/CORE: path/core)
-    (set! preload-core-list (fasl-read p/core))
-    (set! preload-core-offset (port-position p/core))
-    (set! preload-core-port p/core))
+  (when p
+    (PCK 'PRELOAD: path)
+    (set! preload-list (fasl-read p))
+    (set! preload-offset (port-position p))
+    (set! preload-port p))
   (unless p
     (PCK 'PRELOAD: "No preload file")))
 

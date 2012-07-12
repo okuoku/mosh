@@ -1,7 +1,6 @@
 (library (nmosh pffi ext curses)
          (export
            mcur_getch
-           mcur_acquire
            mcur_release
            mcur_refresh
            mcur_mouse_enable
@@ -45,7 +44,6 @@
            (prefix (nmosh stubs mosh-curses) stub:))
 
 (define mcur_getch stub:mcur_getch)
-(define mcur_acquire stub:mcur_acquire)
 (define mcur_release stub:mcur_release)
 (define mcur_refresh stub:mcur_refresh)
 (define mcur_mouse_enable stub:mcur_mouse_enable)

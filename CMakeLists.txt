@@ -411,19 +411,18 @@ ${MOSH_ONIG_DIR}/enc/cp1251.c
 
 include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc/include extlibs/libatomic_ops/src src ${GMP_INCLUDE_DIR} ${MOSH_ONIG_DIR} ${ARCH_INCLUDE} gtest src/posix/terminal src/generic)
 
-if(CMAKE_COMPILER_IS_GNUCC)
-    if(XCODE)
-        add_definitions(-DWITHOUT_FFI_STUB)
-    else(XCODE)
-        set(ffi_stub cmake/ffi_stub.S)
-        set_source_files_properties(${ffi_stub} PROPERTIES LANGUAGE C)
-    endif(XCODE)
+if(XCODE)
+    add_definitions(-DWITHOUT_FFI_STUB)
 elseif(WIN32)
     if(CMAKE_CL_64)
-        message(STATUS "FFI stub was disabled (build without call-back support)")
+        message(STATUS 
+            "FFI stub was disabled (build without call-back support)")
         add_definitions(-DWITHOUT_FFI_STUB)
     endif()
-endif(CMAKE_COMPILER_IS_GNUCC)
+else()
+    set(ffi_stub cmake/ffi_stub.S)
+    set_source_files_properties(${ffi_stub} PROPERTIES LANGUAGE C)
+endif()
 
 set(mosh_core_hdrs
 src/Code.h

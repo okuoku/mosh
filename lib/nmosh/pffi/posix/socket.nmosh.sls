@@ -121,7 +121,7 @@
       (if (< r 1)
         (values #f #f)
         (values (int->fd r)
-                (make-inetname/sockaddr bv len))))))
+                (make-inetname/sockaddr bv))))))
 
 (define* (socket_addrinfo_read (addrinfo)) ;; => inetname addrinfo/#f
   (let ((box-addr (make-ptr-box))

@@ -11,7 +11,7 @@
 ;;
 (define (start-msgpack-talker fd recv-callback write-callback error-callback)
   ;; recv-callback = (^[obj] ...)
-  ;; write-callback = (^[procedure] ...)/#f
+  ;; write-callback = (^[proc-write proc-close] ...)/#f
   ;; error-callback = (^[fd] ...)
   (let ((deser (make-msgpack-deserializer recv-callback)))
     (define (reader fd buf len)
@@ -25,6 +25,10 @@
         (define queue '())
         (define seg/queue '())
         (define seg/callback '())
+        (define (close graceful-shutdown? cb)
+          ;; FIXME: Implement graceful-shutdown
+          (socket-close fd)
+          (cb #f))
         (define (writer obj callback)
           (define (send-callback fd)
             (cond
@@ -61,7 +65,7 @@
               (set! seg/callback callback)
               (send-callback fd))))
 
-        (write-callback writer))) 
+        (write-callback writer close))) 
     (start-read fd reader)))
 
 ;;  
@@ -69,7 +73,7 @@
                                     accept-callback 
                                     error-callback
                                     result-callback)
-  ;; accept-callback = (^[fd inetname] ...)
+  ;; accept-callback = (^[servfd fd inetname] ...)
   ;; error-callback = (^[fd] ...)
   ;; result-callback = (^[success? inetname/message])
   (make-server-socket

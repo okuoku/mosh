@@ -112,3 +112,7 @@ Bug fixes:
 
     nmosh:
         On Win32, nmosh couldn't start properly on very long path(> 255 chars).
+
+    Libraries:
+        (match): 
+            List match pattern like (x ... y) was not allowed.

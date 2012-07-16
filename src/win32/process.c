@@ -1923,3 +1923,54 @@ win32_getstdhandle(int fd){
     return GetStdHandle(q);
 }
 
+const DWORD console_acquire_flags = 
+         ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT;
+
+
+void
+win32_console_acquire(void* h){
+    HANDLE hConsole = (HANDLE)h;
+    BOOL b;
+    DWORD flags;
+    b = GetConsoleMode(hConsole, &flags);
+    flags &= ~console_acquire_flags;
+    b = SetConsoleMode(hConsole, flags);
+}
+
+void
+win32_console_release(void* h){
+    HANDLE hConsole = (HANDLE)h;
+    BOOL b;
+    DWORD flags;
+    b = GetConsoleMode(hConsole, &flags);
+    flags |= console_acquire_flags;
+    b = SetConsoleMode(hConsole, flags);
+}
+
+
+static uintptr_t
+console_reader(uintptr_t in0, uintptr_t in1, uintptr_t* out0, uintptr_t* out1){
+    BOOL b;
+    INPUT_RECORD ir;
+    long count;
+    HANDLE hConsole = (HANDLE)in0;
+    *out0 = *out1 = 0;
+    /* Read a char */
+    b = ReadConsoleInputW(hConsole, &ir, 1, &count);
+    if(b && count 
+       && (ir.EventType == KEY_EVENT)
+       && (ir.Event.KeyEvent.bKeyDown) /* Key down */
+       ){
+        /* FIXME: Handle Virtual keys */
+        *out1 = 1;
+        *out0 = ir.Event.KeyEvent.uChar.UnicodeChar;
+    }else{
+        *out1 = 0;
+    }
+    return 1;
+}
+
+void*
+win32_get_console_reader_func(void){
+    return &console_reader;
+}

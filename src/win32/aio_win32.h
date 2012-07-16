@@ -102,6 +102,9 @@ void win32_console_getsize(void* h, uint32_t* x, uint32_t* y, uint32_t* cx0,
 void win32_console_setpos(void* h, uint32_t x,uint32_t y);
 void win32_console_settitle(void* t);
 void* win32_getstdhandle(int fd);
+void win32_console_acquire(void* h);
+void win32_console_release(void* h);
+void* win32_get_console_reader_func(void);
 
 
 #ifdef __cplusplus

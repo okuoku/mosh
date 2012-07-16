@@ -7,7 +7,9 @@
            win32_console_setpos
            win32_console_settitle
            win32_console_setcolor
-           win32_getstdhandle)
+           win32_getstdhandle
+           win32_console_acquire
+           win32_console_release)
          (import (rnrs)
                  (yuni core)
                  (nmosh ffi box)
@@ -71,5 +73,11 @@
   (and (stub:win32_console_getpalette (handle->pointer h) pal)
        (list-ec (: i 16)
                 (bytevector-u32-native-ref pal (* 4 i)))))
+
+(define* (win32_console_acquire (h win32-handle))
+  (stub:win32_console_acquire (handle->pointer h)))
+(define* (win32_console_release (h win32-handle))
+  (stub:win32_console_release (handle->pointer h)))
+
 
 )

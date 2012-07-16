@@ -101,11 +101,12 @@
     ;; bytes = out1
     (cb (pointer->integer key) (pointer->integer bytes)))
   (define ovl (win32_overlapped_alloc))
+  (define (x->in x) (if (integer? x) (integer->pointer x) x))
   (win32_overlapped_setmydata ovl (object->pointer callback))
   (win32_invoke_ffithread (handle->pointer (~ Q 'iocp))
                           func
-                          (integer->pointer in0)
-                          (integer->pointer in1)
+                          (x->in in0)
+                          (x->in in1)
                           ovl))
 
 (define (queue) ;; => Q

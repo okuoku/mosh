@@ -207,7 +207,10 @@ CONS(FN(win32_console_getsize), \
 CONS(FN(win32_console_setpos), \
 CONS(FN(win32_console_settitle), \
 CONS(FN(win32_getstdhandle), \
-	NIL))))))))))))))))))))))
+CONS(FN(win32_console_release), \
+CONS(FN(win32_console_acquire), \
+CONS(FN(win32_get_console_reader_func), \
+	NIL)))))))))))))))))))))))))
 #endif
 
 #define LIBDATA_BOEHMGC_STUBS CONS(SYM("boehmgc-stubs"), \

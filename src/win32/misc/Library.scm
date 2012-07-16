@@ -26,4 +26,7 @@
   (void win32_console_setpos (void* int int))
   (void win32_console_settitle (void*))
   (void* win32_getstdhandle (int))
+  (void win32_console_acquire (void*))
+  (void win32_console_release (void*))
+  (void* win32_get_console_reader_func)
   )

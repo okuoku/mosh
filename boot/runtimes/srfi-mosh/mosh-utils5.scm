@@ -535,6 +535,9 @@
     (else
       (string-append CACHEPATH basename))) )
 
+(define (ca-preload-core-list) preload-core-list)
+(define (ca-preload-list) preload-list)
+
 (define (ca-preload-path)
   (%ca-gen-preload-path "nmosh-preload.fasl"))
 
@@ -583,9 +586,7 @@
       (do-ca-preload-core)))
 
 (define (ca-preload-disable)
-  (set! preload-list '())
   (set! preload-port #f)
-  (set! preload-core-list '())
   (set! preload-core-port #f))
 
 (define (ca-preload-register name address) ;; => true

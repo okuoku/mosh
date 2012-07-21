@@ -7,6 +7,7 @@
                  (srfi :8)
                  (mosh pp)
                  (mosh file)
+                 (nmosh global-flags)
                  (only (yuni util files)
                        file->bytevector)
                  (shorten)
@@ -117,8 +118,13 @@
   (phase1 (list library-core library-user))
 
   ;; core
-  (phase2/ht (ca-preload-core-path) library-ht/core #f (list library-core))
-  (phase2/ht (ca-preload-path) library-ht/user library-ht/core (list library-user))
-  )
+  ;; Don't update the image if preload-core and file exists
+  (unless (and (get-global-flag '%nmosh-preload-core)
+               (file-exists? (ca-preload-core-path)))
+   (phase2/ht (ca-preload-core-path) library-ht/core #f (list library-core)))
+
+  ;; App
+  (phase2/ht (ca-preload-path) library-ht/user library-ht/core 
+             (list library-user)))
 
 )

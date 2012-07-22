@@ -234,7 +234,6 @@
 (define* (win32_clipboard_text_set (h HWND) str)
   (let* ((str-bv (string->utf16-bv str))
          (len (bytevector-length str-bv)))
-    (write (list 'call: (hwnd->pointer h) str-bv len))(newline)
     (let ((b (stub:win32_clipboard_text_set
                (hwnd->pointer h) str-bv len)))
       (not (= b 0)))))

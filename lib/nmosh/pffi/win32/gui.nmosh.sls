@@ -33,6 +33,9 @@
                  ;integer-hwnd
                  make-hwnd
                  dc->pointer
+
+                 ;; Clipboard
+                 win32_clipboard_text_set
                  )
          (import (rnrs)
                  (yuni core)
@@ -40,7 +43,8 @@
                  (nmosh pffi interface)
                  (nmosh pffi win32 aio) ;; for win32-handle
                  (nmosh pffi win32 util)
-                 (prefix (nmosh stubs win32-gui) stub:))
+                 (prefix (nmosh stubs win32-gui) stub:)
+                 (prefix (nmosh stubs win32-misc) stub:))
 
 (define* HWND (handle ovl))
 
@@ -227,4 +231,11 @@
         (values #f #f)
         (values (int-box-ref x) (int-box-ref y))))))
 
+(define* (win32_clipboard_text_set (h HWND) str)
+  (let* ((str-bv (string->utf16-bv str))
+         (len (bytevector-length str-bv)))
+    (write (list 'call: (hwnd->pointer h) str-bv len))(newline)
+    (let ((b (stub:win32_clipboard_text_set
+               (hwnd->pointer h) str-bv len)))
+      (not (= b 0)))))
 )

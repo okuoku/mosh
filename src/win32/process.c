@@ -1989,3 +1989,31 @@ void*
 win32_get_console_reader_func(void){
     return &console_reader;
 }
+
+/* clipboard */
+int
+win32_clipboard_text_set(void* h, void* text, int size){
+    HGLOBAL hGlobal;
+    HWND hWnd = (HWND)h;
+    BOOL b;
+    void* p;
+    hGlobal = GlobalAlloc(GMEM_MOVEABLE, size);
+    p = GlobalLock(hGlobal);
+    memcpy(p, text, size);
+    GlobalUnlock(hGlobal);
+    b = OpenClipboard(hWnd);
+    if(!b){
+        GlobalFree(hGlobal);
+        return 0;
+    }else{
+        EmptyClipboard();
+        b = SetClipboardData(CF_UNICODETEXT, hGlobal);
+        if(!b){
+            GlobalFree(hGlobal);
+            return 0;
+        }
+        CloseClipboard();
+    }
+    return 1;
+}
+

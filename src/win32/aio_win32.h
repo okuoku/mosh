@@ -105,6 +105,7 @@ void* win32_getstdhandle(int fd);
 void win32_console_acquire(void* h);
 void win32_console_release(void* h);
 void* win32_get_console_reader_func(void);
+int win32_clipboard_text_set(void* h, void* text, int size);
 
 
 #ifdef __cplusplus

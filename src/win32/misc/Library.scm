@@ -29,4 +29,5 @@
   (void win32_console_acquire (void*))
   (void win32_console_release (void*))
   (void* win32_get_console_reader_func)
+  (int win32_clipboard_text_set (void* void* int))
   )

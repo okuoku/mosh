@@ -9,6 +9,12 @@
   '(
     (("win32")
      .
+     [ (nmosh zrepl platform) . (nmosh zrepl platform win32) ])
+    (("cygwin" "linux" "bsd" "darwin")
+     .
+     [ (nmosh zrepl platform) . (nmosh zrepl platform posix) ])
+    (("win32")
+     .
      [ (nmosh ui deco platform) . (nmosh ui deco platform win32) ])
     (("cygwin" "linux" "bsd" "darwin")
      .

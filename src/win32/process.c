@@ -1953,6 +1953,7 @@ console_reader(uintptr_t in0, uintptr_t in1, uintptr_t* out0, uintptr_t* out1){
     BOOL b;
     INPUT_RECORD ir;
     long count;
+    uintptr_t type;
     HANDLE hConsole = (HANDLE)in0;
     *out0 = *out1 = 0;
     /* Read a char */
@@ -1961,11 +1962,25 @@ console_reader(uintptr_t in0, uintptr_t in1, uintptr_t* out0, uintptr_t* out1){
        && (ir.EventType == KEY_EVENT)
        && (ir.Event.KeyEvent.bKeyDown) /* Key down */
        ){
-        /* FIXME: Handle Virtual keys */
-        *out1 = 1;
-        *out0 = ir.Event.KeyEvent.uChar.UnicodeChar;
+        if(ir.Event.KeyEvent.uChar.UnicodeChar){
+            type = 1;
+            *out0 = ir.Event.KeyEvent.uChar.UnicodeChar;
+        }else{
+            type = 2; /* Virtual Key */
+            *out0 = ir.Event.KeyEvent.wVirtualKeyCode;
+        }
+        if(ir.Event.KeyEvent.dwControlKeyState 
+           & (LEFT_ALT_PRESSED|RIGHT_ALT_PRESSED)){
+            type |= 16; /* Alt pressed */
+        }
+        if(ir.Event.KeyEvent.dwControlKeyState
+           & (LEFT_CTRL_PRESSED|RIGHT_CTRL_PRESSED)){
+            type |= 32; /* Ctrl presssed */
+        }
+
+        *out1 = type;
     }else{
-        *out1 = 0;
+        *out1 = 0; /* No key */
     }
     return 1;
 }

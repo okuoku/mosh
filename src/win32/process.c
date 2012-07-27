@@ -1775,9 +1775,9 @@ typedef struct __consolescreenbufferinfoex{
     BOOL fullscreen;
     COLORREF Palette[16];
 }consolescreenbufferinfoex;
-BOOL WINAPI (*getconsolescreenbufferinfoex)(HANDLE,
+BOOL (WINAPI *getconsolescreenbufferinfoex)(HANDLE,
                                             consolescreenbufferinfoex*) = NULL;
-BOOL WINAPI (*setconsolescreenbufferinfoex)(HANDLE,
+BOOL (WINAPI *setconsolescreenbufferinfoex)(HANDLE,
                                             consolescreenbufferinfoex*) = NULL;
 static int
 prepare_console_procs(void){
@@ -1793,6 +1793,7 @@ prepare_console_procs(void){
             return 0;
         }
     }
+    return 0;
 }
 
 int

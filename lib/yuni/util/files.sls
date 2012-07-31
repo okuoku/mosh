@@ -228,7 +228,7 @@
   (define p (open-file-input-port pth))
   (define bv (get-bytevector-all p))
   (close-port p)
-  bv)
+  (if (eof-object? bv) (make-bytevector 0) bv))
 
 ;; To file op .. Always overwrite
 (define (string-list->file pth l)

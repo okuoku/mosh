@@ -1,6 +1,10 @@
 #include "config.h"
 #include "moshcairo.h"
+#ifdef HAVE_CAIRO_H
+#include <cairo.h> /* For GStreamer SDK */
+#else
 #include <cairo/cairo.h>
+#endif
 
 /* Generic */
 MOSHEXPORT

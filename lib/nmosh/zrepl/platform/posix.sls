@@ -8,6 +8,7 @@
                  zrepl-prepare-zone
                  )
          (import (rnrs)
+                 (yuni core)
                  (nmosh stubs terminal) ;; Tentative..
                  (nmosh pffi posix fd)
                  (nmosh aio impl posix fd-ops)
@@ -66,8 +67,7 @@
        (cond
          ((= i 65) ;; A
           (cb 'up #f #f #f)
-          (set! state 'ASCII)
-          )
+          (set! state 'ASCII))
          ((= i 66)
           (cb 'down #f #f #f)
           (set! state 'ASCII))
@@ -114,6 +114,18 @@
                                obj))))
     (for-each outone objs)
     (finish)))
+
+(define* zout (static-area cur-x cur-y))
+(define (zrepl-output-new) ;; => zout
+  (make zout 
+        (static-area '())
+        (cur-x 0)
+        (cur-y 0)))
+;; Output to log area
+(define* (zrepl-output-log (zout) l)
+  )
+(define* (zrepl-set-static-area (zout) l cur-x cur-y)
+  )
 
 (define (zrepl-prepare-zone height) 
   (apply out (append (list-ec (: i height) "\n"))) 

@@ -6,7 +6,19 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 # FIXME: trick
-set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION com.apple.compilers.llvm.clang.1_0)
+if(APPLE)
+    # Enforce Clang for XCode
+    set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION com.apple.compilers.llvm.clang.1_0)
+    # Enforce Clang for Makefiles/Ninja
+    if(NOT CMAKE_C_COMPILER)
+        set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE PATH
+            "Enfoced by mosh")
+    endif()
+    if(NOT CMAKE_CXX_COMPILER)
+        set(CMAKE_CXX_COMPILER "/usr/bin/clang++" CACHE PATH
+            "Enforced by mosh")
+    endif()
+endif()
 
 PROJECT(mosh)
 include(CheckIncludeFile)
@@ -36,6 +48,7 @@ set(MOSH_EXECUTABLE_NAME "nmosh" CACHE STRING "Interpreter executable name")
 # Win32, from environment variable GSTREAMER_SDK_ROOT_X86
 if(WIN32 AND (NOT CMAKE_CL_64))
     if(EXISTS $ENV{GSTREAMER_SDK_ROOT_X86})
+        set(HAS_GST_SDK ON)
         message(STATUS 
             "Using GStreamer SDK(32bit) from $ENV{GSTREAMER_SDK_ROOT_X86}")
         list(APPEND CMAKE_FIND_ROOT_PATH $ENV{GSTREAMER_SDK_ROOT_X86})
@@ -46,7 +59,32 @@ if(WIN32 AND (NOT CMAKE_CL_64))
         include_directories($ENV{GSTREAMER_SDK_ROOT_X86}/lib/glib-2.0/include)
     endif()
 endif()
-# Apple , from GStreamer framework (Not Yet)
+# Apple , from GStreamer framework
+if(APPLE)
+    find_library(GST_FRAMEWORK GStreamer)
+    if(GST_FRAMEWORK)
+        set(HAS_GST_SDK ON)
+        include_directories(BEFORE ${GST_FRAMEWORK})
+        set(GTK2_GTK_INCLUDE_DIR ${GST_FRAMEWORK}/Headers CACHE STRING
+            "Workaround for FindGtk2 bug." FORCE)
+        set(FREETYPE_LIBRARY
+            ${GST_FRAMEWORK}/Libraries/libfreetype.dylib
+            CACHE PATH
+            "Using GStreamer Framework")
+        set(GTK2_GLIB_LIBRARY
+            ${GST_FRAMEWORK}/Libraries/libglib-2.0.dylib
+            CACHE PATH
+            "Using GStreamer Framework")
+        set(GTK2_GOBJECT_LIBRARY
+            ${GST_FRAMEWORK}/Libraries/libgobject-2.0.dylib
+            CACHE PATH
+            "Using GStreamer Framework")
+        set(GTK2_GTHREAD_LIBRARY
+            ${GST_FRAMEWORK}/Libraries/libgthread-2.0.dylib
+            CACHE PATH
+            "Using GStreamer Framework")
+    endif()
+endif()
 
 # MOSH
 
@@ -805,7 +843,11 @@ endif(MOSHPLUGIN_CURSES)
 # GTK2
 find_package(GTK)
 find_package(GTK2)
-option(MOSHPLUGIN_GOBJECT "build nmosh GObject plugin" OFF)
+if(HAS_GST_SDK)
+    option(MOSHPLUGIN_GOBJECT "build nmosh GObject plugin" ON)
+else()
+    option(MOSHPLUGIN_GOBJECT "build nmosh GObject plugin" OFF)
+endif()
 if(MOSHPLUGIN_GOBJECT)
     add_mosh_plugin(mosh_gobj src/ext/gobject/mgobj.c)
     include_directories(AFTER ${GTK2_GLIB_INCLUDE_DIR})
@@ -820,7 +862,8 @@ endif()
 
 # Cairo
 
-if(PKG_CONFIG_FOUND)
+# Don't use pkg-config to search cairo iff GStreamer SDK available
+if(PKG_CONFIG_FOUND AND NOT GST_FRAMEWORK)
     pkg_check_modules(PKG_CAIRO cairo)
 endif()
 
@@ -829,6 +872,10 @@ if(PKG_CAIRO_FOUND)
     link_directories(${PKG_CAIRO_LIBRARY_DIRS})
     set(CAIRO_LIBRARY ${PKG_CAIRO_LIBRARIES})
     set(CAIRO_INCLUDE_DIR ${PKG_CAIRO_INCLUDE_DIRS})
+elseif(GST_FRAMEWORK)
+    set(CAIRO_INCLUDE_DIR ${GST_FRAMEWORK})
+    set(CAIRO_LIBRARY ${GST_FRAMEWORK}/Libraries/libcairo.dylib)
+    add_definitions(-DHAVE_CAIRO_H)
 else()
     # handwritten..
 
@@ -837,11 +884,25 @@ else()
     if(MSVC)
         set(CAIROLIB "cairo.lib")
     else()
-        set(CAIROLIB "libcairo.so")
+        if(APPLE)
+            set(CAIROLIB "libcairo.dylib")
+        else()
+            set(CAIROLIB "libcairo.so")
+        endif()
     endif()
 
     find_path(CAIRO_INCLUDE_DIR cairo/cairo.h)
-    find_file(CAIRO_LIBRARY ${CAIROLIB})
+    if(CAIRO_INCLUDE_DIR)
+        set(HAVE_CAIRO_CAIRO_H 1)
+        add_definitions(-DHAVE_CAIRO_CAIRO_H)
+    else()
+        find_path(CAIRO_INCLUDE_DIR cairo.h)
+        if(CAIRO_INCLUDE_DIR)
+            add_definitions(-DHAVE_CAIRO_H)
+        endif()
+    endif()
+
+    find_library(CAIRO_LIBRARY ${CAIROLIB})
 
     if(NOT CAIRO_LIBRARY AND GTK2_CAIRO_LIBRARY)
         set(CAIRO_LIBRARY ${GTK2_CAIRO_LIBRARY})

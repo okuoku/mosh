@@ -20,6 +20,12 @@
 #define Draw_Paint 21
 #define Draw_PaintWithAlpha 22
 #define Draw_SetOperator 23
+#define Draw_Clip 24
+#define Draw_ClipPreserved 25
+#define Draw_ClearClip 26
+#define Draw_FontFace 27
+#define Draw_FontSize 28
+#define Draw_Text 29
 
 #define Source_SetTransform 101
 

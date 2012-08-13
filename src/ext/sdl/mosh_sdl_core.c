@@ -181,6 +181,58 @@ msdl_init(void){
     return SDL_Init(SDL_INIT_EVERYTHING);
 }
 
+MOSHEXPORT
+void*
+msdl_surface_create(int w, int h){ /* RGB 32 surface only */
+    /* NB: We don't provide Alpha channel support for now.
+     *     Because cairo and SDL disagree with Alpha style..
+     *     cairo uses pre-mutiplied alpha. */
+    /* From sample code: */
+    uint32_t rmask, gmask, bmask, amask;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    /* RGBA */
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    /* ABGR */
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+    return SDL_CreateRGBSurface(0, w,h,32,rmask,gmask,bmask,0);
+
+}
+
+MOSHEXPORT
+void
+msdl_surface_destroy(void *p){ /* NB: not free for consistency*/
+    SDL_FreeSurface((SDL_Surface *)p);
+}
+
+MOSHEXPORT
+int
+msdl_surface_pitch(void* p){
+    SDL_Surface *s = (SDL_Surface *)p;
+    return s->pitch;
+}
+
+MOSHEXPORT
+void*
+msdl_surface_lock(void* p){
+    SDL_Surface *s = (SDL_Surface *)p;
+    SDL_LockSurface(s);
+    return s->pixels;
+}
+
+MOSHEXPORT
+void
+msdl_surface_unlock(void* p){
+    SDL_UnlockSurface((SDL_Surface *)p);
+}
+
 #if 0 /* Async version (i think it won't work in OSX) */
 int initialized = 0;
 

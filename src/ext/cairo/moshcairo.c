@@ -55,6 +55,43 @@ mc_pattern_surface(cairo_surface_t* s){
     return cairo_pattern_create_for_surface(s);
 }
 
+/* Font related */
+/* Currently, we use "toy" API. */
+MOSHEXPORT
+cairo_font_face_t*
+mc_font_create(char *name,int bold_p,int italic_p){
+    cairo_font_weight_t we;
+    cairo_font_slant_t sl;
+    sl = italic_p ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL;
+    we = bold_p ? CAIRO_FONT_WEIGHT_BOLD : CAIRO_FONT_WEIGHT_NORMAL;
+    return cairo_toy_font_face_create(name,sl,we);
+}
+
+MOSHEXPORT
+void
+mc_font_destroy(void* p){
+    cairo_font_face_destroy((cairo_font_face_t *)p);
+}
+
+MOSHEXPORT
+void
+mc_font_extent_text(cairo_t* cr, char* text, cairo_font_face_t* font,
+                    double* ret){
+    cairo_text_extents_t ex;
+    /* Select font */
+    cairo_set_font_face(cr, font);
+    /* Query extents */
+    cairo_text_extents(cr, text, &ex);
+    ret[0] = ex.x_bearing;
+    ret[1] = ex.y_bearing;
+    ret[2] = ex.width;
+    ret[3] = ex.height;
+    ret[4] = ex.x_advance;
+    ret[5] = ex.y_advance;
+}
+
+
+
 /* Kick */
 
 MOSHEXPORT
@@ -67,6 +104,8 @@ mc_kick(cairo_t* cr,const unsigned char* ops,int count_ops,void* objs[],int coun
 
     cairo_pattern_t* pat;
     cairo_matrix_t *m0,*m1,*m;
+    cairo_font_face_t* font;
+    char* text;
 
     int r0,r;
     double x,y,x0,y0,x1,y1;
@@ -150,7 +189,27 @@ mc_kick(cairo_t* cr,const unsigned char* ops,int count_ops,void* objs[],int coun
                 _ID;
                 cairo_set_operator(cr, r);
                 break;
-
+            case Draw_Clip:
+                cairo_clip(cr);
+                break;
+            case Draw_ClipPreserved:
+                cairo_clip_preserve(cr);
+                break;
+            case Draw_ClearClip:
+                cairo_reset_clip(cr);
+                break;
+            case Draw_FontFace:
+                O(font);
+                cairo_set_font_face(cr,font);
+                break;
+            case Draw_FontSize:
+                V(x);
+                cairo_set_font_size(cr,x);
+                break;
+            case Draw_Text:
+                O(text);
+                cairo_show_text(cr,text);
+                break;
             case Source_SetTransform:
                 O(pat);
                 M(m);
@@ -223,6 +282,17 @@ mc_mem_create_alpha(int x,int y){
     return cairo_image_surface_create( CAIRO_FORMAT_ARGB32,
                                        x,
                                        y);
+}
+
+MOSHEXPORT
+cairo_surface_t*
+mc_mem_create_for(void* p, int x, int y, int pitch){
+    return cairo_image_surface_create_for_data(p,
+                                               CAIRO_FORMAT_RGB24,
+                                               x,
+                                               y,
+                                               pitch);
+
 }
 
 #else

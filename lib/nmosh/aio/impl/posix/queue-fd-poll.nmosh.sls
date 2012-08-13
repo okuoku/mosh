@@ -175,9 +175,10 @@
   (let-with Q (ev-queue pollfds n)
     (unless (pair? ev-queue)
       (let ((r (poll_exec pollfds n timeout)))
-        (let ((p (q-scan Q r)))
-          (when (pair? p)
-            (touch! Q (ev-queue p))))))))
+        (and (not (= r 0)) ;; Return false
+             (let ((p (q-scan Q r)))
+               (when (pair? p)
+                 (touch! Q (ev-queue p)))))))))
 
 (define* (queue-peek (Q))
   (queue-wait/timeout Q 0))

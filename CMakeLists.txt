@@ -969,6 +969,13 @@ if(WIN32)
     target_link_libraries(mosh_winmm winmm)
 endif()
 
+# SDL Plugin
+if(MOSHPLUGIN_SDL)
+    add_mosh_plugin(mosh_sdl src/ext/sdl/mosh_sdl_core.c)
+    include_directories(AFTER ${SDL_INCLUDE_DIR})
+    target_link_libraries(mosh_sdl ${SDL_LIBS})
+endif()
+
 # tests
 
 add_custom_target(TestTargets) 

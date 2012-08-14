@@ -26,6 +26,7 @@ msdl_event_read_key_char(void* ev, int* window_id, int* c){
 #define MSDL_MOUSEEV_UP 1
 #define MSDL_MOUSEEV_DOWN 2
 #define MSDL_MOUSEEV_MOTION 3
+#define MSDL_MOUSEEV_WHEEL 4 /* scroll */
 MOSHEXPORT
 int /* 0 for unknown event */
 msdl_event_read_pointing(void* p, int* class, 
@@ -35,11 +36,18 @@ msdl_event_read_pointing(void* p, int* class,
     SDL_Event *ev = (SDL_Event *)p;
     switch(ev->type){
         case SDL_MOUSEWHEEL:
+            *class = MSDL_EV_POINT_CLASS_MOUSE;
+            *action = MSDL_MOUSEEV_WHEEL;
             *window_id = ev->wheel.windowID;
+            /* SDL doesn't give mouse position in this message... */
+            *x = -1;
+            *y = -1;
             *delta_x = ev->wheel.x;
             *delta_y = ev->wheel.y;
             return 1;
         case SDL_MOUSEMOTION:
+            *class = MSDL_EV_POINT_CLASS_MOUSE;
+            *action = MSDL_MOUSEEV_MOTION;
             *window_id = ev->motion.windowID;
             *x = ev->motion.x;
             *y = ev->motion.y;
@@ -48,12 +56,15 @@ msdl_event_read_pointing(void* p, int* class,
             return 1;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
-            *class = (ev->type == SDL_MOUSEBUTTONDOWN)?
+            *class = MSDL_EV_POINT_CLASS_MOUSE;
+            *action = (ev->type == SDL_MOUSEBUTTONDOWN)?
                 MSDL_MOUSEEV_DOWN : MSDL_MOUSEEV_UP;
             *window_id = ev->button.windowID;
             *id = ev->button.button;
             *x = ev->button.x;
             *y = ev->button.y;
+            *delta_x = 0;
+            *delta_y = 0;
             return 1;
         default:
             return 0;

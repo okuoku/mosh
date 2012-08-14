@@ -21,7 +21,4 @@
   (void* mc_mem_create_for (void* int int int))
   (void* mc_mem_png_load (char*))
   (int mc_mem_png_save (void* char*))
-  (void* mc_win32_create (void*))
-  (void* mc_win32_create_alpha (void* int int))
-  (void* mc_win32_create_font (void*))
   )

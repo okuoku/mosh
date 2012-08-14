@@ -1,12 +1,75 @@
 (import (yuni util tables scheme)
+        (nmosh pffi signatures)
         (rnrs)
         (yuni core) (yuni util files)
+        (only (srfi :1) delete-duplicates!)
+        (srfi :8)
         (srfi :48)
         (mosh pp) 
         (shorten))
 
 (define targets '("src/ext" "src/posix" "src/win32" "src/generic"
                   "src/bsd"))
+(define callstub "src/call-stubs.inc.c")
+
+(define signatures '())
+(define (register-call-signature l)
+  (define sym (string->symbol (signature*->string l)))
+  (set! signatures (cons sym signatures)))
+
+(define (outstub1 p sym)
+  (define (gen-arg l in-param?)
+    (define counter 0)
+    (define (out x)
+      (if in-param?
+        (let ((out  (format "(~a)args[~a]" x counter)))
+          (set! counter (+ 1 counter))
+          out)
+        x))
+    (if (null? l) 
+      ""
+      (receive (port proc) (open-string-output-port)
+        (format port "~a" (out (car l)))
+        (for-each (^e (format port ", ~a" (out e))) 
+                  (cdr l))
+        (proc))))
+  (receive (arg* ret) (signature->c-arg*+ret (symbol->string sym))
+    (format p "typedef ~a (*func_~a_t)(~a);\n"
+            ret sym (gen-arg arg* #f))
+    (format p "void\n")
+    (format p "callstub_~a(func_~a_t func, uint64_t* args, void* ret){\n"
+            sym sym)
+    (if (string=? ret "void")
+      (format p "    func(~a);\n}\n\n"
+              (gen-arg arg* #t))  
+      (format p "    *(~a*)ret = func(~a);\n}\n\n"
+              ret (gen-arg arg* #t))) ))
+
+(define (gen-libdata p sym*)
+  (define (name rest)
+    (if (null? rest)
+      (format p "    NIL)")
+      (let ((sym (car rest))
+            (next (cdr rest)))
+        (format p "CONS(FN(callstub_~a), \\\n" sym)
+        (name next)
+        (format p ")"))))
+  (format p "#define LIBDATA_CALL_STUBS CONS(SYM(\"call-stubs\"), \\\n")
+  (name sym*)
+  (format p "\n"))
+
+(define (gen-call-stubs)
+  ;; Reduce dupes
+  (define sigs (delete-duplicates! signatures))
+
+  ;; Generate file
+  (when (file-exists? callstub)
+    (delete-file callstub))
+  (call-with-output-file
+    callstub
+    (^p 
+      (for-each (^s (outstub1 p s)) sigs)
+      (gen-libdata p sigs))))
 
 (define (locate-Library)
   (define libs '())
@@ -73,6 +136,9 @@
   (define (output p)
     (define (emit-function tbl)
       (define (emit ret name args)
+        (if args
+          (register-call-signature (append args (list ret)))
+          (register-call-signature (list ret)))
         ;; emit function definition
         (pp `(define ,name (pffi-c-function 
                              %library
@@ -167,4 +233,4 @@
   (display " generated.\n"))
 
 (for-each gen-lib libs)
-
+(gen-call-stubs)

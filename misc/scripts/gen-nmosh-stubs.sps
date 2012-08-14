@@ -22,7 +22,7 @@
     (define counter 0)
     (define (out x)
       (if in-param?
-        (let ((out  (format "(~a)args[~a]" x counter)))
+        (let ((out  (format "*(~a *)(char *)&args[~a]" x counter)))
           (set! counter (+ 1 counter))
           out)
         x))

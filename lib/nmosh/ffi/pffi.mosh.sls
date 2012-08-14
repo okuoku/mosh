@@ -3,43 +3,124 @@
                  pffi-c-function)
          (import (rnrs)
                  (yuni util files)
+                 (nmosh pffi interface)
+                 (nmosh ffi pffi-lookup)
+                 (nmosh ffi box)
                  (mosh)
+                 (nmosh pffi signatures)
                  (nmosh global-flags)
                  (mosh ffi))
 
-(define pffi-feature-set 
-  (let ((f (get-global-flag '%get-pffi-feature-set)))
-    (if f (f) '())))
+(define pffi-lib (make-pffi-ref 'call-stubs))
 
-(define pffi-mark '*pffi-reference*)
+(define pffi-call
+  (let ((f (get-global-flag '%nmosh-pffi-call)))
+    (if f f (lambda e (assertion-violation 'pffi-call
+                                           "interpreter too old")))))
 
-(define (make-pffi-ref slot)
-  `(,pffi-mark ,slot))
+(define (make-pffi-call sym ptr)
+  (define p (pffi-lookup pffi-lib sym))
+  (lambda (arg* ret)
+    (pffi-call p ptr arg* ret)))
 
-(define (pffi-slot obj)
-  (and (pffi? obj) (cadr obj)))
+(define (make-caller name proxy-sym ptr arg* ret)
+  (define call (make-pffi-call proxy-sym ptr))
+  (define arg-len (length arg*))
+  (define has-ret? (not (eq? 'void ret)))
+  (define (take-ret bv type)
+    (case type
+      ((void* char*) (ptr-box-ref bv))
+      ((char)
+       ;; FIXME: Little endian
+       (bytevector-s8-ref bv 0))
+      ((uchar)
+       (bytevector-u8-ref bv 0))
+      ((int long int32) ;; FIXME: long??
+       (int-box-ref bv))
+      ((int64)
+       (bytevector-s64-native-ref bv 0))
+      ((uint ulong uint32)
+       (int-box-ref-unsigned bv))
+      ((uint64)
+       (bytevector-u64-native-ref bv 0))
+      ;; IEEE Double
+      ((double)
+       (bytevector-ieee-double-native-ref bv 0))
+      (else
+        (assertion-violation name
+                             "Invalid return value type"
+                             type))))
+  (define (fill-argument1 bv off obj type)
+    (define addr (* off 8))
+    (define (complain)
+      (assertion-violation name
+                           "Invalid argument"
+                           obj
+                           off))
+    (case type
+      ;; Pointer
+      ((void* char*)
+       (cond
+         ((bytevector? obj)
+          (bytevector-u64-native-set! bv addr (pointer->integer
+                                                (bytevector-pointer obj))))
+         ((pointer? obj)
+          (bytevector-u64-native-set! bv addr (pointer->integer obj)))
+         (else (complain))))
+      ;; Signed fixnums
+      ((char short int long int32 int64)
+       (bytevector-s64-native-set! bv addr obj))
+      ;; Unsigned fixnums
+      ((uchar ushort uint ulong uint32 uint64)
+       (bytevector-u64-native-set! bv addr obj))
+      ;; IEEE Double
+      ((double)
+       (bytevector-ieee-double-native-set! bv addr obj))
+      ;; IEEE Float(Single)
+      #|
+      ((float)
+       )
+      |#
+      (else
+        (assertion-violation name
+                             "Invalid type specifier"
+                             type))))
 
-(define (pffi? x) 
-  (and (pair? x) (eq? pffi-mark (car x))))
+  (define (fill-arguments bv off arg type*)
+    (cond
+      ((not (null? arg))
+       (let ((obj (car arg))
+             (type (car type*)))
+         (fill-argument1 bv off obj type)
+         (fill-arguments bv (+ 1 off) (cdr arg) (cdr type*))))))
+  (lambda in
+    (define argpacket (make-bytevector (* 8 arg-len)))
+    (define retpacket (if has-ret? (make-bytevector 8) #f))
+    ;; Sanity check
+    (unless (= (length in) arg-len)
+      (assertion-violation name
+                           "Invalid argument"
+                           in))
 
-(define (pffi-lookup lib func)
-  (define (complain)
-    (assertion-violation 'pffi-lookup
-                         "PFFI function not avaliable"
-                         func
-                         (pffi-slot lib)))
-  (let ((plib (assoc (pffi-slot lib) pffi-feature-set)))
-    (unless plib (complain))
-    (let ((pfn (assoc func (cdr plib))))
-      (unless pfn (complain))
-      (cdr pfn))))
+    ;; Construct parameter packet (64bit x N)
+    (fill-arguments argpacket 0 in arg*)
+
+    ;; Call
+    (call (bytevector-pointer argpacket)
+          (if has-ret?
+            (bytevector-pointer retpacket)
+            (integer->pointer 0)))
+    (if has-ret?
+      (take-ret retpacket ret)
+      #f ;; undefined?
+      )))
 
 (define-syntax pffi-c-function
   (syntax-rules ()
     ((_ lib ret func arg ...)
-     (cond
-       ((pffi? lib)
-        (pointer->c-function (pffi-lookup lib 'func) 'ret 'func '(arg ...)))
-       (else
-         (make-c-function lib 'ret 'func '(arg ...)))))))
+     (let ((ptr (pffi-lookup lib 'func))
+           (sig (string->symbol
+                  (string-append "callstub_"
+                                 (signature*->string '(arg ... ret))))))
+       (make-caller 'func sig ptr '(arg ...) 'ret)))))
 )

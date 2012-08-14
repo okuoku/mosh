@@ -335,8 +335,8 @@ stub_pffi_call(VM* theVM, int argc, const Object* argv){
     argumentAsPointer(1, func);
     argumentAsPointer(2, args);
     argumentAsPointer(3, ret);
-    call = (pffi_caller_t)gate;
-    call(func, args, ret);
+    call = (pffi_caller_t)(gate->pointer());
+    call((void*)func->pointer(), (void*)args->pointer(), (void*)ret->pointer());
     return Object::True;
 }
 

@@ -14,6 +14,7 @@
     ;; Basic C types (took from dyncall et al)
     (void v "void")
     (void* p "void*")
+    (char* p "void*") ;; FIXME: do we really need this?
 
     ;; Integer C types
     (char c "signed char")

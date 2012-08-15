@@ -1,5 +1,6 @@
 (library (yuni binary codec gdb)
          (export make-gdb-talker/target
+                 make-gdb-talker/host
                  gdb-reply-ok
                  gdb-reply-signal
                  gdb-reply-exit-status
@@ -11,6 +12,7 @@
                  gdb-reply-threadinfo/terminate
                  gdb-reply-current-thread)
          (import (rnrs) 
+                 (match)
                  (rnrs r5rs)
                  (srfi :8)
                  (srfi :42))
@@ -426,7 +428,15 @@
       (#\q (parse-query)))
     '(unknown)))
 
-(define (make-gdb-talker/target callback/send callback/event) 
+(define (make-gdb-talker/host callback/event) ;; => ^[bv] ^[cmd cb]
+  ;; callback/event = (^[evt] ...)
+  (define (push-buffer bv)
+    'ok)
+  (define (push-command l cb)
+    'ok)
+  (values push-buffer push-command))
+
+(define (make-gdb-talker/target callback/send callback/event) ;; => ^[bv]
   ;; callback/send = (^[bv] ...)
   ;; callback/event = (^[evt] ...)
   (define (make-packet-parser callback/event) ;; => (^[bv/bool] ...)

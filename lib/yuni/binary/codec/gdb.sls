@@ -87,17 +87,15 @@
 (define NACK (ascii #\-))
 (define MINUS (ascii #\-))
 
-(define ACK-packet (let ((bv (make-bytevector 1)))
-                     (bytevector-u8-set! bv 0 ACK)
-                     bv))
+(define (bv-byte b)
+  (let ((bv (make-bytevector 1)))
+    (bytevector-u8-set! bv 0 b)
+    bv))
 
-(define NACK-packet (let ((bv (make-bytevector 1)))
-                      (bytevector-u8-set! bv 0 NACK)
-                      bv))
+(define ACK-packet (bv-byte ACK))
+(define NACK-packet (bv-byte NACK))
 
-
-
-(define (make-gdb-packet-chunker callback) ;; (^[byte])
+(define (make-gdb-packet-chunker unrle? callback) ;; (^[byte])
   ;; callback <= #t (break) / #f (checksum error) / bytevector
   (define pktbuf-len)
   (define pktbuf)
@@ -105,6 +103,7 @@
   (define sum)
   (define sumr)
   (define state)
+  (define lastbyte #f)
   (define (setpktbuf size)
     (let ((bv (make-bytevector size)))
       (bytevector-copy! pktbuf 0 bv 0 pktbuf-len)
@@ -115,11 +114,19 @@
     (let ((bv (make-bytevector len)))
       (bytevector-copy! pktbuf 0 bv 0 len)
       bv))
+  (define (setbyte c)
+    (set! lastbyte c)
+    (when (= pktbuf-len p)
+      (setpktbuf (+ p 1000))) 
+    (bytevector-u8-set! pktbuf p c)
+    (set! p (+ 1 p)))
+  (define (resetbuf)
+    (set! p 0)
+    (set! sum 0))
 
+  (resetbuf)
   (set! pktbuf-len 1000)
   (set! pktbuf (make-bytevector pktbuf-len))
-  (set! p 0)
-  (set! sum 0)
   (set! state #f)
   (lambda (byte)
     ;; Receive $DDDD...#CC sequence
@@ -132,21 +139,24 @@
           (callback #t))
          ((= byte START-PACKET) 
           (set! state #t))))
-      ((#t escape)
+      ((#t escape rle-count)
        (cond
          ((= byte END-PACKET)
           (set! state 'checksum0))
          (else
            (cond
+             ((eq? state 'rle-count)
+              (do-ec (: i (- byte 29))
+                     (setbyte lastbyte))
+              (set! state '#t))
              ((= byte ESCAPE)
               (set! state 'escape))
+             ((and unrle? (not (eq? state 'escape)) (= byte STAR))
+              (set! state 'rle-count))
              (else
-               (when (= pktbuf-len p)
-                 (setpktbuf (+ p 1000))) 
-               (bytevector-u8-set! pktbuf p (if (eq? state 'escape) 
-                                              (bitwise-xor p #x20)
-                                              byte)) 
-               (set! p (+ p 1)) 
+               (setbyte (if (eq? state 'escape) 
+                          (bitwise-xor byte #x20) 
+                          byte))
                (set! state #t)))
            ;; We have to include ESCAPE char to sum
            ;; and don't have to unescape 
@@ -161,18 +171,13 @@
        (let ((checksum (+ (* sumr 16) (nibble-num byte))))
          (let ((len p)
                (thispacketsum sum))
-           (set! p 0)
-           (set! sum 0)
+           (resetbuf)
            #|
            (display (list 'packet: (utf8->string (packet len)) 
                           'sum: checksum thispacketsum ))(newline)
            |#
            (callback (and (= checksum thispacketsum)
                           (packet len)))))))))
-
-;;; Decompress
-
-;;; Compress
 
 ;;; Escape
 (define (escape-byte? c)
@@ -212,6 +217,11 @@
       (bytevector-u8-set! out next END-PACKET)
       (set-u8-hex! out (+ next 1) sum)) 
     (set! sum 0)
+    out))
+
+(define (format-memory bv)
+  (let ((out (make-bytevector (* 2 (bytevector-length bv)))))
+    (fill-hex out 0 bv)
     out))
 
 (define (fill-hex out off in)
@@ -428,12 +438,260 @@
       (#\q (parse-query)))
     '(unknown)))
 
-(define (make-gdb-talker/host callback/event) ;; => ^[bv] ^[cmd cb]
+(define (make-gdb-talker/host callback/send callback/event) ;; => ^[bv] ^[cmd cb]
+  ; Target events
+  ; S XX (signal n)
+  ; W XX (exit n)
+  ; X XX (terminate/signal n)
+  ; ????? (unknown obj)
+  ;
+  ; Host commands
+  ;; g            (read-registers) => bv
+  ;; G            (write-registers bv)
+  ;; m            (read-memory address size) => bv
+  ;; M            (write-memory address data) => bv
+  ;; c            (continue)
+  ;; C            (continue/signal sig)
+  ;; D            (detach)
+  ;; H?thread-id  (for-thread ID read-registers)
+  ;;              (for-thread ID write-registers)
+  ;; qfThreadInfo (threadinfo/first)
+  ;; qsThreadInfo (threadinfo/next)
+
+  ; LATER
+  ;; s            (step)
+  ;; S            (step/signal sig)
+  ;; (detatch)
+  ;; k            (kill)
+  ;; ?            (signal?)
+  ;; qC           (current-thread?)
+  ;; T            (thread-alive? id)
+
+  ;; callback/send = (^[bv] ...)
   ;; callback/event = (^[evt] ...)
-  (define (push-buffer bv)
+  ;; cb = (^[ok? obj] ...)
+  (define state #f) ;; := WAIT-ACK | PACKET | WAIT-FOR-TRAP
+  (define chunker #f)
+  (define wait-for-trap? #f)
+  (define (ok-packet? bv)
+    (string=? "OK" (utf8->string bv)))
+  (define (error-packet-value bv)
+    (utf8->string bv))
+
+  (define (memory-packet-value bv)
+    (define len (bytevector-length bv))
+    (define bytecount (/ len 2))
+    (define (b x) (nibble-num (bytevector-u8-ref bv x)))
+    (define (read-nibble off)
+      (+ (* 16 (b  off))
+         (b (+ 1 off))))
+    (define (acc l)
+      (fold-left (lambda (cur x)
+                   (+ (* cur 256) x))
+                 0
+                 l))
+    (unless (integer? bytecount)
+      (assertion-violation
+        'memory-packet-value
+        "Short read"
+        bv))
+    (acc (list-ec (: i bytecount)
+                  (read-nibble (* 2 i)))))
+
+  (define (error-packet? bv)
+    (= (bytevector-length bv) 3))
+
+  (define (null-command ok? obj)
+    ;; Ignore
     'ok)
+
+  (define (encode obj)
+    (cond
+      ((integer? obj) ;; => addr encode (BE)
+       (format-value obj))
+      ((bytevector? obj) ;; (LE)
+       (format-memory obj))
+      ((string? obj) ;; => utf8
+       (string->utf8 obj))
+      ((char? obj)
+       (bv-byte (char->integer obj)))
+      (else #f)))
+
+  (define current-command null-command) ;; = lambda
+  (define (make-waiter cb fk)
+    (lambda (ok? obj)
+      (if ok? (cb obj) (fk #f obj))))
+  (define (wait-for-trap cb)
+    (make-waiter
+      (lambda (obj)
+        (cb #t obj))
+      cb))
+  (define (wait-for-generic cb)
+    (make-waiter
+      (lambda (obj)
+        (if (ok-packet? obj)
+          (cb #t #t)
+          (cb #f (error-packet-value obj))))
+      cb))
+  (define (wait-for-memory cb)
+    (make-waiter
+      (lambda (obj)
+        (if (error-packet? obj)
+          (cb #f (error-packet-value obj))
+          (cb #t (memory-packet-value obj))))
+      cb))
+  (define (trap-event obj)
+    (cond
+      ((and (bytevector? obj) (<= 3 (bytevector-length obj)))
+       (let ((reason (integer->char (bytevector-u8-ref obj 0)))
+             ;; FIXME: too early? We may have more data.
+             (code (+ (* 16 (nibble-num (bytevector-u8-ref obj 1)))
+                      (nibble-num (bytevector-u8-ref obj 2)))))
+         (case reason
+           ((#\S #\T)
+            ;; T is extended trap event. 
+            ;; FIXME: We will ignore any extended argument here
+            (callback/event `(signal ,code)))
+           ((#\W)
+            (callback/event `(exit ,code)))
+           ((#\X)
+            (callback/event `(terminate/signal ,code)))
+           (else
+             (callback/event `(unknown ,obj))))))
+      (else
+       (callback/event '(unknown ,obj)))))
+
+  (define (request trap-next? cb . bv)
+    (define packet (escape/checksum (bv-concat (encode bv))))
+    (set! wait-for-trap? trap-next?)
+    (set! current-command
+      (lambda (ok? obj)
+        ;; Retransmit on NACK
+        (if (and (not ok?) (eq? obj 'NACK))
+          (cb ok? obj)
+          (callback/send packet))))
+    (callback/send packet))
+
+  (define bCOMMA (bv-byte COMMA))
+  (define bCOLON (bv-byte COLON))
+  (define bSEMICOLON (bv-byte SEMICOLON))
   (define (push-command l cb)
-    'ok)
+    (match l
+           (('read-memory address size) ;; m addr,length => memory
+            (request #f
+                     (wait-for-memory cb)
+                     #\m
+                     address
+                     bCOMMA
+                     size))
+
+           (('write-memory address data) ;; M addr,length:MEM => generic
+            (request #f
+                     (wait-for-generic cb)
+                     #\M
+                     address
+                     bCOMMA
+                     (bytevector-length data)
+                     bCOLON
+                     data))
+
+           (('read-registers) ;; g
+            (request #f
+                     (wait-for-memory cb)
+                     #\g))
+           (('write-registers data) ;; G MEM
+            (request #f
+                     (wait-for-generic cb)
+                     #\G
+                     data))
+           (('continue) ;; c
+            (request #t
+                     (wait-for-trap cb)
+                     #\c
+                     ))
+           (('continue addr) ;; c addr
+            (request #t
+                     (wait-for-trap cb)
+                     #\c
+                     addr))
+           (('continue/signal sig)
+            (request #t
+                     (wait-for-trap cb)
+                     #\C
+                     sig))
+           (('continue/signal sig addr)
+            (request #t
+                     (wait-for-trap cb)
+                     #\C
+                     sig
+                     bSEMICOLON
+                     addr))
+           (('detach)
+            (request #f
+                     (wait-for-generic cb)
+                     #\D))
+           (('for-thread id 'read-registers)
+            (request #f
+                     (wait-for-memory cb)
+                     #\H
+                     id
+                     #\g))
+           (('for-thread id 'write-registers data)
+            (request #f
+                     (wait-for-generic cb)
+                     #\H
+                     id
+                     #\G
+                     data))
+           (else
+             (cb #f 'UNKNOWN)))
+    #t)
+  (define (send-ACK) (callback/send ACK-packet))
+  (define (send-NACK) (callback/send NACK-packet))
+
+  (define (procpacket obj)
+    ;; obj := #f | #t | bv
+    (cond
+      ((eq? obj #t) ;; Break??
+       (set! state #f) ;; Invalid session
+       (current-command #f 'INVALID)) 
+      (obj
+        (set! state #f)
+        (send-ACK)
+        (cond
+          (wait-for-trap?
+            (trap-event obj))
+          (else
+            (current-command #t obj))))
+      (else
+        (send-NACK))))
+
+  (define (procbyte i)
+    ;; FIXME: How to process stop-reply packets?
+    (case state
+      ((#f) ;; Ignore a byte
+       'ok)
+      ((WAIT-ACK)
+       (case i
+         ((ACK)
+          (when wait-for-trap?
+            (current-command #t 'CONTINUE))
+          (set! state 'PACKET))
+         ((NACK)
+          (when current-command
+            ;; Try to retransmit
+            (current-command #f 'NACK)))
+         (else ;; Ignore
+           'ok)))
+      ((PACKET) 
+       (chunker i))))
+
+  (define (push-buffer bv)
+    (do-ec (: i (bytevector-length bv))
+           (procbyte (bytevector-u8-ref bv i))))
+
+
+  (set! chunker (make-gdb-packet-chunker #t procpacket))
   (values push-buffer push-command))
 
 (define (make-gdb-talker/target callback/send callback/event) ;; => ^[bv]
@@ -450,7 +708,7 @@
           (callback/send ACK-packet)
           (callback/event (parse-command/host buffer))))))
 
-  (define chunker (make-gdb-packet-chunker (make-packet-parser callback/event)))
+  (define chunker (make-gdb-packet-chunker #f (make-packet-parser callback/event)))
   (lambda (buffer)
     (do-ec (: i (bytevector-length buffer))
            (chunker (bytevector-u8-ref buffer i)))))

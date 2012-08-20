@@ -735,7 +735,7 @@
 ; encounters while scanning the PORT. This character is left
 ; on the input stream.
 
-(define ssax:S-chars (map ascii->char '(32 10 9 13)))
+(define ssax:S-chars (map ascii->char '(32 10 9 13 #xfeff)))
 
 (define (ssax:skip-S port)
   (skip-while ssax:S-chars port))

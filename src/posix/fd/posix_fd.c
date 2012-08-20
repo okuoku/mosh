@@ -14,6 +14,15 @@
 
 /*** File Functions ... ***/
 int
+fd_open(char* name){
+    return open(name, O_RDONLY);
+}
+int
+fd_open_rw(char* name){
+    return open(name, O_RDWR);
+}
+
+int
 fd_read(int fd,void* buf,int len){
     int ret;
     ret = read(fd,buf,len);

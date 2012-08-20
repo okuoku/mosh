@@ -1,5 +1,6 @@
 (library (nmosh aio impl posix fd-ops)
          (export
+           queue-open-serialport0
            queue-read0
            queue-write0
            queue-close0)
@@ -7,6 +8,7 @@
                  (shorten)
                  (srfi :8)
                  (nmosh pffi posix fd)
+                 (nmosh stubs terminal)
                  (nmosh aio impl posix queue-fd-poll))
 
 (define BLKSIZE (* 128 1024))
@@ -21,6 +23,18 @@
         (queue-unregister-fd Q fd)
         (callback fd #f #f))
       (callback fd buf len))))
+
+(define (queue-open-serialport0 Q name rate) ;; => fd
+  (define fd (fd_open_rw name))
+  (define (setup fd)
+    (terminal_serial_initialize (fd->int fd))
+    (if (= 1 (terminal_serial_setspeed (fd->int fd) rate))
+      fd ;; Return
+      (begin
+        (fd_close fd)
+        #f)))
+  (and fd
+       (setup fd)))
 
 (define (queue-read0 Q fd callback)
   (queue-register-fd/read Q fd

@@ -93,10 +93,13 @@ using namespace scheme;
 
 #ifdef HAVE_TERMINAL
 #define LIBDATA_TERMINAL CONS(SYM("terminal"), \
-CONS(FUNC("terminal_acquire",terminal_acquire), \
-CONS(FUNC("terminal_release",terminal_release), \
-CONS(FUNC("terminal_getsize",terminal_getsize), \
-CONS(FUNC("terminal_isatty",terminal_isatty),NIL)))))
+CONS(FN(terminal_serial_initialize), \
+CONS(FN(terminal_serial_setspeed), \
+CONS(FN(terminal_acquire), \
+CONS(FN(terminal_release), \
+CONS(FN(terminal_getsize), \
+CONS(FN(terminal_isatty), \
+    NIL)))))))
 #endif
 
 #ifdef HAVE_PTRACE_COMMON 
@@ -281,12 +284,15 @@ CONS(FN(poll_get_pollnval), \
 
 #ifdef HAVE_FCNTL
 #define LIBDATA_POSIX_FD CONS(SYM("posix-fd"), \
+CONS(FN(fd_open), \
+CONS(FN(fd_open_rw), \
+CONS(FN(fd_close), \
 CONS(FN(fd_read), \
 CONS(FN(fd_write), \
 CONS(FN(fd_close), \
 CONS(FN(fd_setnonblock), \
 CONS(FN(fd_pipe), \
-    NIL))))))
+    NIL)))))))))
 #endif
 
 #ifdef HAVE_POSIX_SPAWN

@@ -4,6 +4,8 @@
   (libname: posix-fd)
   (header: "posix_fd.h")
   #(ret name args)
+  (int fd_open (void*))
+  (int fd_open_rw (void*))
   (int fd_read (int void* int))
   (int fd_write (int void* int))
   (int fd_close (int))

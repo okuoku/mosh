@@ -6,6 +6,8 @@
            fd_close
            fd_setnonblock
            fd_pipe
+           fd_open
+           fd_open_rw
            
            fd->int
            int->fd
@@ -16,6 +18,7 @@
          (import (rnrs)
                  (yuni core)
                  (nmosh pffi interface)
+                 (nmosh pffi util)
                  (srfi :8)
                  (nmosh ffi box)
                  (prefix (nmosh stubs posix-fd) stub:))
@@ -38,6 +41,16 @@
 (define null-pointer (integer->pointer 0))
 (define (null-pointer? x) (= (pointer->integer x) 0))
 
+
+(define (fd_open name)
+  (let ((r (stub:fd_open (string->utf8/null name))))
+    (and (> fd 0)
+         (int->fd r))))
+
+(define (fd_open_rw name)
+  (let ((r (stub:fd_open_rw (string->utf8/null name))))
+    (and (> fd 0)
+         (int->fd r))))
 
 (define* (fd_read (fd) buf len)
   (let ((r (stub:fd_read (fd->int fd)

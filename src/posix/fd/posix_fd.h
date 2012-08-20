@@ -2,6 +2,8 @@
 extern "C" {
 #endif
 
+int fd_open(char* name);
+int fd_open_rw(char* name);
 int fd_read(int fd,void* buf,int len);
 int fd_write(int fd,void* buf,int len);
 int fd_close(int fd);

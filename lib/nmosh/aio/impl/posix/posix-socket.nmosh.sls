@@ -24,12 +24,16 @@
     (socket_connect fd name)
     (callback fd)))
 
-(define (queue-listen Q name callback)
+(define (queue-listen Q name callback) ;; => inetname/#f
   (let* ((family (inetname-family name))
          (fd (socket_create family 1)))
     (socket_bind fd name)
-    (socket_listen fd 5)
-    (queue-register-fd/read Q fd (^[fd _] (callback fd)))))
+    (let ((r (socket_listen fd 5)))
+      (if (= r 0)
+        (begin 
+          (queue-register-fd/read Q fd (^[fd _] (callback fd)))
+          (socket-inetname fd))
+        #f))))
 
 (define (queue-accept Q fd callback)
   (receive (new-fd inetname) (socket_accept fd)

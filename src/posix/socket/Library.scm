@@ -7,6 +7,7 @@
   (int socket_sizeof_sockaddr_storage)
   (int socket_getaddrinfo (char* char* void* int int))
   (int socket_create (int int))
+  (int socket_getsockname (int void* int))
   (void socket_freeaddrinfo (void*))
   (int socket_bind (int void* int))
   (int socket_listen (int int))

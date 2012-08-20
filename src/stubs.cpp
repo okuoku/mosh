@@ -261,7 +261,8 @@ CONS(FN(socket_addrinfo_read), \
 CONS(FN(socket_setnodelay), \
 CONS(FN(socket_sockaddr_read), \
 CONS(FN(socket_name_family), \
-    NIL)))))))))))))
+CONS(FN(socket_getsockname), \
+    NIL))))))))))))))
 #endif
 
 #ifdef HAVE_POLL

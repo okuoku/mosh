@@ -5,6 +5,7 @@ extern "C" {
 int socket_getaddrinfo(char* name,char* servicename, void* ret_addrinfo, int mode, int proto);
 int socket_sizeof_sockaddr_storage(void);
 int socket_create(int mode,int proto);
+int socket_getsockname(int s, void* name, int len);
 void socket_freeaddrinfo(void* ai);
 int socket_bind(int fd,void* name,int len);
 int socket_listen(int fd,int l);

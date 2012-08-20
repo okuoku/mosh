@@ -126,6 +126,12 @@ socket_create(int mode,int proto){
     return ret;
 }
 
+int
+socket_getsockname(int s, void* buf, int bufsize){
+    int size = bufsize;
+    return getsockname(s, (struct sockaddr *)buf, &size);
+}
+
 
 void
 socket_freeaddrinfo(void* ai){

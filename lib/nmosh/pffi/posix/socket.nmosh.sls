@@ -12,6 +12,7 @@
            socket_setnodelay
            inetname-port ;;FIXME
            inetname-family
+           socket-inetname
            )
          (import (rnrs)
                  (yuni core)
@@ -76,6 +77,12 @@
 (define* (inetname-family (inetname))
   (let-with inetname (family) family))
 
+(define* (socket-inetname (fd))
+  (define len (stub:socket_sizeof_sockaddr_storage))
+  (define bv (make-bytevector len))
+  (stub:socket_getsockname (fd->int fd) bv len)
+  (make-inetname/sockaddr bv))
+
 ;; mode 0/4/6, proto 0/1(TCP)/2(UDP)
 (define (socket_getaddrinfo name service mode proto)
   (let ((ret (make-ptr-box))
@@ -95,13 +102,13 @@
 (define* (socket_freeaddrinfo (addrinfo))
   (stub:socket_freeaddrinfo (addrinfo->pointer addrinfo)))
 
-(define* (socket_bind (fd) (inetname))
+(define* (socket_bind (fd) (inetname)) ;; => 0 for success
   (receive (sockaddr len) (inetname-values inetname)
     (stub:socket_bind (fd->int fd)
                       sockaddr
                       len)))
 
-(define* (socket_listen (fd) n)
+(define* (socket_listen (fd) n) ;; => 0 for success
   (stub:socket_listen (fd->int fd) n))
 
 (define* (socket_connect (fd) (inetname))

@@ -7,6 +7,7 @@
                  (nmosh ffi pffi-lookup)
                  (nmosh ffi box)
                  (mosh)
+                 (nmosh pffi util)
                  (nmosh pffi signatures)
                  (nmosh global-flags)
                  (mosh ffi))
@@ -54,7 +55,7 @@
     (define addr (* off 8))
     (define (complain)
       (assertion-violation name
-                           "Invalid argument"
+                           "Invalid argument type"
                            obj
                            off))
     (case type
@@ -66,6 +67,10 @@
                                                 (bytevector-pointer obj))))
          ((pointer? obj)
           (bytevector-u64-native-set! bv addr (pointer->integer obj)))
+         ((string? obj)
+          (bytevector-u64-native-set! bv addr (pointer->integer
+                                                (bytevector-pointer
+                                                  (string->utf8/null obj)))))
          (else (complain))))
       ;; Signed fixnums
       ((char short int long int32 int64)

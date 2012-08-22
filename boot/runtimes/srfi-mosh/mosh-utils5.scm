@@ -538,11 +538,14 @@
 (define (ca-preload-core-list) preload-core-list)
 (define (ca-preload-list) preload-list)
 
-(define (ca-preload-path)
-  (%ca-gen-preload-path "nmosh-preload.fasl"))
+(define (ca-preload-path build-id)
+  (%ca-gen-preload-path 
+    (string-append "nmosh-preload-" build-id ".fasl")))
 
-(define (ca-preload-core-path)
-  (%ca-gen-preload-path "nmosh-preload-core.fasl"))
+(define (ca-preload-core-path build-id)
+  (%ca-gen-preload-path 
+    (string-append "nmosh-preload-core-" build-id ".fasl")))
+    
 
 (define (ca-preload-lookup-itr cur name)
   (and (pair? cur)
@@ -556,12 +559,12 @@
          (ca-preload-register/core (caar cur) (cdar cur))
          (ca-preload-lookup-itr/core (cdr cur) name))))
 
-(define (ca-preload-enable)
-  (define path (ca-preload-path))
+(define (ca-preload-enable build-id)
+  (define path (ca-preload-path build-id))
   (define p (and path 
                  (file-exists? path)
                  (open-file-input-port path)))
-  (ca-preload-core)
+  (ca-preload-core build-id)
   (when p
     (PCK 'PRELOAD: path)
     (set! preload-list (fasl-read p))
@@ -570,8 +573,8 @@
   (unless p
     (PCK 'PRELOAD: "No preload file")))
 
-(define (do-ca-preload-core)
-  (define path/core (ca-preload-core-path))
+(define (do-ca-preload-core build-id)
+  (define path/core (ca-preload-core-path build-id))
   (define p/core (and path/core 
                       (file-exists? path/core)
                       (open-file-input-port path/core)))
@@ -581,9 +584,9 @@
     (set! preload-core-offset (port-position p/core))
     (set! preload-core-port p/core)))
 
-(define (ca-preload-core)
+(define (ca-preload-core build-id)
   (or preload-core-port
-      (do-ca-preload-core)))
+      (do-ca-preload-core build-id)))
 
 (define (ca-preload-disable)
   (set! preload-port #f)

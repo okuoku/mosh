@@ -28,9 +28,9 @@
   (set-symbol-value! 'show-profile show-profile)
   (init-library-alias-table)
   (when (get-global-flag '%nmosh-preload-core)
-    (ca-preload-core))
+    (ca-preload-core build-id))
   (when (get-global-flag '%nmosh-preload-mode)
-    (ca-preload-enable))
+    (ca-preload-enable build-id))
   (let ((cl (command-line)))
     (cond
       ((<= 1 (length cl))

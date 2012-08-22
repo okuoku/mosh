@@ -1,5 +1,6 @@
 (library (yuni binary format elf0)
-         (export elf64le-lookup-sectionheader)
+         (export elf64le-lookup-sectionheader
+                 elf64le-symbol-list)
          (import (rnrs)
                  (srfi :42)
                  (yuni binary macro packet0)
@@ -43,6 +44,59 @@
   (data "unsigned" 1)
   (abi "unsigned" 1)
   (abiversion "unsigned" 1))
+
+(define-packet0*
+  elf64le-sym pack-elf64le-sym unpack-elf64le-sym
+  (name "unsigned" 4 little)
+  (info "unsigned" 1)
+  (other "unsigned" 1)
+  (shndx "unsigned" 2 little)
+  (value "unsigned" 8 little)
+  (size "unsigned" 8 little))
+
+(define (elf64le-symbol-list bv)
+  (define hdr (elf64le-lookup-sectionheader bv ".symtab"))
+  (define str (elf64le-lookup-sectionheader bv ".strtab"))
+  (define str-off (and str (~ str 'offset)))
+  (define (decinfo x)
+    (case (bitwise-and x #xf)
+      ((0) 'NOTYPE)
+      ((1) 'OBJECT)
+      ((2) 'FUNC)
+      ((3) 'SECTION)
+      ((4) 'FILE)
+      ((5) 'COMMON)
+      ((6) 'TLS)
+      ((7) 'NUM) ;; ???
+      ))
+  (define (decother x)
+    (case x
+      ((0) 'DEFAULT)
+      ((1) 'INTERNAL)
+      ((2) 'HIDDEN)
+      ((3) 'PROTECTED)
+      ((4) 'EXPORTED)
+      ((5) 'SINGLETON)
+      ((6) 'ELIMINATE)
+      (else x)))
+  (define (ret x)
+    (list
+      (lookup-strtab bv (+ str-off (~ x 'name)))
+      (decinfo (~ x 'info))
+      (decother (~ x 'other))
+      (~ x 'value)
+      (~ x ' size)))
+  (define (pickup off size)
+    (define lim (+ off size))
+    (define (itr cur off)
+      (if (< off lim)
+        (itr (cons (unpack-elf64le-sym bv off) cur)
+             (+ off (+ 4 1 1 2 8 8)))
+        (map ret (reverse cur))))
+    (itr '()  off))
+  (and hdr
+       str
+       (pickup (~ hdr 'offset) (~ hdr 'size))))
 
 (define (lookup-strtab bv off) ;; => string
   ;; lookup asciiz => string

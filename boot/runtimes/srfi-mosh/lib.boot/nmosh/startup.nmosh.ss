@@ -1,15 +1,28 @@
 (library (nmosh startup)
-	 (export startup)
-	 (import (rnrs) 
-		 (nmosh runlib)
-		 (nmosh condition-printer)
-		 (nmosh minidebug)
+         (export startup
+                 build-id)
+         (import (rnrs) 
+                 (nmosh runlib)
+                 (nmosh condition-printer)
+                 (nmosh minidebug)
                  (nmosh global-flags)
                  (nmosh library-alias)
-		 (primitives ca-load ca-preload-enable
+                 (primitives ca-load ca-preload-enable
                              ca-preload-core
-                             DEBUGMODE-ON set-symbol-value!))
+                             DEBUGMODE-ON set-symbol-value!)
+                 (for 
+                   (primitives ex:unique-token)
+                   expand))
 
+
+(define-syntax define-build-id
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ name)
+       (with-syntax ((id (datum->syntax #'stx (ex:unique-token))))
+         #'(define name id))))))
+
+(define-build-id build-id)
 (define (startup)
   (set-symbol-value! '%nmosh-failproc enter-debugger)
   (set-symbol-value! 'show-profile show-profile)

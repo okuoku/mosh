@@ -12,14 +12,32 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+void
+fd_nonblock(int fd){
+    int f;
+    f = fcntl(fd, F_GETFL, NULL);
+    f |= O_NONBLOCK;
+    fcntl(fd, F_SETFL, f);
+}
+
 /*** File Functions ... ***/
 int
 fd_open(char* name){
-    return open(name, O_RDONLY | O_NONBLOCK);
+    int fd;
+    fd = open(name, O_RDONLY | O_NONBLOCK);
+    if(0<=fd){
+        fd_nonblock(fd);
+    }
+    return fd;
 }
 int
 fd_open_rw(char* name){
-    return open(name, O_RDWR | O_NONBLOCK);
+    int fd;
+    fd = open(name, O_RDWR | O_NONBLOCK);
+    if(0<=fd){
+        fd_nonblock(fd);
+    }
+    return fd;
 }
 
 int

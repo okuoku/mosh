@@ -44,12 +44,12 @@
 
 (define (fd_open name)
   (let ((r (stub:fd_open (string->utf8/null name))))
-    (and (> fd 0)
+    (and (> r 0)
          (int->fd r))))
 
 (define (fd_open_rw name)
   (let ((r (stub:fd_open_rw (string->utf8/null name))))
-    (and (> fd 0)
+    (and (> r 0)
          (int->fd r))))
 
 (define* (fd_read (fd) buf len)

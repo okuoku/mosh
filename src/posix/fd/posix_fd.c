@@ -15,11 +15,11 @@
 /*** File Functions ... ***/
 int
 fd_open(char* name){
-    return open(name, O_RDONLY);
+    return open(name, O_RDONLY | O_NONBLOCK);
 }
 int
 fd_open_rw(char* name){
-    return open(name, O_RDWR);
+    return open(name, O_RDWR | O_NONBLOCK);
 }
 
 int

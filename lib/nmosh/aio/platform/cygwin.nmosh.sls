@@ -19,6 +19,7 @@
 
                  queue-invoke-ffithread
                  inetname-port
+                 queue-open-serialport0
                  )
          (import (nmosh aio impl posix posix-socket)
                  (nmosh aio impl posix fd-ops)

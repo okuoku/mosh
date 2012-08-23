@@ -5,7 +5,11 @@
                  zrepl-input-release
                  zrepl-output-width
                  zrepl-output-height
-                 zrepl-prepare-zone
+                 zrepl-zone-new
+                 zrepl-fmt-open-line
+                 zrepl-fmt-delete-line
+                 zrepl-fmt-output
+                 zrepl-fmt-set-cursor
                  )
          (import (rnrs)
                  (yuni core)
@@ -13,9 +17,40 @@
                  (nmosh pffi posix fd)
                  (nmosh aio impl posix fd-ops)
                  (nmosh io master-queue)
+                 (shorten)
                  (srfi :8)
                  (srfi :42)
                  (shorten))
+
+;; FMT output
+(define (zrepl-fmt-delete-line)
+  (out 27 91 #\2 #\K "\r")
+  )
+(define (zrepl-fmt-open-line)
+  (out "\r\n"))
+
+(define (zrepl-fmt-output l)
+  ;; FIXME: temp
+  (define (out1 x)
+    (for-each (^e (when (string? e)
+                    (out e)
+                    ))
+              x))
+  (define (out0 x)
+    (for-each (^e 
+                (cond
+                  ((string? e) (out e))
+                  ((pair? e) (out1 x))))
+              x)) 
+  (if (string? l)
+    (out l)
+    (out0 l)))
+
+(define (zrepl-fmt-set-cursor x)
+  (display "\r" (current-output-port))
+  (do-ec (: i x)
+         (out 27 91 #\C)))
+
 ;; TTY Related
 (define (zrepl-interactive?)
   ;; We assume screen output is interactive when stdout was a TTY
@@ -35,6 +70,7 @@
   ;; cb = ^[Char ctrl? alt? super?]
   ;;      ^[sym ctrl? alt? super?]
   ;;      ^[#f obj]
+  ;; sym = backspace | escape | up | down | right | left
   (define stdin (int->fd 1))
   (define (cook i)
     ;; Process a byte
@@ -115,17 +151,12 @@
     (for-each outone objs)
     (finish)))
 
-(define* zout (static-area cur-x cur-y))
-(define (zrepl-output-new) ;; => zout
-  (make zout 
+(define* zzone (static-area cur-x cur-y))
+(define (zrepl-zone-new) ;; => zzone
+  (make zzone
         (static-area '())
         (cur-x 0)
         (cur-y 0)))
-;; Output to log area
-(define* (zrepl-output-log (zout) l)
-  )
-(define* (zrepl-set-static-area (zout) l cur-x cur-y)
-  )
 
 (define (zrepl-prepare-zone height) 
   (apply out (append (list-ec (: i height) "\n"))) 

@@ -13,6 +13,7 @@
                  gdb-reply-current-thread)
          (import (rnrs) 
                  (match)
+                 (mosh pp)
                  (rnrs r5rs)
                  (srfi :8)
                  (srfi :42))
@@ -60,7 +61,8 @@
     ((or (= c (ascii #\C)) (= c (ascii #\c))) 12)
     ((or (= c (ascii #\D)) (= c (ascii #\d))) 13)
     ((or (= c (ascii #\E)) (= c (ascii #\e))) 14)
-    ((or (= c (ascii #\F)) (= c (ascii #\f))) 15)))
+    ((or (= c (ascii #\F)) (= c (ascii #\f))) 15)
+    (else #f)))
 
 (define (set-nibble-hex! bv off i)
   (bytevector-u8-set! bv off (nibble i)))
@@ -446,6 +448,8 @@
   ; ????? (unknown obj)
   ;
   ; Host commands
+  ;;  +           (ACK)   special.
+  ;;  -           (NACK)  special.
   ;; g            (read-registers) => bv
   ;; G            (write-registers bv)
   ;; m            (read-memory address size) => bv
@@ -479,11 +483,13 @@
     (utf8->string bv))
 
   (define (memory-packet-value bv)
+    ;; FIXME: Handle "xxxx" for don't care
     (define len (bytevector-length bv))
     (define bytecount (/ len 2))
-    (define (b x) (nibble-num (bytevector-u8-ref bv x)))
+    (define (b x) (or (nibble-num (bytevector-u8-ref bv x))
+                      0))
     (define (read-nibble off)
-      (+ (* 16 (b  off))
+      (+ (* 16 (b off))
          (b (+ 1 off))))
     (define (acc l)
       (fold-left (lambda (cur x)
@@ -495,8 +501,9 @@
         'memory-packet-value
         "Short read"
         bv))
-    (acc (list-ec (: i bytecount)
-                  (read-nibble (* 2 i)))))
+    ;(pp (list 'memory: (utf8->string bv)))
+    (u8-list->bytevector (list-ec (: i bytecount)
+                                  (read-nibble (* 2 i)))))
 
   (define (error-packet? bv)
     (= (bytevector-length bv) 3))
@@ -515,7 +522,10 @@
        (string->utf8 obj))
       ((char? obj)
        (bv-byte (char->integer obj)))
-      (else #f)))
+      (else 
+        (assertion-violation 'gdb-encode
+                             "Invalid gdb object"
+                             obj))))
 
   (define current-command null-command) ;; = lambda
   (define (make-waiter cb fk)
@@ -562,14 +572,15 @@
        (callback/event '(unknown ,obj)))))
 
   (define (request trap-next? cb . bv)
-    (define packet (escape/checksum (bv-concat (encode bv))))
+    (define packet (escape/checksum (apply bv-concat (map encode bv))))
     (set! wait-for-trap? trap-next?)
     (set! current-command
       (lambda (ok? obj)
         ;; Retransmit on NACK
         (if (and (not ok?) (eq? obj 'NACK))
-          (cb ok? obj)
-          (callback/send packet))))
+          (callback/send packet)
+          (cb ok? obj))))
+    (set! state 'WAIT-ACK)
     (callback/send packet))
 
   (define bCOMMA (bv-byte COMMA))
@@ -577,6 +588,8 @@
   (define bSEMICOLON (bv-byte SEMICOLON))
   (define (push-command l cb)
     (match l
+           (('ACK) (send-ACK) (cb #t))
+           (('NACK) (send-NACK) (cb #t))
            (('read-memory address size) ;; m addr,length => memory
             (request #f
                      (wait-for-memory cb)
@@ -651,6 +664,7 @@
 
   (define (procpacket obj)
     ;; obj := #f | #t | bv
+    ;(pp (list 'procpacket: obj))
     (cond
       ((eq? obj #t) ;; Break??
        (set! state #f) ;; Invalid session
@@ -668,16 +682,17 @@
 
   (define (procbyte i)
     ;; FIXME: How to process stop-reply packets?
+    ;(pp (list 'procbyte: (integer->char i) state))
     (case state
       ((#f) ;; Ignore a byte
        'ok)
       ((WAIT-ACK)
-       (case i
-         ((ACK)
+       (cond
+         ((= i ACK)
           (when wait-for-trap?
             (current-command #t 'CONTINUE))
           (set! state 'PACKET))
-         ((NACK)
+         ((= i NACK)
           (when current-command
             ;; Try to retransmit
             (current-command #f 'NACK)))

@@ -47,9 +47,9 @@
     (out0 l)))
 
 (define (zrepl-fmt-set-cursor x)
-  (display "\r" (current-output-port))
+  (out "\r")
   (do-ec (: i x)
-         (out 27 91 #\C)))
+         (out 27 91 #\1 #\C)))
 
 ;; TTY Related
 (define (zrepl-interactive?)

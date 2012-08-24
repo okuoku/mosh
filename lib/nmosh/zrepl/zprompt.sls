@@ -16,6 +16,7 @@
   (zrepl-interactive?))
 
 (define (zprompt-start cb/line cb) ;; => boolean
+  ;; cb = ^[lineout]
   (define editline '()) ;; list-of-char
   (define cursor 0)
   (define prompt "ok > ")
@@ -50,14 +51,13 @@
     (redraw))
 
 
-  ;; cb = ^[lineout]
   (define (redraw)
     (zrepl-fmt-set-cursor 0)
     (zrepl-fmt-delete-line)
     (zrepl-fmt-output (list prompt
                             (list->string editline)))
     (zrepl-fmt-set-cursor (+ (string-length prompt)
-                             cursor)) )
+                             cursor)))
   (define (lineout obj)
     (cond
       (obj
@@ -88,7 +88,7 @@
       ((backspace) (backspace)))
     'ok)
   (define (zrepl-event . obj)
-    (DBG `(Event: ,obj))
+    ;(DBG `(Event: ,obj))
     (match obj
            ((x ctrl? alt? super?)
             (cond
@@ -103,6 +103,7 @@
   (zrepl-input-acquire)
   (zrepl-input-subscribe zrepl-event)
   (cb lineout)
+  (redraw)
   #t)
 
 )

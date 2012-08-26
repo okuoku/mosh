@@ -86,6 +86,9 @@ Bug fixes:
         VM Compiler error "[internal error] iform-count-size-upto: unknown
         iform tag:13" was fixed.
 
+    Core:
+        The pointer type was erroneously sized 32bit in 64-bit *BSD platforms.
+
     rnrs:
         Fixed Issue 215 reported by mrc.mgg:
             finite? and flfinite? were returned #t for NaNs.

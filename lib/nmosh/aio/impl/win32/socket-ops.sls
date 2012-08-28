@@ -5,6 +5,7 @@
            queue-listen
            queue-accept
            queue-close0
+           tcp-set-nodelay0
            inetname-port
            resolve-socketname/4
            resolve-socketname/6
@@ -48,6 +49,9 @@
 
 
 (define* listen-socket (ovl callback buf listen-sock accept-sock))
+
+(define* (tcp-set-nodelay0 (win32-handle-stream))
+  (win32_socket_setnodelay (~ win32-handle-stream 'h)))
 
 (define* (queue-close0/handle (Q) (win32-handle-stream))
   (let-with win32-handle-stream (ovl/read ovl/write h)

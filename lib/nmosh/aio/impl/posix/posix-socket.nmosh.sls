@@ -3,6 +3,7 @@
            queue-listen
            queue-accept
            queue-connect
+           tcp-set-nodelay0
            resolve-socketname/4
            resolve-socketname/6
 
@@ -38,6 +39,9 @@
 (define (queue-accept Q fd callback)
   (receive (new-fd inetname) (socket_accept fd)
     (callback new-fd inetname)))
+
+(define (tcp-set-nodelay0 fd)
+  (socket_setnodelay fd))
 
 ;; Resolve API
 (define (resolve-socketname**/sync name service mode proto) ;; => (inetname ...)

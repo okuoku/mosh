@@ -984,6 +984,12 @@ win32_socket_listen(uintptr_t s,int l){
 	return listen((SOCKET)s,(l == 0)?SOMAXCONN:l);
 }
 
+void
+win32_socket_setnodelay(uintptr_t s){
+    int one = 1;
+    setsockopt((SOCKET)s,IPPROTO_TCP,TCP_NODELAY,&one,sizeof(int));
+}
+
 /* simple GUI elements */
 
 // DLGTYPE: 0:OK 1: YESNO 2: YESNOCANCEL

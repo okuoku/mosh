@@ -14,6 +14,7 @@
                  queue-listen
                  queue-accept
                  queue-connect
+                 tcp-set-nodelay0
 
                  queue-spawn0
 

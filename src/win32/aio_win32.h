@@ -35,6 +35,7 @@ int win32_socket_bind(uintptr_t s,uintptr_t name,int namelen);
 int win32_socket_listen(uintptr_t s,int l);
 int win32_socket_close(uintptr_t s);
 int win32_socket_getsockname(uintptr_t s,uintptr_t buf,int len);
+void win32_socket_setnodelay(uintptr_t s);
 
 // GC related
 void* win32_finalization_handler_get(void);

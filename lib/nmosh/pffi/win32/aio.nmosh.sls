@@ -28,6 +28,7 @@
                  win32_socket_bind
                  win32_socket_listen
                  win32_socket_getsockname
+                 win32_socket_setnodelay
 
                  ;; GC related
                  win32_finalization_handler_alloc_overlapped
@@ -352,6 +353,9 @@
   (define bv (make-bytevector sockaddr-size))
   (stub:win32_socket_getsockname (handle->pointer s) bv sockaddr-size)
   bv)
+
+(define* (win32_socket_setnodelay (s win32-handle))
+  (stub:win32_socket_setnodelay (handle->pointer s)))
 
 (define win32_socket_listen
   (case-lambda

@@ -14,6 +14,7 @@
                  queue-close0
                  queue-spawn0
                  queue-open-serialport0
+                 tcp-set-nodelay0
                  resolve-socketname/4
                  resolve-socketname/6
                  inetname-port

@@ -6,6 +6,7 @@
                  (shorten)
                  (nmosh io tcp0)
                  (srfi :39)
+                 (nmosh aio platform) ;; tcp-set-nodelay0
                  (yuni binary codec msgpack))
 
 ;;
@@ -80,6 +81,7 @@
     name port
     (^[servfd]
       (socket-accept servfd (^[fd inetname]
+                              (tcp-set-nodelay0 fd)
                               (accept-callback servfd fd inetname))))
     result-callback))
 
@@ -89,6 +91,7 @@
   (make-client-socket 
     name port 
     (^[fd] 
+      (tcp-set-nodelay0 fd)
       (start-msgpack-talker fd recv-callback write-callback error-callback))))
 
 )

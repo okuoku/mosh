@@ -572,7 +572,11 @@
        (callback/event '(unknown ,obj)))))
 
   (define (request trap-next? cb . bv)
-    (define packet (escape/checksum (apply bv-concat (map encode bv))))
+    (define (do-encode e)
+      (if (pair? e)
+        (car e) ;; quote
+        (encode e)))
+    (define packet (escape/checksum (apply bv-concat (map do-encode bv))))
     (set! wait-for-trap? trap-next?)
     (set! current-command
       (lambda (ok? obj)
@@ -583,9 +587,10 @@
     (set! state 'WAIT-ACK)
     (callback/send packet))
 
-  (define bCOMMA (bv-byte COMMA))
-  (define bCOLON (bv-byte COLON))
-  (define bSEMICOLON (bv-byte SEMICOLON))
+  ;; Use list as quote OP
+  (define bCOMMA (list (bv-byte COMMA)))
+  (define bCOLON (list (bv-byte COLON)))
+  (define bSEMICOLON (list (bv-byte SEMICOLON)))
   (define (push-command l cb)
     (match l
            (('ACK) (send-ACK) (cb #t))

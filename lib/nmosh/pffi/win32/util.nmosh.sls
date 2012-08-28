@@ -1,5 +1,6 @@
 (library (nmosh pffi win32 util)
          (export null-pointer
+                 string->utf16-bv/raw
                  string->utf16-bv
                  utf16-bv->string
                  mbcs->string
@@ -21,6 +22,11 @@
           (bytevector-u16-set! bv idx i (endianness little)))
         (itr (+ 2 idx)))))
   (itr 0))
+
+(define (string->utf16-bv/raw str)
+  (define str-bv (string->bytevector str (make-transcoder (utf-16-codec))))
+  (byteswap! str-bv)
+  str-bv)
 
 (define (string->utf16-bv str) ;; N.B.: adds null char
   (define str-bv (string->bytevector str (make-transcoder (utf-16-codec))))

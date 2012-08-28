@@ -10,7 +10,7 @@
            (rnrs)
            (match)
            (yuni async)
-           (nmosh zrepl platform posix))
+           (nmosh zrepl platform))
 
 (define (zprompt-available?) ;; => boolean
   (zrepl-interactive?))

@@ -1909,7 +1909,7 @@ win32_console_setpos(void* h,uint32_t x, uint32_t y){
 
 void
 win32_console_settitle(void* title){
-    SetConsoleTitle(title);
+    SetConsoleTitleW(title);
 }
 
 void*
@@ -1995,6 +1995,12 @@ console_reader(uintptr_t in0, uintptr_t in1, uintptr_t* out0, uintptr_t* out1){
 void*
 win32_get_console_reader_func(void){
     return &console_reader;
+}
+
+int
+win32_console_output(void* p, void* str, int nchar){
+    DWORD bogus;
+    return WriteConsoleW((HANDLE)p,str,nchar,&bogus,0);
 }
 
 /* clipboard */

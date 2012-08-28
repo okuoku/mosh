@@ -28,6 +28,7 @@
   (void* win32_getstdhandle (int))
   (void win32_console_acquire (void*))
   (void win32_console_release (void*))
+  (int win32_console_output (void* void* int))
   (void* win32_get_console_reader_func)
   (int win32_clipboard_text_set (void* void* int))
   )

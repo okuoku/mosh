@@ -7,6 +7,7 @@
            win32_console_setpos
            win32_console_settitle
            win32_console_setcolor
+           win32_console_output
            win32_getstdhandle
            win32_console_acquire
            win32_console_release)
@@ -26,6 +27,11 @@
 (define (win32_getstdhandle fd)
   (let ((r (stub:win32_getstdhandle fd)))
     (pointer->handle r)))
+
+(define* (win32_console_output (h win32-handle) str)
+  (let ((n (string-length str))
+        (bv (string->utf16-bv/raw str)))
+    (stub:win32_console_output (handle->pointer h) bv n)))
 
 (define* (win32_console_getsize (ha win32-handle)) ;; => w h x0 y0 x1 y1 cx cy
   (let ((w (make-int-box))

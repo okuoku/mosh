@@ -678,7 +678,7 @@ src/OSCompatThread.cpp
 src/VMFactory.cpp
 src/OSCompat.cpp
 src/stubs.cpp
-src/generic/boehmgc-stubs.c
+src/generic/boehmgc-stubs/boehmgc-stubs.c
 )
 
 set(mosh_posix_srcs

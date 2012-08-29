@@ -1,6 +1,7 @@
 (library (nmosh ffi pffi)
          (export make-pffi-ref 
-                 pffi-c-function)
+                 pffi-c-function
+                 pffi-call/proxy)
          (import (rnrs)
                  (yuni util files)
                  (nmosh pffi interface)
@@ -12,12 +13,26 @@
                  (nmosh global-flags)
                  (mosh ffi))
 
+
 (define pffi-lib (make-pffi-ref 'call-stubs))
 
-(define pffi-call
+(define pffi-call/sync
   (let ((f (get-global-flag '%nmosh-pffi-call)))
     (if f f (lambda e (assertion-violation 'pffi-call
                                            "interpreter too old")))))
+
+(define pffi-call-proxy #f)
+
+(define (pffi-call/proxy rec thunk)
+  (dynamic-wind
+    (lambda () (set! pffi-call-proxy rec))
+    thunk
+    (lambda () (set! pffi-call-proxy #f))))
+
+(define (pffi-call p ptr arg* ret)
+  (if pffi-call-proxy
+    (pffi-call-proxy p ptr arg* ret)
+    (pffi-call/sync p ptr arg* ret)))
 
 (define (make-pffi-call sym ptr)
   (define p (pffi-lookup pffi-lib sym))

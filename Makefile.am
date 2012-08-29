@@ -191,7 +191,7 @@ src/OSCompatThread.h src/OSCompatThread.cpp \
 src/VMFactory.cpp src/VMFactory.h \
 src/SimpleStruct.h \
 src/OSCompat.h src/OSCompat.cpp \
-src/stubs.cpp src/posix/terminal/terminal.c src/generic/boehmgc-stubs.c \
+src/stubs.cpp src/posix/terminal/terminal.c src/generic/boehmgc-stubs/boehmgc-stubs.c \
 src/posix/spawn/posixspawn.c src/posix/environ/mosh-environ.c \
 src/posix/fd/posix_fd.c src/posix/poll/posix_poll.c \
 src/posix/socket/posix_socket.c src/posix/sigchld_handler/sigchld_handler.c \

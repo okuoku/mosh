@@ -19,6 +19,7 @@
                  queue-spawn0
 
                  queue-invoke-ffithread
+                 queue-invoke-ffiqueue
                  inetname-port
                  queue-open-serialport0
                  )

@@ -36,7 +36,7 @@
                         do-listen))
 
 (define (make-client-socket name port callback)
-  ;; callback = (^[fd])
+  ;; callback = (^[fd/#f])
   (define (do-connect inetname)
     (queue-connect nmosh-io-master-queue (car inetname) callback)  )
   (resolve-socketname/4 nmosh-io-master-queue

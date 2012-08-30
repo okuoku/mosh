@@ -7,24 +7,35 @@
            resolve-socketname/4
            resolve-socketname/6
 
-           inetname-port
-           )
+           inetname-port)
          (import (rnrs)
                  (shorten)
                  (srfi :8)
-                 ;; FIXME; use aliased library for FreeBSD...
                  (nmosh pffi posix fd)
+                 ;; FIXME; use aliased library for FreeBSD...
                  (nmosh aio impl posix queue-fd-poll)
                  (nmosh pffi posix socket))
 
 ;; Socket
-;; FIXME: Connect and Listen are not async yet...
 (define (queue-connect Q name callback)
+  ;; callback = ^[fd]
   (let* ((family (inetname-family name))
          (fd (socket_create family 1)))
-    (socket_connect fd name)
-    (callback fd)))
+    (let ((r (socket_connect fd name)))
+      (case r
+        ((0) ;; connected
+         (callback fd))
+        ((1) ;; queued
+         (queue-register-fd/write Q fd
+                                 (^[fd _]
+                                   (queue-unregister-fd/write Q fd)
+                                   (callback fd))))
+        (else
+          (fd_close fd)
+          (callback #f)))))
+  #t)
 
+;; FIXME: Listen is not async yet...
 (define (queue-listen Q name callback) ;; => inetname/#f
   (let* ((family (inetname-family name))
          (fd (socket_create family 1)))

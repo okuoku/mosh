@@ -121,6 +121,7 @@ socket_create(int mode,int proto){
         default:
             return -1;
     }
+    /* FIXME: Do not set nonblock here.. (queue-listen/accept support needed.) */
     ret = socket(aaf,atype,aproto);
 
     return ret;
@@ -160,6 +161,12 @@ socket_sizeof_sockaddr_storage(void){
 int
 socket_connect(int fd,void* name,int len){
     int ret;
+    /* FIXME: move to creation phase */
+    int i;
+    i = fcntl(fd,F_GETFL);
+    i |= O_NONBLOCK;
+    fcntl(fd,F_SETFL,i);
+
     ret = connect(fd,name,len);
     if(ret == -1){
         if(errno == EINPROGRESS){

@@ -86,12 +86,18 @@
     result-callback))
 
 ;;  
-(define (make-msgpack-client-socket name port recv-callback write-callback error-callback)
+(define (make-msgpack-client-socket 
+          name port recv-callback write-callback error-callback)
 
   (make-client-socket 
     name port 
     (^[fd] 
-      (tcp-set-nodelay0 fd)
-      (start-msgpack-talker fd recv-callback write-callback error-callback))))
+      (cond 
+        (fd
+          (tcp-set-nodelay0 fd)
+          (start-msgpack-talker 
+            fd recv-callback write-callback error-callback))
+        (else
+          (error-callback 'bogus))))))
 
 )

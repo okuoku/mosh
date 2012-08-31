@@ -161,32 +161,125 @@
 
 (define-syntax lambda*0-itr
   (syntax-rules ()
-    ((_ sym (cur ...) (spec ...) ((id bogus) rest0 ...) body ...)
-     (lambda*0-itr sym (cur ... id) ((id bogus) spec ...) (rest0 ...) body ...))
-    ((_ sym (cur ...) (spec ...) ((id) rest0 ...) body ...)
-     (let ((proxy id))
-       (lambda*0-itr sym (cur ...) (spec ...) ((id proxy) rest0 ...) body ...)))
-    ((_ sym (cur ...) (spec ...) (id rest0 ...) body ...)
-     (lambda*0-itr sym (cur ... id) (spec ...) (rest0 ...) body ...))
-    ((_ sym (cur ...) (spec ...) () body ...)
+    ;; Loops
+    ((_ sym (cur ...) (spec ...) ((id bogus) rest0 ...) last body ...)
+     (lambda*0-itr sym (cur ... id) ((id bogus) spec ...) (rest0 ...) last
+                   body ...))
+    ((_ sym (cur ...) (spec ...) ((id) rest0 ...) last body ...)
+     (let ((lambda*0-proxy id))
+       (lambda*0-itr sym (cur ...) (spec ...) ((id lambda*0-proxy) rest0 ...) 
+                     last 
+                     body ...)))
+    ((_ sym (cur ...) (spec ...) (id rest0 ...) last body ...)
+     (lambda*0-itr sym (cur ... id) (spec ...) (rest0 ...) last body ...))
+    ;; Exit
+    ((_ sym (cur ...) (spec ...) () () body ...) ;; Non multi case
      (lambda (cur ...) 
+       (annotate-check sym spec) ...
+       (let () body ...)))  
+    ;; Exit (multi/type case)
+    ((_ sym (cur ...) (spec ...) () (last-id last-type) body ...)
+     (lambda (cur ... . last-id)
+       (for-each (lambda (e) (annotate-check e last-type)) last-id)
+       (annotate-check sym spec) ...
+       (let () body ...)))
+    ;; Exit (multi w/o type case)
+    ((_ sym (cur ...) (spec ...) () last body ...)
+     (lambda (cur ... . last) 
        (annotate-check sym spec) ...
        (let () body ...)))))
 
+;; Process type specifier
 (define-syntax lambda*0
   (syntax-rules ()
-    ((_ sym (spec0 ...) body ...)
-     (lambda*0-itr sym () () (spec0 ...) body ...))))
+    ((_ sym (spec0 ...) last body ...)
+     (lambda*0-itr sym () () (spec0 ...) last body ...))))
 
+;; Process property specifier
+(define (lookup-property form sym def)
+  (define (fail) (values def form))
+  (define (itr ret top next rest)
+    ;(write (list 'itr: ret top next rest))(newline)
+    (if (eq? sym top)
+      (values next (append (reverse ret) rest))
+      (if (pair? rest) 
+        (itr (cons top ret) next (car rest) (cdr rest))
+        (fail))))
+  ;(write (list 'in: form sym))(newline)
+  (if (and (pair? form)
+           (pair? (cdr form))) 
+    (itr '() (car form) (cadr form) (cddr form))
+    (fail)))
+
+(define-syntax let-property
+  (syntax-rules ()
+    ((_ form out #() proc)
+     (let ((out form)) proc))
+    ((_ form out #(sym) proc)
+     (let-property form out #(sym #f) proc))
+    ((_ form out #(sym def) proc)
+     (let-values (((sym out) (lookup-property form 'sym def)))
+                 proc))))
+
+(define-syntax let-properties
+  (syntax-rules ()
+    ((_ form () proc)
+     (apply proc form))
+    ((_ form (props0 props1 ...) proc)
+     (let-property form out props0
+                   (let-properties out (props1 ...) proc)))))
+
+(define-syntax flatten-properties-itr
+  (syntax-rules ()
+    ((_ form (out ...) (#((obj ...) rest ...) next ...) proc)
+     (flatten-properties-itr
+       form (out ... #(obj ...)) (#(rest ...) next ...) proc))
+    ((_ form (out ...) (next0 next1 ...) proc)
+     (flatten-properties-itr
+       form (out ... next0) (next1 ...) proc))
+    ((_ form (out ...) () proc)
+     (let-properties form (out ...) proc))))
+
+(define-syntax flatten-properties
+  (syntax-rules ()
+    ((_ form (obj ...) proc)
+     (flatten-properties-itr form () (obj ...) proc))))
+
+(define-syntax lambda*1-itr
+  (syntax-rules ()
+    ;; Loops
+    ((_ sym (prop ...) (out ...) (#(propx ...) spec0 ...) last body ...)
+     (lambda*1-itr sym (#(propx ...) prop ...) (out ...) (spec0 ...) last 
+                   body ...))
+    ((_ sym (prop ...) (out ...) (spec0 spec1 ...) last body ...)
+     (lambda*1-itr sym (prop ...) (out ... spec0) (spec1 ...) last body ...))
+
+    ;; Exit
+    ;; Shortcut (No properties)
+    ((_ sym () (out ...) () last body ...)
+     (lambda*0 sym (out ...) last body ...))
+    ;; Handle properties
+    ((_ sym (prop0 ...) (out ...) () last body ...)
+     (lambda property-input 
+       (flatten-properties property-input (prop0 ...) 
+                           (lambda*0 sym (out ...) last body ...))))))
+
+(define-syntax lambda*1
+  (syntax-rules ()
+    ((_ sym (spec0 ... . last) body ...)
+     (lambda*1-itr sym () () (spec0 ...) last body ...))))
+
+;; Yuni core syntax entry point
 (define-syntax lambda*
   (syntax-rules ()
-    ((_ sym (spec0 ...) body ...)
-     (lambda*0 'lambda (spec0 ...) body ...))))
+    ((_ (spec0 ... . last) body ...)
+     (lambda*1 'lambda (spec0 ... . last) body ...))))
 
+;; Yuni core syntax entry point
 (define-syntax define*
   (syntax-rules ()
-    ((_ (name spec0 ...) body ...)
-     (define name (lambda*0 'name (spec0 ...) body ...)))
+    ((_ (name spec0 ... . last) body ...)
+     (define name (lambda*1 'name (spec0 ... . last) body ...)))
     ((_ name spec)
      (define-composite name spec))))
 

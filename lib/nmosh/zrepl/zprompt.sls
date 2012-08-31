@@ -1,8 +1,7 @@
 (library (nmosh zrepl zprompt)
          (export
            zprompt-available?
-           zprompt-start
-           )
+           zprompt-start)
          (import
            (only (srfi :1)
                  take drop)
@@ -49,7 +48,6 @@
     (set! cursor 0)
     (zrepl-fmt-open-line)
     (redraw))
-
 
   (define (redraw)
     (zrepl-fmt-set-cursor 0)

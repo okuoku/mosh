@@ -84,6 +84,13 @@ terminal_getsize(void){
 }
 
 int
+terminal_getheight(void){
+    struct winsize winsz;
+    ioctl(1, TIOCGWINSZ, &winsz);
+    return winsz.ws_row;
+}
+
+int
 terminal_isatty(int fd){
     return isatty(fd);
 }

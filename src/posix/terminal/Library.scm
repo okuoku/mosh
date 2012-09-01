@@ -9,5 +9,6 @@
   (void terminal_acquire)
   (void terminal_release)
   (int  terminal_getsize)
+  (int  terminal_getheight)
   (int  terminal_isatty (int)))
   

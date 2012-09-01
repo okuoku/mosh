@@ -101,8 +101,9 @@ CONS(FN(terminal_serial_setspeed), \
 CONS(FN(terminal_acquire), \
 CONS(FN(terminal_release), \
 CONS(FN(terminal_getsize), \
+CONS(FN(terminal_getheight), \
 CONS(FN(terminal_isatty), \
-    NIL)))))))
+    NIL))))))))
 #endif
 
 #ifdef HAVE_PTRACE_COMMON 

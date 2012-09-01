@@ -3,6 +3,8 @@
                  zrepl-input-release
                  zrepl-input-subscribe
                  zrepl-interactive?
+                 zrepl-output-width
+                 zrepl-output-height
                  zrepl-fmt-open-line
                  zrepl-fmt-delete-line
                  zrepl-fmt-output
@@ -85,6 +87,14 @@
   (win32_console_acquire stdin))
 (define (zrepl-input-release)
   (win32_console_release stdin))
+
+(define (zrepl-output-height)
+  (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)
+    (- y1 y0)))
+
+(define (zrepl-output-width)
+  (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)
+    w))
 
 (define (zrepl-fmt-delete-line)
   (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)

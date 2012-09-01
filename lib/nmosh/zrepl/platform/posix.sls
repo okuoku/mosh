@@ -169,8 +169,7 @@
 (define (zrepl-output-width)
   (terminal_getsize))
 (define (zrepl-output-height)
-  ;; FIXME: ....
-  20)
+  (terminal_getheight))
 
 (define (zrepl-input-subscribe cb)
   (define state 'ASCII) ;; => ASCII | ESCAPE | CSI | UTF8

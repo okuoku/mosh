@@ -27,15 +27,26 @@
 (define (zprompt-start cb/line cb) ;; => boolean
   ;; cb = ^[lineout]
   (define editline '()) ;; list-of-char
-  (define cursor 0)
+  (define cursor 0) ;; NB: It's always logical char location
   (define prompt '(green "ok > " normal))
+  (define altprompt '())
+  (define hint '())
 
   (define (DBG . obj)
     (receive (port proc) (open-string-output-port)
       (write (list 'DBG: obj) port)
-      (lineout (proc))))
+      (command (proc))))
 
   ;; Edit command
+  (define (cursor-left)
+    (when (< 0 cursor)
+      (set! cursor (- cursor 1))
+      (redraw)))
+  (define (cursor-right)
+    (when (> (length editline) cursor)
+      (set! cursor (+ 1 cursor))
+      (redraw)))
+
   (define (backspace)
     (when (< 0 cursor)
       (set! editline
@@ -67,15 +78,30 @@
                             (list->string editline)))
     (zrepl-fmt-set-cursor (+ (output-length prompt)
                              cursor)))
-  (define (lineout obj)
-    (cond
-      (obj
-        (zrepl-fmt-delete-line)
-        (zrepl-fmt-output obj)
-        (zrepl-fmt-open-line)
-        (redraw))
-      (else ;; #f for terminate
-        (zrepl-input-release))))
+  (define (command . obj)
+    (match obj
+           (('set-prompt: . obj)
+            (set! prompt obj)
+            (redraw))
+           (('set-altprompt: . obj)
+            (set! altprompt obj)
+            (redraw))
+           (('set-editline: str)
+            (set! editline (string->list str))
+            (set! cursor (string-length str))
+            (redraw))
+           (('set-hint: . obj)
+            ;; Hint will be removed when user typed any character
+            (set! hint obj))
+           ;; Quit
+           ((#f)
+            (zrepl-input-release))
+           ;; Output 
+           ((obj)
+            (zrepl-fmt-delete-line)
+            (zrepl-fmt-output obj)
+            (zrepl-fmt-open-line)
+            (redraw))))
 
   (define (char-event c ctrl? alt? super?)
     (cond
@@ -92,8 +118,13 @@
            (set! cursor 0)
            (redraw))
           ((#\j #\J) (commit))))))
+
   (define (symbol-event sym ctrl? alt? super?)
     (case sym
+      ((up) (cb/line 'prev?))
+      ((down) (cb/line 'next?))
+      ((left) (cursor-left))
+      ((right) (cursor-right))
       ((backspace) (backspace)))
     'ok)
   (define (zrepl-event . obj)
@@ -111,7 +142,7 @@
                                  obj))))
   (zrepl-input-acquire)
   (zrepl-input-subscribe zrepl-event)
-  (cb lineout)
+  (cb command)
   (redraw)
   #t)
 

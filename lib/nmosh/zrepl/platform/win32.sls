@@ -25,12 +25,54 @@
 (define stdin (win32_getstdhandle 0))
 (define stdout (win32_getstdhandle 1))
 
+(define fmt-bold? #f)
+(define fmt-fgidx 0)
+(define fmt-bgidx 0)
+
+(define (fmt-attr-reset)
+  ;; NB: We don't have to apply settings immediately
+  (set! fmt-bold? #f)
+  (set! fmt-fgidx 7)
+  (set! fmt-bgidx 0))
+
+(define (fmt-attr-apply)
+  (define (i x)
+    (if fmt-bold? (+ 8 x) x))
+  (win32_console_setcolor stdout (i fmt-fgidx) (i fmt-bgidx)))
+
+(define (fmt-attr-proc sym)
+  (case sym
+    ((reset) (fmt-attr-reset))
+    ((black) (set! fmt-fgidx 0))
+    ((red) (set! fmt-fgidx 4))
+    ((green) (set! fmt-fgidx 2))
+    ((yellow) (set! fmt-fgidx 6))
+    ((blue) (set! fmt-fgidx 1))
+    ((magenta) (set! fmt-fgidx 5))
+    ((cyan) (set! fmt-fgidx 3))
+    ((normal white) (set! fmt-fgidx 7))
+    ((bg-black) (set! fmt-bgidx 0))
+    ((bg-red) (set! fmt-bgidx 4))
+    ((bg-green) (set! fmt-bgidx 2) )
+    ((bg-yellow) (set! fmt-bgidx 6))
+    ((bg-blue) (set! fmt-bgidx 1))
+    ((bg-magenta) (set! fmt-bgidx 5))
+    ((bg-cyan) (set! fmt-bgidx 3))
+    ((bg-normal bg-white) (set! fmt-bgidx 7))
+    ((bold) (set! fmt-bold? #t))
+    ((no-bold) (set! fmt-bold? #f))
+    (else 'ignore)))
+
 (define (out . obj)
   (define (emit e)
     (cond
+      ((or (symbol? e) (number? e))
+       (fmt-attr-proc e))
       ((string? e)
+       (fmt-attr-apply)
        (win32_console_output stdout e))
       ((char? e)
+       (fmt-attr-apply)
        (emit (list->string (list e))))
       ((list? e)
        (for-each emit e))))
@@ -55,6 +97,7 @@
   (zrepl-fmt-set-cursor 0))
 
 (define (zrepl-fmt-output l)
+  (fmt-attr-reset)
   (zrepl-fmt-set-cursor 0)
   (out l))
 

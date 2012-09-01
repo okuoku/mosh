@@ -10,6 +10,7 @@
                  zrepl-fmt-delete-line
                  zrepl-fmt-output
                  zrepl-fmt-set-cursor
+                 zrepl-fmt-cursor-hmove
                  )
          (import (rnrs)
                  (yuni core)
@@ -157,6 +158,16 @@
   (out "\r")
   (do-ec (: i x)
          (out 27 91 #\1 #\C)))
+
+(define (zrepl-fmt-cursor-hmove d)
+  (cond
+    ((< d 0) ;; UP
+     (out 27 91 #\1 #\A)
+     (zrepl-fmt-cursor-hmove (+ d 1)))
+    ((= d 0) 'ok) 
+    ((> d 0) ;; Down
+     (out 27 91 #\1 #\B)
+     (zrepl-fmt-cursor-hmove (- d 1)))))
 
 ;; TTY Related
 (define (zrepl-interactive?)

@@ -9,6 +9,7 @@
                  zrepl-fmt-delete-line
                  zrepl-fmt-output
                  zrepl-fmt-set-cursor
+                 zrepl-fmt-cursor-hmove
                  )
          (import (rnrs)
                  (srfi :48)
@@ -111,10 +112,13 @@
   (zrepl-fmt-set-cursor 0)
   (out l))
 
+(define (zrepl-fmt-cursor-hmove d)
+  (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)
+    (win32_console_setpos stdout cx (+ cy d))))
+
 (define (zrepl-fmt-set-cursor x)
   (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)
     (win32_console_setpos stdout x cy)))
-
 
 (define (zrepl-input-subscribe cb)
   ;; cb = ^[Char ctrl? alt? super?]
@@ -140,6 +144,8 @@
             (cb (integer->char c) ctrl? alt? #f)))
         ((not (= int-char 0))
           (case int-char
+            ((8)
+             (sym 'backspace))
             ((13)
              (ctrl #\j))
             ((27)

@@ -1,10 +1,20 @@
 ;; Port of http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
 (library (yuni text width)
          (export
+           string-width
+           string-width/cjk
            char-width
            char-width/cjk)
          (import (rnrs)
                  (rnrs r5rs))
+
+(define (width proc s)
+  (fold-left + 0 (map (lambda (c) (proc c))
+                      (string->list s))))
+(define (string-width s)
+  (width char-width s))
+(define (string-width/cjk s)
+  (width char-width/cjk s))
 
 ;; Util
 (define (bisearch code tbl) ;; bool

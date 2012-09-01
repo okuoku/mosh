@@ -9,16 +9,26 @@
            (rnrs)
            (match)
            (yuni async)
+           (yuni text width)
            (nmosh zrepl platform))
 
 (define (zprompt-available?) ;; => boolean
   (zrepl-interactive?))
 
+(define (output-length obj)
+  (define (xlist l)
+    (fold-left + 0 (map output-length l)))
+  (cond
+    ((pair? obj) (xlist obj))
+    ((or (number? obj) (symbol? obj)) 0)
+    ((string? obj) (string-width obj))))
+
+
 (define (zprompt-start cb/line cb) ;; => boolean
   ;; cb = ^[lineout]
   (define editline '()) ;; list-of-char
   (define cursor 0)
-  (define prompt "ok > ")
+  (define prompt '(green "ok > " normal))
 
   (define (DBG . obj)
     (receive (port proc) (open-string-output-port)
@@ -43,18 +53,19 @@
     (set! cursor (+ cursor 1))
     (redraw))
   (define (commit)
-    (cb/line (list->string editline))
+    (define ret (list->string editline))
     (set! editline '())
     (set! cursor 0)
     (zrepl-fmt-open-line)
-    (redraw))
+    (redraw)
+    (cb/line ret))
 
   (define (redraw)
     (zrepl-fmt-set-cursor 0)
     (zrepl-fmt-delete-line)
     (zrepl-fmt-output (list prompt
                             (list->string editline)))
-    (zrepl-fmt-set-cursor (+ (string-length prompt)
+    (zrepl-fmt-set-cursor (+ (output-length prompt)
                              cursor)))
   (define (lineout obj)
     (cond

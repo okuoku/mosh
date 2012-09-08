@@ -9,8 +9,7 @@
                  zrepl-fmt-delete-line
                  zrepl-fmt-output
                  zrepl-fmt-set-cursor
-                 zrepl-fmt-cursor-hmove
-                 )
+                 zrepl-fmt-cursor-hmove)
          (import (rnrs)
                  (srfi :48)
                  (srfi :42)
@@ -29,6 +28,7 @@
 (define stdout (win32_getstdhandle 1))
 
 (define fmt-bold? #f)
+(define fmt-reverse? #f)
 (define fmt-fgidx 0)
 (define fmt-bgidx 0)
 
@@ -36,12 +36,15 @@
   ;; NB: We don't have to apply settings immediately
   (set! fmt-bold? #f)
   (set! fmt-fgidx 7)
-  (set! fmt-bgidx 0))
+  (set! fmt-bgidx 0)
+  (set! fmt-reverse? #f))
 
 (define (fmt-attr-apply)
-  (define (i x)
-    (if fmt-bold? (+ 8 x) x))
-  (win32_console_setcolor stdout (i fmt-fgidx) (i fmt-bgidx)))
+  (define xfg (if fmt-bold? (+ 8 fmt-fgidx) fmt-fgidx))
+  (define xbg fmt-bgidx)
+  (define yfg (if fmt-reverse? xbg xfg))
+  (define ybg (if fmt-reverse? xfg xbg))
+  (win32_console_setcolor stdout yfg ybg))
 
 (define (fmt-attr-proc sym)
   (case sym
@@ -56,7 +59,7 @@
     ((normal white) (set! fmt-fgidx 7))
     ((bg-black) (set! fmt-bgidx 0))
     ((bg-red) (set! fmt-bgidx 4))
-    ((bg-green) (set! fmt-bgidx 2) )
+    ((bg-green) (set! fmt-bgidx 2))
     ((bg-yellow) (set! fmt-bgidx 6))
     ((bg-blue) (set! fmt-bgidx 1))
     ((bg-magenta) (set! fmt-bgidx 5))
@@ -64,6 +67,8 @@
     ((bg-normal bg-white) (set! fmt-bgidx 7))
     ((bold) (set! fmt-bold? #t))
     ((no-bold) (set! fmt-bold? #f))
+    ((reverse) (set! fmt-reverse? (not fmt-reverse?)))
+    ((no-reverse) (set! fmt-reverse? #f))
     (else 'ignore)))
 
 (define (out . obj)

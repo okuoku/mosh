@@ -29,6 +29,7 @@
                  win32_socket_listen
                  win32_socket_getsockname
                  win32_socket_setnodelay
+                 win32_socket_setreuseaddr
 
                  ;; GC related
                  win32_finalization_handler_alloc_overlapped
@@ -356,6 +357,9 @@
 
 (define* (win32_socket_setnodelay (s win32-handle))
   (stub:win32_socket_setnodelay (handle->pointer s)))
+
+(define* (win32_socket_setreuseaddr (s win32-handle))
+  (stub:win32_socket_setreuseaddr (handle->pointer s)))
 
 (define win32_socket_listen
   (case-lambda

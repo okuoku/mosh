@@ -10,6 +10,7 @@
            socket_accept
            socket_addrinfo_read
            socket_setnodelay
+           socket_setreuseaddr
            inetname-port ;;FIXME
            inetname-family
            socket-inetname
@@ -150,5 +151,8 @@
 
 (define* (socket_setnodelay (fd))
   (stub:socket_setnodelay (fd->int fd)))
+
+(define* (socket_setreuseaddr (fd))
+  (stub:socket_setreuseaddr (fd->int fd)))
 
 )

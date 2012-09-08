@@ -33,5 +33,6 @@
   (int win32_socket_listen (void* int))
   (int win32_socket_getsockname (void* void* int))
   (void win32_socket_setnodelay (void*))
+  (void win32_socket_setreuseaddr (void*))
   (void* win32_finalization_handler_get)
   (void* win32_finalization_handler_create (void* void* void*)))

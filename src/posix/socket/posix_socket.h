@@ -14,6 +14,7 @@ int socket_accept(int fd,void* name,int* len);
 void socket_sockaddr_read(void* sp,int *ret_family, void** ret_addr,int* ret_len,int* ret_port);
 void socket_addrinfo_read(void* aip,int *ret_family,void** ret_addr,int* ret_len,void** ret_next);
 void socket_setnodelay(int fd);
+void socket_setreuseaddr(int fd);
 int socket_name_family(void* aip);
 
 #ifdef __cplusplus

@@ -185,7 +185,10 @@ win32_process_redirected_child(wchar_t* spec,wchar_t* dir, HANDLE std_in, HANDLE
 int
 win32_handle_read(HANDLE h,void* p,unsigned int len,unsigned int *res){
 	BOOL r;
-	r = ReadFile(h,p,len,res,NULL);
+        /* FIXME: size? */
+        DWORD res0;
+	r = ReadFile(h,p,len,&res0,NULL);
+        *res = res0;
 	if(!r){
 		OSERROR("ReadFile");
 		return 0;
@@ -196,7 +199,10 @@ win32_handle_read(HANDLE h,void* p,unsigned int len,unsigned int *res){
 int
 win32_handle_write(HANDLE h,void *p,unsigned int len,unsigned int *res){
 	BOOL r;
-	r = WriteFile(h,p,len,res,NULL);
+        /* FIXME: size? */
+        DWORD res0;
+	r = WriteFile(h,p,len,&res0,NULL);
+        *res = res0;
 	if(!r){
 		OSERROR("WriteFile");
 		return 0;
@@ -986,8 +992,14 @@ win32_socket_listen(uintptr_t s,int l){
 
 void
 win32_socket_setnodelay(uintptr_t s){
-    int one = 1;
-    setsockopt((SOCKET)s,IPPROTO_TCP,TCP_NODELAY,&one,sizeof(int));
+    BOOL one = 1;
+    setsockopt((SOCKET)s,IPPROTO_TCP,TCP_NODELAY,(const char*)&one,sizeof(one));
+}
+
+void
+win32_socket_setreuseaddr(uintptr_t s){
+    BOOL one = 1;
+    setsockopt((SOCKET)s,SOL_SOCKET,SO_REUSEADDR,(const char*)&one,sizeof(one));
 }
 
 /* simple GUI elements */
@@ -2009,6 +2021,7 @@ win32_clipboard_text_set(void* h, void* text, int size){
     HGLOBAL hGlobal;
     HWND hWnd = (HWND)h;
     BOOL b;
+    HANDLE r;
     void* p;
     hGlobal = GlobalAlloc(GMEM_MOVEABLE, size);
     p = GlobalLock(hGlobal);
@@ -2020,8 +2033,8 @@ win32_clipboard_text_set(void* h, void* text, int size){
         return 0;
     }else{
         EmptyClipboard();
-        b = SetClipboardData(CF_UNICODETEXT, hGlobal);
-        if(!b){
+        r = SetClipboardData(CF_UNICODETEXT, hGlobal);
+        if(!r){
             GlobalFree(hGlobal);
             return 0;
         }

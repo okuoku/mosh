@@ -245,4 +245,10 @@ socket_setnodelay(int fd){
     setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,&one,sizeof(int));
 }
 
+void
+socket_setreuseaddr(int fd){
+    int one = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,&one,sizeof(int));
+}
+
 #endif

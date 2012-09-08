@@ -154,10 +154,11 @@ CONS(FN(win32_socket_bind), \
 CONS(FN(win32_socket_listen), \
 CONS(FN(win32_socket_getsockname), \
 CONS(FN(win32_socket_setnodelay), \
+CONS(FN(win32_socket_setreuseaddr), \
 CONS(FN(win32_getaddrinfo), \
 CONS(FN(win32_finalization_handler_get), \
 CONS(FN(win32_finalization_handler_create), \
-	NIL))))))))))))))))))))))))))))))))
+	NIL)))))))))))))))))))))))))))))))))
 
 #define LIBDATA_WIN32_GUI CONS(SYM("win32-gui"), \
 CONS(FN(win32_messagebox) ,\
@@ -265,10 +266,11 @@ CONS(FN(socket_listen), \
 CONS(FN(socket_connect), \
 CONS(FN(socket_addrinfo_read), \
 CONS(FN(socket_setnodelay), \
+CONS(FN(socket_setreuseaddr), \
 CONS(FN(socket_sockaddr_read), \
 CONS(FN(socket_name_family), \
 CONS(FN(socket_getsockname), \
-    NIL))))))))))))))
+    NIL)))))))))))))))
 #endif
 
 #ifdef HAVE_POLL

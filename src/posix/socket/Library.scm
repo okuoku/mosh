@@ -16,4 +16,5 @@
   (int socket_name_family (void*))
   (void socket_sockaddr_read (void* void* void* void* void*))
   (void socket_addrinfo_read (void* void* void* void* void*))
-  (void socket_setnodelay (int)))
+  (void socket_setnodelay (int))
+  (void socket_setreuseaddr (int)))

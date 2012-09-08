@@ -12,7 +12,7 @@
 
 ;; Tabular:
 ;;  #(spec ...)
-;;  spec = (format-spec . width-spec) | format-spec
+;;  spec = (format-spec . width-spec) | format-spec | #f
 ;;  width-spec = (FIXED-WIDTH) | (LEAST-WIDTH +)
 ;;
 ;;  Sep: (FIXME: not Implemented yet)
@@ -122,8 +122,21 @@
                            (list str w)
                            sym))))
 
+(define (pass0 tbl)
+  ;; Remove ignored column
+  (define spec (vector->list (car tbl)))
+  (define obj (cdr tbl))
+  (define (spec-filter e)
+    (reverse (fold-left (^[cur e s] (if s (cons e cur) cur))
+                        '()
+                        e
+                        spec)))
+  (cons (list->vector (filter (^e e) spec))
+        (map spec-filter obj)))
+
 (define* (format-tabular #((width-limit: #f)
-                           (fixed-width: #f)) l)
+                           (fixed-width: #f)) tbl)
+  (define l (pass0 tbl))
   (define (list-transpose size lis)
     ;(display (list 'transpose: lis))(newline)
     (list-ec (: i size)

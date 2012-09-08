@@ -32,8 +32,10 @@
   (define show-editline? #t)
   (define altprompt '())
   (define hint '())
+  (define gadget-area '())
   (define upper-area '())
   (define lower-area '())
+  (define event-route #f)
 
   (define (DBG . obj)
     (receive (port proc) (open-string-output-port)
@@ -80,11 +82,20 @@
     (zrepl-fmt-delete-line)
     (zrepl-fmt-output l))
 
-  (define (update-static-area upper lower)
-    (define current-upper upper-area)
+  (define (update-static-area next-gadget next-upper next-lower)
+    (define (chk x fallback) (cond ((eq? #t x) fallback)
+                                   (x x)
+                                   (else '())))
+    (define gadget (chk next-gadget gadget-area))
+    (define upper0 (chk next-upper upper-area))
+    (define upper (append upper0 gadget)) ;; Unified area
+    (define lower (chk next-lower lower-area))
+
+    ;; Now upper = upper + gadget
+    (define current-upper (append upper-area gadget-area))
     (define current-lower lower-area)
-    (define current-upper-lines (length upper-area))
-    (define current-lower-lines (length lower-area))
+    (define current-upper-lines (length current-upper))
+    (define current-lower-lines (length current-lower))
     (define next-upper-lines (length upper))
     (define next-lower-lines (length lower))
     (define diff (- (+ current-upper-lines current-lower-lines)
@@ -107,7 +118,8 @@
         (do-ec (: i diff)
                (putline '())) ;; Clear previous data
         (zrepl-fmt-cursor-hmove (- (+ diff next-lower-lines)))))
-    (set! upper-area upper)
+    (set! gadget-area gadget)
+    (set! upper-area upper0)
     (set! lower-area lower)
     ;; Draw edit area and set cursor
     (redraw))
@@ -137,6 +149,15 @@
     (zrepl-fmt-output obj)
     (redraw/static #t))
 
+  (define (make-gadget-command command)
+    (define (event . obj)
+      (match obj
+             ;; FIXME: Cursor position??
+             (('set-gadget-area: obj)
+              (update-static-area obj #t #t))
+             (else (apply command obj))))
+    event)
+
   (define (command . obj)
     (match obj
            ;; Static area drawing
@@ -146,7 +167,18 @@
             ;; upper-area/lower-area will be updated in 
             ;; update-static-area
             ;;  #f means '() 
-            (update-static-area (or upper '()) (or lower '())))
+            (update-static-area #t (or upper '()) (or lower '())))
+
+           ;; Gadget control
+           (('start-gadget: gadget)
+            (redraw)
+            (set! event-route gadget)
+            (gadget 'activate: (make-gadget-command command))
+            (redraw))
+           (('stop-gadget: obj)
+            (event-route 'leave: #t)
+            (set! event-route #f)
+            (redraw))
 
            ;; Editline control
            ;; (NB: These never cause any scroll)
@@ -164,6 +196,7 @@
             ;; Hint will be removed when user typed any character
             (set! hint obj)
             (redraw))
+
            ;; Quit
            ((#f)
             (do-ec (: i (length lower-area))
@@ -204,6 +237,8 @@
     (match obj
            ((x ctrl? alt? super?)
             (cond
+              (event-route
+                (event-route 'key: x ctrl? alt? super?))
               ((char? x)
                (char-event x ctrl? alt? super?))
               ((symbol? x)

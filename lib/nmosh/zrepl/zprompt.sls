@@ -8,6 +8,7 @@
                  take drop)
            (srfi :8)
            (srfi :42)
+           (srfi :48)
            (shorten)
            (rnrs)
            (match)
@@ -24,7 +25,8 @@
   (cond
     ((pair? obj) (xlist obj))
     ((or (number? obj) (symbol? obj)) 0)
-    ((string? obj) (string-width obj))))
+    ((string? obj) (string-width obj))
+    ((null? obj) 0)))
 
 (define (zprompt-gadget-height command)
   (define ret 0)
@@ -48,6 +50,20 @@
     (receive (port proc) (open-string-output-port)
       (write (list 'DBG: obj) port)
       (command (proc))))
+
+  (define (put-with-right-aligned out left right)
+    (let ((left-len (output-length left))
+          (right-len (output-length right))
+          (w (zrepl-output-width)))
+      (cond
+        ((and (not (= right-len 0)) 
+              (< (+ left-len right-len) w))
+         (out
+           (list left
+                 (string-ec (: i (- w left-len right-len 1)) #\space)
+                 right)))
+        (else ;; Fallback to left only
+          (out left)))))
 
   ;; Edit command
   (define (cursor-left)
@@ -80,7 +96,7 @@
     (define ret (list->string editline))
     (set! editline '())
     (set! cursor 0)
-    (put-logarea (append prompt (list ret)))
+    (put-prompt/logarea)
     (cb/line ret))
 
   (define (putline l)
@@ -88,6 +104,20 @@
     (zrepl-fmt-set-cursor 0)
     (zrepl-fmt-delete-line)
     (zrepl-fmt-output l))
+
+  (define (put-prompt)
+    (put-with-right-aligned
+      zrepl-fmt-output
+      (list prompt
+            (list->string editline))
+      altprompt))
+
+  (define (put-prompt/logarea)
+    (put-with-right-aligned
+      put-logarea
+      (list prompt
+            (list->string editline))
+      altprompt  ))
 
   (define (update-static-area next-gadget next-upper next-lower)
     (define (chk x fallback) (cond ((eq? #t x) fallback)
@@ -146,8 +176,7 @@
   (define (redraw) ;; Redraw current editline
     (zrepl-fmt-set-cursor 0)
     (zrepl-fmt-delete-line)
-    (zrepl-fmt-output (list prompt
-                            (list->string editline)))
+    (put-prompt)
     (zrepl-fmt-set-cursor (+ (output-length prompt)
                              cursor)))
 
@@ -199,7 +228,7 @@
            (('set-prompt: . obj)
             (set! prompt obj)
             (redraw))
-           (('set-altprompt: . obj)
+           (('set-right: . obj)
             (set! altprompt obj)
             (redraw))
            (('set-editline: str)
@@ -232,7 +261,7 @@
            (set! cursor 0)
            (redraw))
           ((#\c #\C) 
-           (put-logarea (append prompt (list (list->string editline))))
+           (put-prompt/logarea)
            (set! editline '())
            (set! cursor 0)
            (redraw))

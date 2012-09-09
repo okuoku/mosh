@@ -47,7 +47,7 @@
     (define out-height (zprompt-gadget-height output))
     (define out '())
     (define (gen-header)
-      (list 'bold 'blue header 'normal 'no-bold))
+      (list 'bold 'blue 'reverse header 'no-reverse 'normal 'no-bold))
 
     ;; Recalc tbl when needed
     (when (not (and current-tbl
@@ -56,9 +56,9 @@
 
     ;; Construct data area
     (let* ((content-height (- (length current-tbl) 1))
-           (max-dat-height out-height) ;; FIXME: dupe
+           (max-dat-height (- out-height 1)) ;; 1 for header
            (dat-scroll-start (floor (/ max-dat-height 2)))
-           (max-offset (- content-height out-height)))
+           (max-offset (- content-height max-dat-height)))
       (cond
         ((> max-dat-height content-height)
          ;; Output verbatim
@@ -86,6 +86,8 @@
 
     ;; Add header (when enabled)
     (when show-header
+      ;; FIXME: How do we generate header?
+      (set! header (car current-tbl))
       (set! out (cons (gen-header) out)))
 
     (cond

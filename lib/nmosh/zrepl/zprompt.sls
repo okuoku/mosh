@@ -103,7 +103,7 @@
     (define current-lower lower-area)
     (define current-upper-lines (length current-upper))
     (define current-lower-lines (length current-lower))
-    (define next-upper-lines (length upper))
+    (define next-upper-lines (length upper)) 
     (define next-lower-lines (length lower))
     (define diff (- (+ current-upper-lines current-lower-lines)
                     (+ next-upper-lines next-lower-lines)))
@@ -134,8 +134,10 @@
   (define (redraw/static from-top?)
     (unless from-top?
       ;; First, move cursor to top
-      (zrepl-fmt-cursor-hmove (- (length upper-area))))
+      (zrepl-fmt-cursor-hmove (- 0 (length upper-area)
+                                 (length gadget-area))))
     (for-each putline upper-area)
+    (for-each putline gadget-area)
     (putline '()) ;; For edit area
     (for-each putline lower-area)
     (zrepl-fmt-cursor-hmove (- (length lower-area)))
@@ -150,7 +152,8 @@
                              cursor)))
 
   (define (put-logarea obj) ;; put a line to logarea
-    (zrepl-fmt-cursor-hmove (- (length upper-area)))
+    (zrepl-fmt-cursor-hmove (- 0 (length upper-area)
+                               (length gadget-area)))
     (zrepl-fmt-set-cursor 0)
     (zrepl-fmt-delete-line)
     (zrepl-fmt-output obj)
@@ -164,7 +167,7 @@
               (update-static-area obj #t #t))
 
              (('gadget-get-height: cb) ;; Hidden
-              (cb (- (zrepl-output-height) (+ 1 ;; For prompt
+              (cb (- (zrepl-output-height) (+ 3 ;; For prompt + logarea
                                               (length upper-area) 
                                               (length lower-area)))))
              (else (apply command obj))))
@@ -183,7 +186,6 @@
 
            ;; Gadget control
            (('start-gadget: gadget)
-            (redraw)
             (set! event-route gadget)
             (gadget 'activate: (make-gadget-command command))
             (redraw))

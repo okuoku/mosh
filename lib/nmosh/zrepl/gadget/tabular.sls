@@ -6,6 +6,7 @@
                  (yuni core)
                  (srfi :42)
                  (yuni text tabular)
+                 (nmosh zrepl zprompt)
                  (nmosh zrepl platform))
 
 ;;
@@ -43,7 +44,7 @@
   (define current-tbl #f)
   (define (draw draw-to-logarea?)
     (define width (zrepl-output-width))
-    (define out-height (zrepl-output-height))
+    (define out-height (zprompt-gadget-height output))
     (define out '())
     (define (gen-header)
       (list 'bold 'blue header 'normal 'no-bold))
@@ -55,7 +56,7 @@
 
     ;; Construct data area
     (let* ((content-height (- (length current-tbl) 1))
-           (max-dat-height (- out-height 3))
+           (max-dat-height out-height) ;; FIXME: dupe
            (dat-scroll-start (floor (/ max-dat-height 2)))
            (max-offset (- content-height out-height)))
       (cond
@@ -132,7 +133,7 @@
   (define (commit)
     (decide
       (and cursor
-           (car (list-ref current-tbl (+ cursor 1))))))
+           (list-ref dat (+ cursor 1)))))
 
   ;; Input event handlers
   (define (char-event c)

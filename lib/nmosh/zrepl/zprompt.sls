@@ -1,5 +1,6 @@
 (library (nmosh zrepl zprompt)
          (export
+           zprompt-gadget-height
            zprompt-available?
            zprompt-start)
          (import
@@ -7,6 +8,7 @@
                  take drop)
            (srfi :8)
            (srfi :42)
+           (shorten)
            (rnrs)
            (match)
            (yuni async)
@@ -23,6 +25,11 @@
     ((pair? obj) (xlist obj))
     ((or (number? obj) (symbol? obj)) 0)
     ((string? obj) (string-width obj))))
+
+(define (zprompt-gadget-height command)
+  (define ret 0)
+  (command 'gadget-get-height: (^[out] (set! ret out)))
+  ret)
 
 (define (zprompt-start cb/line cb) ;; => boolean
   ;; cb = ^[lineout]
@@ -155,6 +162,11 @@
              ;; FIXME: Cursor position??
              (('set-gadget-area: obj)
               (update-static-area obj #t #t))
+
+             (('gadget-get-height: cb) ;; Hidden
+              (cb (- (zrepl-output-height) (+ 1 ;; For prompt
+                                              (length upper-area) 
+                                              (length lower-area)))))
              (else (apply command obj))))
     event)
 

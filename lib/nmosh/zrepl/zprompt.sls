@@ -94,9 +94,9 @@
 
   (define (commit)
     (define ret (list->string editline))
+    (put-prompt/logarea)
     (set! editline '())
     (set! cursor 0)
-    (put-prompt/logarea)
     (cb/line ret))
 
   (define (putline l)
@@ -117,7 +117,7 @@
       put-logarea
       (list prompt
             (list->string editline))
-      altprompt  ))
+      altprompt))
 
   (define (update-static-area next-gadget next-upper next-lower)
     (define (chk x fallback) (cond ((eq? #t x) fallback)

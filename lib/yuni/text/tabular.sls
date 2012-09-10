@@ -15,6 +15,9 @@
 ;;  spec = (format-spec . width-spec) | format-spec | #f
 ;;  width-spec = (FIXED-WIDTH) | (LEAST-WIDTH +)
 ;;
+;;  Format-spec: 
+;;    "title" '~' "format"
+;;
 ;;  Sep: (FIXME: not Implemented yet)
 ;;    / = Consume next datum
 ;;    ! = Prefix String
@@ -35,6 +38,10 @@
 ;;    c = Center
 ;;    L = Left
 ;;    R = Right
+;;
+;;  Rule:
+;;    Wx = Add x as West rule charactor
+;;    Ex = Add x as East rule charactor
 
 (define* rowspec (title 
                    type 
@@ -43,7 +50,10 @@
                    fixed-width?
                    least-width
                    number-width-int 
-                   number-width-prec))
+                   number-width-prec
+                   rule-west
+                   rule-east
+                   ))
 
 (define* (format-straight (rowspec) datum)
   (let-with rowspec (type)
@@ -153,13 +163,17 @@
          least-width)
         (else w))))
 
-  (receive (headers data) (partition vector? l)
+  (receive (headers data0) (partition vector? l)
     (unless (= 1 (length headers))
       (assertion-violation 'format-tabular
                            "Too many headers"
                            headers))
-    ;; Pass1
-    (let* ((rowspecs (map make-rowspec (vector->list (car headers)))) 
+    ;; Pass0: Instanciate rowspecs
+    (let* ((rowspecs0 (map make-rowspec (vector->list (car headers)))) 
+           ;; Expand rules(Insert rule strings)
+           (rowspecs (expand-rowspecs rowspecs0))
+           (data (expand-data rowspecs0 data0))
+           ;; Pass1:
            (pass1/titles (map (^e (~ e 'title)) rowspecs))
            (data-t (list-transpose (length rowspecs) data))
            ;; Format with free width
@@ -199,6 +213,58 @@
           (length l)
           pass2))))) 
 
+(define (expand-rowspecs rowspecs)
+  (define (new str)
+    (define me (new-rowspec))
+    (~ me 'type := 'string)
+    (~ me 'fixed-width? := #t)
+    (~ me 'least-width := (string-length str))
+    me)
+  (define (expand e) ;; => list
+    (define (left)
+      (let-with e (rule-west)
+        (if (string=? "" rule-west)
+          '()
+          (list (new rule-west)))))
+    (define (right)
+      (let-with e (rule-east)
+        (if (string=? "" rule-east)
+          '()
+          (list (new rule-east)))))
+
+    (append (left)
+            (list e)
+            (right)))
+  (apply append (map expand rowspecs)))
+
+(define (expand-data rowspecs0 data)
+  (define (expand e) ;; => list
+    (define (left)
+      (let-with e (rule-west)
+        (if (string=? "" rule-west)
+          '()
+          (list rule-west))))
+    (define (right)
+      (let-with e (rule-east)
+        (if (string=? "" rule-east)
+          '()
+          (list rule-east))))
+    (append (left)
+            (list #f) ;; Consume
+            (right)))
+  (define code (apply append (map expand rowspecs0)))
+  (define (expand1 e)
+    (define (itr cur rest code*)
+      (if (pair? code*)
+        (let ((c (car code*))
+              (d (cdr code*)))
+          (if c
+            (itr (cons c cur) rest d)
+            (itr (cons (car rest) cur) (cdr rest) d)))
+        (reverse cur)))
+    (itr '() e code))
+  (map expand1 data))
+
 (define (new-rowspec)
   (make rowspec
         (title "")
@@ -208,7 +274,9 @@
         (least-width 0)
         (fixed-width? #f)
         (number-width-int 0)
-        (number-width-prec 0)))
+        (number-width-prec 0)
+        (rule-east "")
+        (rule-west "")))
 
 (define (make-rowspec dat)
   (define str (if (pair? dat) (car dat) dat))
@@ -244,22 +312,42 @@
       (~ me 'align-title := sym)
       (~ me 'align-datum := sym)))
 
+  (define consume-char #f)
   (define (procchar c)
-    (case c
-      ((#\C #\c)
-       (apply-align 'center))
-      ((#\L)
-       (apply-align 'left))
-      ((#\R)
-       (apply-align 'right))
-      ((#\s)
-       (~ me 'type := 'string))
-      ((#\d)
-       (~ me 'type := 'decimal))
-      ((#\x)
-       (~ me 'type := 'hexadecimal))
-      ((#\b)
-       (~ me 'type := 'binary))))
+    (cond
+      (consume-char
+        (case consume-char
+          ((rule-west)
+           (let-with me (rule-west)
+             (~ me 'rule-west := (string-append 
+                                   rule-west
+                                   (list->string (list c))))))
+          ((rule-east)
+           (let-with me (rule-east)
+             (~ me 'rule-east := (string-append 
+                                   rule-east
+                                   (list->string (list c)))))))
+        (set! consume-char #f))
+      (else
+        (case c
+          ((#\W)
+           (set! consume-char 'rule-west))
+          ((#\E)
+           (set! consume-char 'rule-east))
+          ((#\C #\c)
+           (apply-align 'center))
+          ((#\L)
+           (apply-align 'left))
+          ((#\R)
+           (apply-align 'right))
+          ((#\s)
+           (~ me 'type := 'string))
+          ((#\d)
+           (~ me 'type := 'decimal))
+          ((#\x)
+           (~ me 'type := 'hexadecimal))
+          ((#\b)
+           (~ me 'type := 'binary))))))
 
 
   (define me (new-rowspec))

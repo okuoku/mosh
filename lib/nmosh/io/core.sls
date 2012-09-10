@@ -4,6 +4,7 @@
            io-dispatch-loop
            io-dispatch
            io-dispatch-sync
+           io-dispatch/one
 
            ;; process
            ;launch!

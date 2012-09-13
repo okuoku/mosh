@@ -5,6 +5,7 @@
                  zrepl-interactive?
                  zrepl-output-width
                  zrepl-output-height
+                 zrepl-output-set-title
                  zrepl-fmt-open-line
                  zrepl-fmt-delete-line
                  zrepl-fmt-output
@@ -21,6 +22,7 @@
                  (nmosh aio impl win32 handle-ops)
                  (nmosh aio impl win32 queue-iocp)
                  (prefix (nmosh stubs win32-misc) stub:)
+                 (match)
                  (shorten))
 ;;
 
@@ -31,6 +33,7 @@
 (define fmt-reverse? #f)
 (define fmt-fgidx 0)
 (define fmt-bgidx 0)
+(define fmt-stack '())
 
 (define (fmt-attr-reset)
   ;; NB: We don't have to apply settings immediately
@@ -38,6 +41,21 @@
   (set! fmt-fgidx 7)
   (set! fmt-bgidx 0)
   (set! fmt-reverse? #f))
+
+(define (fmt-attr-push)
+  (set! fmt-stack (cons
+                    (list fmt-bold? fmt-fgidx fmt-bgidx fmt-reverse?)
+                    fmt-stack)))
+(define (fmt-attr-pop)
+  (let ((a (car fmt-stack))
+        (d (cdr fmt-stack)))
+    (set! fmt-stack d)
+    (match a
+           ((bold? fgidx bgidx reverse?)
+            (set! fmt-bold? bold?)
+            (set! fmt-fgidx fgidx)
+            (set! fmt-bgidx bgidx)
+            (set! fmt-reverse? reverse?)))))
 
 (define (fmt-attr-apply)
   (define xfg (if fmt-bold? (+ 8 fmt-fgidx) fmt-fgidx))
@@ -48,6 +66,8 @@
 
 (define (fmt-attr-proc sym)
   (case sym
+    ((push) (fmt-attr-push))
+    ((pop) (fmt-attr-pop))
     ((reset) (fmt-attr-reset))
     ((black) (set! fmt-fgidx 0))
     ((red) (set! fmt-fgidx 4))
@@ -84,7 +104,8 @@
        (emit (list->string (list e))))
       ((list? e)
        (for-each emit e))))
-  (for-each emit obj))
+  (for-each emit obj)
+  (fmt-attr-apply))
 
 (define (zrepl-interactive?)
   (win32_console? stdout))
@@ -105,7 +126,8 @@
 (define (zrepl-fmt-delete-line)
   (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)
     (win32_console_setpos stdout 0 cy)
-    (out (list->string (list-ec (: i (- w 1)) #\space)))
+    (out (list 'push 'reset (list->string (list-ec (: i (- w 1)) #\space))
+               'pop))
     (win32_console_setpos stdout cx cy)))
 
 (define (zrepl-fmt-open-line)
@@ -125,6 +147,9 @@
   (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)
     (win32_console_setpos stdout x cy)))
 
+(define (zrepl-output-set-title str)
+  (win32_console_settitle str))
+
 (define (zrepl-input-subscribe cb)
   ;; cb = ^[Char ctrl? alt? super?]
   ;;    = ^[sym ctrl? alt? super?]
@@ -141,7 +166,7 @@
         (cb s ctrl? alt? #f))
       (define (ctrl c)
         (cb c #t alt? #f))
-      (win32_console_settitle (format "~w ~w" int-char int-type))
+      ;(win32_console_settitle (format "~w ~w" int-char int-type))
       (cond
         ;; NB: Several ctrl combinations are re-mapped
         ((and unicode? (>= int-char 32))

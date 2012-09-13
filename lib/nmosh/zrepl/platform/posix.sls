@@ -159,7 +159,9 @@
        (for-each out0 e)))) 
   (if (string? l)
     (string-out l)
-    (out0 l)))
+    (begin 
+      (out0 l)
+      (fmt-control-apply))))
 
 (define (zrepl-fmt-set-cursor x)
   (out "\r")

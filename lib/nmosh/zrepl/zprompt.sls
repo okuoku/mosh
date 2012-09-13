@@ -135,8 +135,8 @@
     (define current-lower-lines (length current-lower))
     (define next-upper-lines (length upper)) 
     (define next-lower-lines (length lower))
-    (define diff (- (+ current-upper-lines current-lower-lines)
-                    (+ next-upper-lines next-lower-lines)))
+    (define diff (- (+ next-upper-lines next-lower-lines)
+                   (+ current-upper-lines current-lower-lines)))
     (cond
       ((<= 0 diff)
        ;; Move to top of static area
@@ -152,9 +152,9 @@
         (for-each putline upper)
         (putline '()) ;; For edit area
         (for-each putline lower)
-        (do-ec (: i diff)
+        (do-ec (: i (- diff))
                (putline '())) ;; Clear previous data
-        (zrepl-fmt-cursor-hmove (- (+ diff next-lower-lines)))))
+        (zrepl-fmt-cursor-hmove (- (+ (- diff) next-upper-lines)))))
     (set! gadget-area gadget)
     (set! upper-area upper0)
     (set! lower-area lower)
@@ -216,12 +216,11 @@
            ;; Gadget control
            (('start-gadget: gadget)
             (set! event-route gadget)
-            (gadget 'activate: (make-gadget-command command))
-            (redraw))
+            (gadget 'activate: (make-gadget-command command)))
            (('stop-gadget: obj)
-            (event-route 'leave: #t)
+            (event-route 'leave: obj)
             (set! event-route #f)
-            (redraw))
+            (update-static-area '() #t #t))
 
            ;; Editline control
            ;; (NB: These never cause any scroll)

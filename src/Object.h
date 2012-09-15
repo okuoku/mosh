@@ -118,7 +118,7 @@ class Object
 public:
     Object() {}
     Object(const ucs4char* str);
-    Object(const ucs4char* str, int length);
+    Object(const ucs4char* str, intptr_t length);
     Object(const ucs4string& str);
     Object(const char* str);
 
@@ -185,10 +185,10 @@ public:
     static Object* makeObjectArray(int size);
     static Object* makeObjectArrayLocal(int size);
     static Object makeFixnum(fixedint n);
-    static Object makeBignum(signed long int n);
+    static Object makeBignum(intptr_t n);
     static Object makeBignum(Bignum* b);
     static Object makeFlonum(double value);
-    static Object makeRaw(int n);
+    static Object makeRaw(intptr_t n);
     static Object makeRaw(void* n);
     static Object makeInstruction(int n);
     static Object makeCompilerInstruction(int n);

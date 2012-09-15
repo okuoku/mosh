@@ -78,9 +78,9 @@ private:
         if (mpz_fits_slong_p(v) != 0) {
             const intptr_t val = mpz_get_si(v);
             if (val >= Fixnum::MIN &&
-                val <= Fixnum::MAX) {
+                val <= Fixnum::MAX) { // FIXME: fits?
                 mpz_clear(v);
-                return Object::makeFixnum(val);
+                return Object::makeFixnum((fixedint)val);
             }
         }
         return Object::makeBignum(new Bignum(v));
@@ -92,11 +92,19 @@ public:
         mpz_clear(value_);
     }
 
+#ifndef _WIN64
     Bignum(long value)
     {
         mpz_init(value_);
         mpz_set_si(value_, value);
     }
+#else // Win64 requires this...
+    Bignum(intptr_t value)
+    {
+        mpz_init(value_);
+        mpz_import(value_, 1, -1, sizeof(intptr_t), -1, 0, &value);
+    }
+#endif
 
     char* toString(int radix = 10) const
     {
@@ -186,7 +194,7 @@ public:
     uint64_t toU64() const
     {
         MOSH_ASSERT(fitsU64());
-#if (MOSH_BIGNUM_SIZEOF_INTPTR_T == 4)
+#if (MOSH_BIGNUM_SIZEOF_INTPTR_T == 4) || defined(_WIN64)
         uint64_t ret = 0;
         mpz_t temp;
         mpz_init(temp);
@@ -206,7 +214,7 @@ public:
     int64_t toS64() const
     {
         MOSH_ASSERT(fitsS64());
-#if (MOSH_BIGNUM_SIZEOF_INTPTR_T == 4)
+#if (MOSH_BIGNUM_SIZEOF_INTPTR_T == 4) || defined(_WIN64)
         uint64_t ret = 0;
         mpz_t temp;
         mpz_init(temp);
@@ -297,7 +305,7 @@ public:
             mpz_t temp;
             mpz_init(temp);
             mpz_com(temp, value_);
-            const unsigned long ret = mpz_popcount(temp);
+            const uintptr_t ret = mpz_popcount(temp);
             mpz_clear(temp);
             return makeInteger(~ret);
         }
@@ -315,7 +323,7 @@ public:
 
     Object bitwiseFirstBitSet()
     {
-        const unsigned long int found = mpz_scan1(value_, 0);
+        const uintptr_t found = mpz_scan1(value_, 0);
         if (found == ULONG_MAX) {
             return Object::makeFixnum(-1);
         } else {
@@ -622,7 +630,7 @@ public:
         const size_t nails = 0;
         const size_t size = 1;
         const int numb = 8 * size - nails;
-        const int count = (mpz_sizeinbase (value_, 2) + numb - 1) / numb;
+        const size_t count = (mpz_sizeinbase (value_, 2) + numb - 1) / numb;
         uint8_t* rop = allocatePointerFreeU8Array(count * size + 1); // 1 for sign
         uint8_t* ret = (uint8_t*)mpz_export(rop, countp, order, size, endian, nails, value_);
         if (mpz_sgn(value_) < 0) {
@@ -676,7 +684,8 @@ public:
         }
     }
 
-    static Object makeInteger(long n)
+#ifndef _WIN64
+    static Object makeInteger(int n)
     {
         if (Fixnum::canFit(n)) {
             return Object::makeFixnum(n);
@@ -684,6 +693,17 @@ public:
             return Object::makeBignum(n);
         }
     }
+#else // FIXME: Win64 needs intptr_t
+    static Object makeInteger(intptr_t n)
+    {
+        if (Fixnum::canFit(n)) {
+            // Valid as fixedint
+            return Object::makeFixnum((fixedint)n);
+        } else {
+            return Object::makeBignum(n);
+        }
+    }
+#endif
 
     template <typename T> static Object makeIntegerFromSigned(T val)
     {
@@ -715,7 +735,7 @@ public:
     }
 };
 
-inline Object Object::makeBignum(long n)
+inline Object Object::makeBignum(intptr_t n)
 {
     return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::Bignum,
                                                         reinterpret_cast<intptr_t>(new Bignum(n)))));

@@ -22,7 +22,7 @@
         (format #t "#endif\n")]
        [('define-c-defined-const val)
         (format #t "#ifdef ~a\n" val)
-        (format #t "osConstants->set(Symbol::intern(UC(\"~a\")), Bignum::makeInteger((long int)~a));\n" val val)
+        (format #t "osConstants->set(Symbol::intern(UC(\"~a\")), Bignum::makeInteger((intptr_t)~a));\n" val val)
         (format #t "#endif\n")]
        [('define-size-of val)
         (format #t "osConstants->set(Symbol::intern(UC(\"size-of-~a\")), Bignum::makeInteger(sizeof(~a)));\n" val val)]

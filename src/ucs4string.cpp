@@ -90,35 +90,35 @@ void ucs4string::split(ucs4char ch, gc_vector<ucs4string>& v) const
     v.push_back(ucs4string(begin() + next, end()));
 }
 
-ucs4string ucs4string::substr(int x, int size) const
+ucs4string ucs4string::substr(intptr_t x, intptr_t size) const
 {
     return ucs4string(ucs4string_base::substr(x, size).c_str());
 }
 
 char* ucs4string::ascii_c_str() const
 {
-    const int sz = size();
+    const intptr_t sz = size();
 #ifdef USE_BOEHM_GC
     char* ret = new(PointerFreeGC) char[sz + 1];
 #else
     char* ret = new char[sz];
 #endif
 
-    for (int i = 0; i < sz; i++) {
+    for (intptr_t i = 0; i < sz; i++) {
         ret[i] = (*this)[i] & 0xff;
     }
     ret[sz] = '\0';
     return ret;
 }
 
-ucs4string ucs4string::from_c_str(const char* s, int size)
+ucs4string ucs4string::from_c_str(const char* s, intptr_t size)
 {
 #ifdef USE_BOEHM_GC
     ucs4char* ret = new(PointerFreeGC) ucs4char[size + 1];
 #else
     ucs4char* ret = new ucs4char[sz];
 #endif
-    for (int i = 0; i < size; i++) {
+    for (intptr_t i = 0; i < size; i++) {
         ret[i] = s[i];
     }
     ret[size] = '\0';
@@ -132,8 +132,8 @@ ucs4string ucs4string::from_c_str(const char* s)
 
 bool ucs4string::is_ascii() const
 {
-    const int length = size();
-    for (int i = 0; i < length; i++) {
+    const intptr_t length = size();
+    for (intptr_t i = 0; i < length; i++) {
         const ucs4char ch = (*this)[i];
         if (ch > 255) {
             return false;

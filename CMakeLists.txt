@@ -285,6 +285,13 @@ CHECK_TYPE_SIZE(void* SIZEOF_VOIDP)
 CHECK_TYPE_SIZE(float SIZEOF_FLOAT)
 CHECK_TYPE_SIZE(double SIZEOF_DOUBLE)
 
+# Detect Win64 Here..
+if(SIZEOF_VOIDP EQUAL 8)
+    if(WIN32)
+        add_definitions(-D_WIN64)
+    endif()
+endif()
+
 if(HAVE_STDARG_H)
     add_definitions(-DHAVE_STDARG_PROTOTYPES)
 endif(HAVE_STDARG_H)

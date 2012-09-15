@@ -199,19 +199,19 @@ public:
     // returns uid
     uintptr_t registerCallBackTrampoline(Object closure)
     {
-        uintptr_t uid = callBackTrampolinesUid_++;
+        fixedint uid = callBackTrampolinesUid_++;
         callBackTrampolines_->set(Object::makeFixnum(uid),
                                   closure);
         return uid;
     }
 
-    void unregisterCallBackTrampoline(uintptr_t uid)
+    void unregisterCallBackTrampoline(fixedint uid)
     {
         callBackTrampolines_->deleteD(Object::makeFixnum(uid));
     }
 
 
-    Object getCallBackTrampoline(uintptr_t uid)
+    Object getCallBackTrampoline(fixedint uid)
     {
         return callBackTrampolines_->ref(Object::makeFixnum(uid), Object::False);
     }
@@ -247,8 +247,8 @@ private:
         Object dc;
         Object cl;
         Object* pc;
-        int spOffset;
-        int fpOffset;
+        intptr_t spOffset;
+        intptr_t fpOffset;
     } Registers;
 
     void saveRegisters(Registers* r)
@@ -355,7 +355,7 @@ protected:
 #endif
     Object dynamicWinders_;
     EqHashTable* callBackTrampolines_;
-    uintptr_t callBackTrampolinesUid_;
+    fixedint callBackTrampolinesUid_;
 };
 
 } // namespace scheme

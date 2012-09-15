@@ -38,17 +38,17 @@ class String EXTEND_GC
 {
 public:
     String(const ucs4char* s) : data_(s) {}
-    String(const ucs4char* s, int length) : data_(ucs4string(s, length)) {}
+    String(const ucs4char* s, intptr_t length) : data_(ucs4string(s, length)) {}
     String(int n, ucs4char c = ' ') : data_(ucs4string(n, c)) {}
     String(const char* s)
     {
-        const int len = strlen(s);
+        const intptr_t len = strlen(s);
 #ifdef USE_BOEHM_GC
         ucs4char* p = new(PointerFreeGC) ucs4char[len + 1];
 #else
         ucs4char* p = new ucs4char[len + 1];
 #endif
-        for (int i = 0; i < len + 1; i++) {
+        for (intptr_t i = 0; i < len + 1; i++) {
             p[i] = s[i];
         }
         data_ = p;
@@ -56,7 +56,7 @@ public:
     ucs4char charAt(int n);
     ucs4string& data() { return data_; }
 
-    int length() const { return data_.length(); }
+    size_t length() const { return data_.length(); }
 
     bool operator==(String& s)
     {
@@ -71,7 +71,7 @@ inline Object::Object(const ucs4char* str) : val(reinterpret_cast<intptr_t>(new 
 {
 }
 
-inline Object::Object(const ucs4char* str, int length) : val(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::String, reinterpret_cast<intptr_t>(new String(str, length)))))
+inline Object::Object(const ucs4char* str, intptr_t length) : val(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::String, reinterpret_cast<intptr_t>(new String(str, length)))))
 {
 }
 

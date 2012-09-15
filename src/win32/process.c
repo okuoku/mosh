@@ -2,8 +2,8 @@
 #include <mswsock.h>
 #include <ws2tcpip.h>
 #include <winioctl.h>
-
 #include <windows.h>
+
 #include <config.h>
 
 #include <process.h>
@@ -332,7 +332,7 @@ win32_iocp_pop(uintptr_t iocp, intptr_t timeout_in,uintptr_t ret_bytestrans, uin
 	BOOL b;
 	int r;
 	DWORD timeout;
-	timeout = (timeout_in == -1)?INFINITE:timeout_in;
+	timeout = (timeout_in == -1)?INFINITE:(DWORD)timeout_in;
 	
 	
 	// GetQueuedCompletionStatus will return status of de-queued I/O ops.
@@ -382,7 +382,7 @@ win32_overlapped_getmydata(void* p){
 int
 win32_overlapped_geterror(void* p){
 	OVERLAPPED* ovl = (OVERLAPPED *)p;
-	DWORD err = ovl->Internal;
+	DWORD err = (DWORD)ovl->Internal; // FIXME: Win32 error is DWORD
 	//ovl->Internal = 0;
 	return err;
 }
@@ -394,10 +394,10 @@ win32_handle_read_async(uintptr_t h,uintptr_t offsetL,uintptr_t offsetH,uintptr_
 	DWORD out_len;
 	OVERLAPPED* ovl = (OVERLAPPED *)ol;
 	ZeroMemory(ovl,sizeof(OVERLAPPED));
-	ovl->Offset = offsetL;
-	ovl->OffsetHigh = offsetH;
+	ovl->Offset = (DWORD)offsetL;
+	ovl->OffsetHigh = (DWORD)offsetH;
 	ovl->hEvent = NULL;
-	b = ReadFile((HANDLE)h,(void*)buf,length,&out_len,ovl);
+	b = ReadFile((HANDLE)h,(void*)buf,(DWORD)length,&out_len,ovl);
 	if(!b){
 		err = GetLastError();
 		if(err == ERROR_IO_PENDING){
@@ -417,10 +417,10 @@ win32_handle_write_async(uintptr_t h,uintptr_t offsetL,uintptr_t offsetH,uintptr
 	OVERLAPPED* ovl = (OVERLAPPED *)ol;
 	DWORD out_len;
 	ZeroMemory(ovl,sizeof(OVERLAPPED));
-	ovl->Offset = offsetL;
-	ovl->OffsetHigh = offsetH;
+	ovl->Offset = (DWORD)offsetL;
+	ovl->OffsetHigh = (DWORD)offsetH;
 	ovl->hEvent = NULL;
-	b = WriteFile((HANDLE)h,(void *)buf,length,&out_len,ovl);
+	b = WriteFile((HANDLE)h,(void *)buf,(DWORD)length,&out_len,ovl);
 	if(!b){
 		err = GetLastError();
 		if(err == ERROR_IO_PENDING){
@@ -654,7 +654,8 @@ typedef struct {
 
 static void
 emit_queue_event(HANDLE iocp,uintptr_t key,intptr_t res,uintptr_t overlapped){
-	PostQueuedCompletionStatus(iocp,res,key,(LPOVERLAPPED)overlapped);
+	PostQueuedCompletionStatus(iocp,(signed int)res,
+                                   key,(LPOVERLAPPED)overlapped);
 }
 
 static void
@@ -1126,7 +1127,7 @@ clearbuffer(window_handler_data* whd){
 // 48 : M double click
 LRESULT CALLBACK
 BaseWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam){
-    window_handler_data* whd = (window_handler_data *)GetWindowLongPtr(hWnd,GWL_USERDATA);
+    window_handler_data* whd = (window_handler_data *)GetWindowLongPtr(hWnd,GWLP_USERDATA);
     PAINTSTRUCT ps;
     HDC hDC;
     RECT r;
@@ -1154,7 +1155,7 @@ BaseWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam){
             return 0;
         case WM_CREATE:
             whd = (window_handler_data *)(((CREATESTRUCT *)lParam)->lpCreateParams);
-            SetWindowLongPtrW(hWnd,GWL_USERDATA,(LONG_PTR)whd);
+            SetWindowLongPtrW(hWnd,GWLP_USERDATA,(LONG_PTR)whd);
             post_window_event(whd,0,(uintptr_t)hWnd);
             return 0;
         case WM_DESTROY:
@@ -1574,7 +1575,7 @@ win32_dc_draw(void* dc,void* bmpdc,intptr_t* ops,int len){
     POINT pbuf[3];
 
     while(p!=len){
-        arg = &ops[p];
+        arg = (int *)&ops[p];
         switch(arg[0]){
 // Path control
  // 90 BEGIN_PATH
@@ -1803,8 +1804,8 @@ prepare_console_procs(void){
     if (setconsolescreenbufferinfoex) return 1;
     hModule = LoadLibraryA("kernel32.dll");
     if(hModule){
-        getconsolescreenbufferinfoex = GetProcAddress(hModule, "GetConsoleScreenBufferInfoEx");
-        setconsolescreenbufferinfoex = GetProcAddress(hModule, "SetConsoleScreenBufferInfoEx");
+        (FARPROC)getconsolescreenbufferinfoex = GetProcAddress(hModule, "GetConsoleScreenBufferInfoEx");
+        (FARPROC)setconsolescreenbufferinfoex = GetProcAddress(hModule, "SetConsoleScreenBufferInfoEx");
         if(getconsolescreenbufferinfoex){
             return 1;
         }else{

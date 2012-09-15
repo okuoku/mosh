@@ -55,14 +55,14 @@ public:
     ucs4string() {}
     ucs4string(int n, ucs4char c = ' ') : ucs4string_base(n, c) {}
     ucs4string(const ucs4char* s) : ucs4string_base(s) {}
-    ucs4string(const ucs4char* s, int n) : ucs4string_base(s, n) {}
+    ucs4string(const ucs4char* s, intptr_t n) : ucs4string_base(s, n) {}
     ucs4string(ucs4string::const_iterator a, ucs4string::const_iterator b) : ucs4string_base(a, b) {}
     char* ascii_c_str() const;
-    ucs4string substr(int x, int size) const;
+    ucs4string substr(intptr_t x, intptr_t size) const;
     void split(ucs4char ch, gc_vector<ucs4string>& v) const;
     ucs4char* strdup();
     bool is_ascii() const;
-    static ucs4string from_c_str(const char* s, int size);
+    static ucs4string from_c_str(const char* s, intptr_t size);
     static ucs4string from_c_str(const char* s);
     // see R6RS 11.11 Characters
     static bool isValidScalar(int ch)

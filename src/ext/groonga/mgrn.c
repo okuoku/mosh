@@ -1,6 +1,8 @@
 #include "config.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include <groonga.h>
 
 typedef void (*nmosh_callback_t)(void* ticket, uintptr_t out0,int32_t out1);
@@ -12,7 +14,9 @@ grn_callback(grn_ctx *ctx, int flags, void* p){
     grn_ctx_info info;
     uint32_t len;
     void* out;
+    printf("callback! %llx\n",(long long)p);
     if(ctx && (flags & GRN_CTX_TAIL)){
+        printf("GRN result: %d\n",ctx->rc);
         grn_ctx_info_get(ctx, &info);
         buf = info.outbuf;
         /* FIXME: Handle error here! */
@@ -20,6 +24,7 @@ grn_callback(grn_ctx *ctx, int flags, void* p){
         out = malloc(len);
         memcpy(out,GRN_TEXT_VALUE(buf),len);
         cb = (nmosh_callback_t)GRN_CTX_USER_DATA(ctx)->ptr;
+        printf("chime! %llx %x\n",(long long)out,len);
         cb(p, (uintptr_t)out,len); // Chime
         GRN_BULK_REWIND(buf);
     }
@@ -29,6 +34,7 @@ MOSHEXPORT
 void
 mgrn_init(void){
     grn_init();
+    grn_set_default_encoding(GRN_ENC_UTF8);
 }
 
 MOSHEXPORT

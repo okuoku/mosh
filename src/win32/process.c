@@ -8,6 +8,7 @@
 
 #include <process.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #define GC_NO_THREAD_REDIRECTS // we don't need override
 #include <gc.h>
@@ -654,8 +655,13 @@ typedef struct {
 
 static void
 emit_queue_event(HANDLE iocp,uintptr_t key,intptr_t res,uintptr_t overlapped){
-	PostQueuedCompletionStatus(iocp,(signed int)res,
-                                   key,(LPOVERLAPPED)overlapped);
+    BOOL b;
+    b = PostQueuedCompletionStatus(iocp,(signed int)res,
+                               key,(LPOVERLAPPED)overlapped);
+    if(!b){
+        printf("PostQueuedCompletionStatus Error!(%x,%llx)\n",
+               GetLastError(), (long long)iocp);
+    }
 }
 
 static void
@@ -723,13 +729,14 @@ win32_ticket_alloc(void* h){
     HANDLE iocp = (HANDLE)h;
     ticket* t;
     t = (ticket *)GC_MALLOC(sizeof(ticket));
-    t->iocp = iocp;
     ZeroMemory(t,sizeof(ticket));
+    t->iocp = iocp;
     return t;
 }
 
 static void
 win32_ticket_chime(ticket* t,uintptr_t out0,int32_t out1){
+    //printf("chime_win32: %llx, %x\n",(long long)out0,out1);
     emit_queue_event(t->iocp,out0,out1,(uintptr_t)&t->ovl);
 }
 

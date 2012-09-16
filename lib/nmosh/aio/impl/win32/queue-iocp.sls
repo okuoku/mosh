@@ -42,6 +42,7 @@
   (define (callback err bytes ovl key)
     ;; key = out0
     ;; bytes = out1
+    ;(write (list 'queue-callback: bytes))(newline)
     (cb key (pointer->integer bytes)))
   (let ((ticket (win32_ticket_alloc (~ Q 'iocp))))
     (win32_overlapped_setmydata ticket (object->pointer callback))
@@ -96,6 +97,7 @@
   (let-with Q (evt iocp)
     (or evt ; if evt = true, thereis no need to wait
         (receive (ret bytes key ovl) (win32_iocp_pop iocp timeout)
+          ;(write (list 'iocp-pop: key ovl))(newline)
           (cond
             ((= 0 (pointer->integer ovl))
              ;(display "something wrong(IOCP)..\n")

@@ -970,6 +970,15 @@ if(MOSHPLUGIN_LIBUSB1)
     target_link_libraries(mosh_usb ${LIBUSB1_LIBRARY})
 endif()
 
+# Groonga
+option(MOSHPLUGIN_GROONGA "build nmosh groonga plugin" OFF)
+if(MOSHPLUGIN_GROONGA)
+    add_mosh_plugin(mosh_groonga src/ext/groonga/mgrn.c)
+    include_directories(AFTER ${MOSHPLUGIN_GROONGA_DIR}/include)
+    add_subdirectory(${MOSHPLUGIN_GROONGA_DIR} EXCLUDE_FROM_ALL nmosh-groonga)
+    target_link_libraries(mosh_groonga libgroonga)
+endif()
+
 # Win32 plugins
 if(WIN32)
     add_mosh_plugin(mosh_winmm src/win32/plugins/mm/moshmm.c)

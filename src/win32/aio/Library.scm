@@ -35,4 +35,7 @@
   (void win32_socket_setnodelay (void*))
   (void win32_socket_setreuseaddr (void*))
   (void* win32_finalization_handler_get)
-  (void* win32_finalization_handler_create (void* void* void*)))
+  (void* win32_finalization_handler_create (void* void* void*))
+  (void* win32_ticket_alloc (void*))
+  (void* win32_get_ticket_chime)
+  )

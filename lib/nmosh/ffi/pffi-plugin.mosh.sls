@@ -21,7 +21,7 @@
          (plugin-file (path-append stdpath (string-append
                                              (symbol->string name)
                                              ".mplg"))))
-    (open-shared-library plugin-file)))
+    (plugin-load plugin-file)))
 
 (define (plugin-path)
   (let ((f (get-global-flag '%nmosh-prefixless-mode)))

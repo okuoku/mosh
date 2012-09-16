@@ -17,6 +17,10 @@
                  win32_handle_close
                  win32_handle_setbaud
 
+                 ;; Tickets
+                 win32_ticket_alloc
+                 win32_get_ticket_chime
+
                  ;; sockets
                  win32_sockaddr_storage_size
                  win32_socket_create
@@ -125,6 +129,10 @@
 (define win32_overlapped_getmydata stub:win32_overlapped_getmydata)
 (define win32_overlapped_setmydata stub:win32_overlapped_setmydata)
 (define win32_overlapped_geterror stub:win32_overlapped_geterror)
+
+(define* (win32_ticket_alloc (iocp win32-handle))
+  (stub:win32_ticket_alloc (handle->pointer iocp)))
+(define win32_get_ticket_chime stub:win32_get_ticket_chime)
 
 (define* (win32_handle_read_async (h win32-handle)
                                   offset

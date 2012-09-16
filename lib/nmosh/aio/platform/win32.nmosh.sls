@@ -8,6 +8,9 @@
                  queue-dispatch
                  
                  queue-invoke-ffithread
+                 queue-ticket-acquire
+                 queue-ticket-dispose
+                 queue-ticket-callback
 
                  queue-write0
                  queue-read0

@@ -1,7 +1,8 @@
 (library (nmosh ffi stublib)
          (export define-ffi-library)
          (import (rnrs)
-                 (mosh ffi))
+                 (mosh ffi)
+                 (nmosh ffi pffi-lookup))
 
 (define soext 
   (cond
@@ -13,7 +14,7 @@
 
 (define (search-and-open-shared-libary spec libname)
   (let ((name (soname (symbol->string spec))))
-    (let ((so (open-shared-library name)))
+    (let ((so (plugin-load name)))
       so)))
 
 (define-syntax define-ffi-library

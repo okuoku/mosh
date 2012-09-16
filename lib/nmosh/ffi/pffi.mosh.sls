@@ -124,7 +124,7 @@
 
     ;; Construct parameter packet (64bit x N)
     (fill-arguments argpacket 0 in arg*)
-
+    ;(write (list 'pffi-call: name in))(newline)
     ;; Call
     (call (bytevector-pointer argpacket)
           (if has-ret?

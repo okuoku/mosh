@@ -31,4 +31,6 @@
   (int win32_console_output (void* void* int))
   (void* win32_get_console_reader_func)
   (int win32_clipboard_text_set (void* void* int))
+  (void* win32_dl_lookup (void* void*))
+  (void* win32_dl_open (void*))
   )

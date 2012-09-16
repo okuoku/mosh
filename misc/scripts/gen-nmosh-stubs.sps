@@ -153,7 +153,8 @@
                  ,(if plugin-name
                     '(nmosh ffi pffi-plugin)
                     '(nmosh ffi pffi))
-                 (nmosh ffi stublib)) p)
+                 ;(nmosh ffi stublib)
+                 ) p)
 
     ;; emit globals (handle for shared-library or pffi)
     (cond

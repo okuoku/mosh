@@ -98,7 +98,6 @@ exit:
     close(fd_cmd);
     close(fd_res);
     return NULL;
-
 }
 
 int

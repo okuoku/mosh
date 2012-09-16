@@ -22,6 +22,8 @@ int win32_process_wait_async(uintptr_t h,uintptr_t iocp,uintptr_t key,uintptr_t 
 //int win32_cancelioex(void* h,void* ovl);
 int win32_handle_close(void* h);
 int win32_handle_setbaud(void* h,int b);
+void* win32_ticket_alloc(void* h);
+void* win32_get_ticket_chime(void);
 
 //winsock
 int win32_sockaddr_storage_size(void);
@@ -109,6 +111,8 @@ void win32_console_release(void* h);
 void* win32_get_console_reader_func(void);
 int win32_console_output(void* h,void* str,int nchar);
 int win32_clipboard_text_set(void* h, void* text, int size);
+void* win32_dl_open(void*);
+void* win32_dl_lookup(void*,void*);
 
 
 #ifdef __cplusplus

@@ -684,6 +684,7 @@ thread_waiter(void* p){
 	}
 }
 
+// FIXME: in1 and out1 should be uint32_t
 typedef uintptr_t (*ffithread_callback_t)(uintptr_t in0,uintptr_t in1,uintptr_t* out0,uintptr_t* out1);
 
 typedef struct{
@@ -710,6 +711,32 @@ thread_ffithread(void* p){
     }
 }
 
+typedef struct{
+    // N.B. should synced with OVPAIR
+    OVERLAPPED ovl;
+    void* ptr;
+    HANDLE iocp;
+}ticket;
+
+void* // => OVPAIR, should be freed with win32_overlapped_free
+win32_ticket_alloc(void* h){
+    HANDLE iocp = (HANDLE)h;
+    ticket* t;
+    t = (ticket *)GC_MALLOC(sizeof(ticket));
+    t->iocp = iocp;
+    ZeroMemory(t,sizeof(ticket));
+    return t;
+}
+
+static void
+win32_ticket_chime(ticket* t,uintptr_t out0,int32_t out1){
+    emit_queue_event(t->iocp,out0,out1,(uintptr_t)&t->ovl);
+}
+
+void*
+win32_get_ticket_chime(void){
+    return &win32_ticket_chime;
+}
 
 void
 win32_invoke_ffithread(HANDLE iocp,uintptr_t func,uintptr_t in0,uintptr_t in1,uintptr_t overlapped){
@@ -1675,6 +1702,18 @@ void
 win32_cursor_hide(void* h){
     HWND hWnd = (HWND)h;
     PostMessage(hWnd,WM_USER+1,0,0);
+}
+
+/* DLLs */
+
+void*
+win32_dl_lookup(void* h, const char* name){
+    return GetProcAddress((HMODULE)h, name);
+}
+
+void*
+win32_dl_open(const void* name){
+    return LoadLibraryW(name);
 }
 
 /* misc */

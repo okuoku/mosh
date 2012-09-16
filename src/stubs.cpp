@@ -158,7 +158,9 @@ CONS(FN(win32_socket_setreuseaddr), \
 CONS(FN(win32_getaddrinfo), \
 CONS(FN(win32_finalization_handler_get), \
 CONS(FN(win32_finalization_handler_create), \
-	NIL)))))))))))))))))))))))))))))))))
+CONS(FN(win32_ticket_alloc), \
+CONS(FN(win32_get_ticket_chime), \
+	NIL)))))))))))))))))))))))))))))))))))
 
 #define LIBDATA_WIN32_GUI CONS(SYM("win32-gui"), \
 CONS(FN(win32_messagebox) ,\
@@ -221,7 +223,9 @@ CONS(FN(win32_console_acquire), \
 CONS(FN(win32_get_console_reader_func), \
 CONS(FN(win32_console_output), \
 CONS(FN(win32_clipboard_text_set), \
-	NIL)))))))))))))))))))))))))))
+CONS(FN(win32_dl_open), \
+CONS(FN(win32_dl_lookup), \
+	NIL)))))))))))))))))))))))))))))
 #endif
 
 #define LIBDATA_BOEHMGC_STUBS CONS(SYM("boehmgc-stubs"), \

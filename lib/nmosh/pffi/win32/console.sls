@@ -10,7 +10,8 @@
            win32_console_output
            win32_getstdhandle
            win32_console_acquire
-           win32_console_release)
+           win32_console_release
+           win32_console_vscroll)
          (import (rnrs)
                  (yuni core)
                  (nmosh ffi box)
@@ -32,6 +33,9 @@
   (let ((n (string-length str))
         (bv (string->utf16-bv/raw str)))
     (stub:win32_console_output (handle->pointer h) bv n)))
+
+(define* (win32_console_vscroll (h win32-handle) d)
+  (stub:win32_console_vscroll (handle->pointer h) d))
 
 (define* (win32_console_getsize (ha win32-handle)) ;; => w h x0 y0 x1 y1 cx cy
   (let ((w (make-int-box))

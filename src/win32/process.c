@@ -1906,6 +1906,40 @@ win32_console_setcolor(void* h, int fgidx, int bgidx){
 }
 
 int
+win32_console_vscroll(void* h, signed int d){
+    BOOL b;
+    CONSOLE_SCREEN_BUFFER_INFO c;
+    SMALL_RECT s;
+    COORD r;
+    CHAR_INFO f;
+    CONSOLE_SCREEN_BUFFER_INFO ci;
+    GetConsoleScreenBufferInfo((HANDLE)h, &c);
+    // Whole area
+    s.Top = 0;
+    s.Left = 0;
+    s.Right = c.dwSize.X - 1;
+    s.Bottom = c.dwSize.Y - 1;
+
+    // Destination
+    r.X = 0;
+    r.Y = d;
+
+    // Fill
+    f.Attributes = 0;
+    f.Char.AsciiChar = (char)' ';
+
+    b = ScrollConsoleScreenBuffer((HANDLE)h, &s, NULL, r, &f);
+    if(b){
+        // Adjust cursor position
+        GetConsoleScreenBufferInfo((HANDLE)h, &ci);
+        r.X = ci.dwCursorPosition.X;
+        r.Y = ci.dwCursorPosition.Y + d;
+        SetConsoleCursorPosition((HANDLE)h, r);
+    }
+    return b;
+}
+
+int
 win32_console_p(void* h){ /* Non-zero for Console */
     DWORD bogus;
     return GetConsoleMode((HANDLE)h, &bogus);

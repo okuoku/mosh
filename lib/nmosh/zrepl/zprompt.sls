@@ -154,7 +154,8 @@
         (for-each putline lower)
         (do-ec (: i (- diff))
                (putline '())) ;; Clear previous data
-        (zrepl-fmt-cursor-hmove (- (+ (- diff) next-upper-lines)))))
+        (zrepl-fmt-cursor-hmove (- (+ (- diff) next-upper-lines)))
+        (zrepl-output-vscroll (- diff))))
     (set! gadget-area gadget)
     (set! upper-area upper0)
     (set! lower-area lower)

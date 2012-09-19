@@ -222,10 +222,11 @@ CONS(FN(win32_console_release), \
 CONS(FN(win32_console_acquire), \
 CONS(FN(win32_get_console_reader_func), \
 CONS(FN(win32_console_output), \
+CONS(FN(win32_console_vscroll), \
 CONS(FN(win32_clipboard_text_set), \
 CONS(FN(win32_dl_open), \
 CONS(FN(win32_dl_lookup), \
-	NIL)))))))))))))))))))))))))))))
+	NIL))))))))))))))))))))))))))))))
 #endif
 
 #define LIBDATA_BOEHMGC_STUBS CONS(SYM("boehmgc-stubs"), \

@@ -5,6 +5,7 @@
                  zrepl-input-release
                  zrepl-output-width
                  zrepl-output-height
+                 zrepl-output-vscroll
                  zrepl-zone-new
                  zrepl-fmt-open-line
                  zrepl-fmt-delete-line
@@ -190,6 +191,9 @@
   (terminal_getsize))
 (define (zrepl-output-height)
   (terminal_getheight))
+(define (zrepl-output-vscroll d)
+  ;; FIXME: Implement it
+  'ok)
 
 (define (zrepl-input-subscribe cb)
   (define state 'ASCII) ;; => ASCII | ESCAPE | CSI | UTF8

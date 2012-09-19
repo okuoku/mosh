@@ -6,6 +6,7 @@
                  zrepl-output-width
                  zrepl-output-height
                  zrepl-output-set-title
+                 zrepl-output-vscroll
                  zrepl-fmt-open-line
                  zrepl-fmt-delete-line
                  zrepl-fmt-output
@@ -122,6 +123,9 @@
 (define (zrepl-output-width)
   (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)
     w))
+
+(define (zrepl-output-vscroll d)
+  (win32_console_vscroll stdout d))
 
 (define (zrepl-fmt-delete-line)
   (receive (w h x0 y0 x1 y1 cx cy) (win32_console_getsize stdout)

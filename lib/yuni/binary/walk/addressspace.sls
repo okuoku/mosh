@@ -33,7 +33,7 @@
 (define* (aspace-make-index (aspace))
   ;; Construct AA tree
   (let-with aspace (symbols)
-    (write (list 'symbols: (length symbols)))(newline)
+    ;(write (list 'symbols: (length symbols)))(newline)
     (let* ((idx (aa-tree-init)) 
            (index (fold-left (^[cur e] 
                                (let ((next (aa-tree-insert cur (cdr e) (car e))))

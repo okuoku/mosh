@@ -88,8 +88,7 @@
   ;; Return
   (if (null? t)
     (node-new value obj)  
-    (split (skew t))) 
-  )
+    (split (skew t))))
 
 (define (aa-tree-search-nearest t value) ;; => l-value l-obj r-value r-obj
   (define (finish L R)
@@ -126,12 +125,14 @@
             ;; go left or right
             (else
               (if (< value (node-value t))
-                (if (null? L)
-                  (finish* parent t)
-                  (itr t L))
-                (if (null? R)
-                  (finish* parent t)
-                  (itr t R)))))))))
+                (cond ;; Check left
+                  ((null? L) (finish* parent t))
+                  ((< (node-value L) value) (finish* L t))
+                  (else (itr t L)))
+                (cond ;; Check right
+                  ((null? R) (finish* parent t))
+                  ((< value (node-value R)) (finish* R t))
+                  (else (itr t R))))))))))
   (itr '() t))
 
 )

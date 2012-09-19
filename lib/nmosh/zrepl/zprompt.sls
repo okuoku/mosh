@@ -220,7 +220,8 @@
            (('stop-gadget: obj)
             (event-route 'leave: obj)
             (set! event-route #f)
-            (update-static-area '() #t #t))
+            (update-static-area '() #t #t)
+            (redraw))
 
            ;; Editline control
            ;; (NB: These never cause any scroll)

@@ -10,25 +10,25 @@
 
 #### Instruction.h
 
-src/Instruction.h: src/instruction.scm
+src/Instruction.h: src/instruction.scm $(top_srcdir)/misc/scripts/gen-insn.scm
 	mosh $(top_srcdir)/misc/scripts/gen-insn.scm $< $@
 
 src/main.cpp: src/psyntax_mosh_image.cpp src/baselib.h src/match.h
 
-src/labels.cpp: src/instruction.scm
+src/labels.cpp: src/instruction.scm $(top_srcdir)/misc/scripts/gen-label.scm
 	mosh $(top_srcdir)/misc/scripts/gen-label.scm $< $@
 
-src/cprocedures.cpp: boot/free-vars-decl.scm 
+src/cprocedures.cpp: boot/free-vars-decl.scm  $(top_srcdir)/misc/scripts/gen-cproc.scm
 	mosh $(top_srcdir)/misc/scripts/gen-cproc.scm $< $@
 
-src/all-tests.scm: src/test-data.scm
+src/all-tests.scm: src/test-data.scm $(top_srcdir)/misc/scripts/gen-test.scm
 	(cd $(top_srcdir) && mosh -5 misc/scripts/gen-test.scm src/test-data.scm src/all-tests.scm)
 #	echo 'run -5 misc/scripts/gen-test.scm test-data.scm all-tests.scm ' | gdb ./mosh
 
-src/Object-accessors.h: src/accessors.scm
+src/Object-accessors.h: src/accessors.scm $(top_srcdir)/misc/scripts/gen-accessors.scm
 	(cd $(top_srcdir) && mosh misc/scripts/gen-accessors.scm) > $@
 
-src/OSConstants.h: src/os-constants.scm
+src/OSConstants.h: src/os-constants.scm $(top_srcdir)/misc/scripts/gen-os-constants.scm
 	(cd $(top_srcdir) && mosh misc/scripts/gen-os-constants.scm) > $@
 
 # READER 

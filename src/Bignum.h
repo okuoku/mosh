@@ -684,7 +684,6 @@ public:
         }
     }
 
-#ifndef _WIN64
     static Object makeInteger(int n)
     {
         if (Fixnum::canFit(n)) {
@@ -693,7 +692,17 @@ public:
             return Object::makeBignum(n);
         }
     }
-#else // FIXME: Win64 needs intptr_t
+    static Object makeInteger(unsigned int n)
+    {
+        if (Fixnum::canFitU(n)) {
+            return Object::makeFixnum(n);
+        } else {
+            return Object::makeBignum(n);
+        }
+    }
+// FIXME: We don't need (u)intptr_t makeInteger for 
+// sizeof(int) == sizeof(uintptr_t) archs
+#if MOSH_BIGNUM_SIZEOF_INTPTR_T != 4
     static Object makeInteger(intptr_t n)
     {
         if (Fixnum::canFit(n)) {
@@ -703,7 +712,32 @@ public:
             return Object::makeBignum(n);
         }
     }
-#endif
+    static Object makeInteger(uintptr_t n)
+    {
+        if (Fixnum::canFitU(n)) {
+            return Object::makeFixnum((fixedint)n);
+        } else {
+            return Object::makeBignum(n);
+        }
+    }
+#else // ... But we need long int variants
+    static Object makeInteger(long int n)
+    {
+        if (Fixnum::canFit(n)) {
+            return Object::makeFixnum(n);
+        } else {
+            return Object::makeBignum(n);
+        }
+    }
+    static Object makeInteger(unsigned long int n)
+    {
+        if (Fixnum::canFitU(n)) {
+            return Object::makeFixnum(n);
+        } else {
+            return Object::makeBignum(n);
+        }
+    }
+#endif //  MOSH_BIGNUM_SIZEOF_INTPTR_T != 4
 
     template <typename T> static Object makeIntegerFromSigned(T val)
     {

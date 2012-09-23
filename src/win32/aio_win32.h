@@ -112,8 +112,8 @@ void* win32_get_console_reader_func(void);
 int win32_console_output(void* h,void* str,int nchar);
 int win32_console_vscroll(void* h,signed int d);
 int win32_clipboard_text_set(void* h, void* text, int size);
-void* win32_dl_open(void*);
-void* win32_dl_lookup(void*,void*);
+void* win32_dl_open(const void*);
+void* win32_dl_lookup(void*,const char*);
 
 
 #ifdef __cplusplus

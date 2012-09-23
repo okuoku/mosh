@@ -660,7 +660,7 @@ emit_queue_event(HANDLE iocp,uintptr_t key,intptr_t res,uintptr_t overlapped){
                                key,(LPOVERLAPPED)overlapped);
     if(!b){
         printf("PostQueuedCompletionStatus Error!(%x,%llx)\n",
-               GetLastError(), (long long)iocp);
+               GetLastError(), (long long)(uintptr_t)iocp);
     }
 }
 
@@ -1850,8 +1850,14 @@ prepare_console_procs(void){
     if (setconsolescreenbufferinfoex) return 1;
     hModule = LoadLibraryA("kernel32.dll");
     if(hModule){
-        (FARPROC)getconsolescreenbufferinfoex = GetProcAddress(hModule, "GetConsoleScreenBufferInfoEx");
-        (FARPROC)setconsolescreenbufferinfoex = GetProcAddress(hModule, "SetConsoleScreenBufferInfoEx");
+#ifdef _MSC_VER
+        (FARPROC)
+#endif
+            getconsolescreenbufferinfoex = GetProcAddress(hModule, "GetConsoleScreenBufferInfoEx");
+#ifdef _MSC_VER
+        (FARPROC)
+#endif
+            setconsolescreenbufferinfoex = GetProcAddress(hModule, "SetConsoleScreenBufferInfoEx");
         if(getconsolescreenbufferinfoex){
             return 1;
         }else{

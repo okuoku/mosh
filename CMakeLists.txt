@@ -43,10 +43,23 @@ option(MOSH_DEBUG_VERSION "build Debug version of mosh interpreter" OFF)
 option(MOSH_GC_PARALLEL_MARK "Boehm GC: Turn on parallel-marking" OFF)
 set(MOSH_EXECUTABLE_NAME "nmosh" CACHE STRING "Interpreter executable name")
 
+# Configuration
+
+# Detect Win64 or other 64bit
+if(NOT CMAKE_SIZEOF_VOID_P)
+    message(WARNING "CMAKE_SIZEOF_VOID_P was not defined!!")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(MOSH64 1)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(MOSH32 1)
+else()
+    message(WARNING "Unsupported pointer size!(${CMAKE_SIZEOF_VOID_P}")
+endif()
+
 # Pick-up GStreamer SDK from fluendo
 
 # Win32, from environment variable GSTREAMER_SDK_ROOT_X86
-if(WIN32 AND (NOT CMAKE_CL_64))
+if(WIN32 AND MOSH32)
     if(EXISTS $ENV{GSTREAMER_SDK_ROOT_X86})
         set(HAS_GST_SDK ON)
         message(STATUS 
@@ -187,11 +200,11 @@ if(WIN32)
     # we set ARCH_* here. (Win32 only. when at other O/S, these flags are
     # guessed.)
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86") 
-        if(CMAKE_CL_64)
+        if(MOSH64)
             # FFI not supported
-        else(CMAKE_CL_64)
+        else()
             add_definitions(-DARCH_IA32)
-        endif(CMAKE_CL_64)
+        endif()
     endif()
     if(MSVC)
         add_definitions(-DHAVE_TR1_HASHES=1)
@@ -285,8 +298,7 @@ CHECK_TYPE_SIZE(void* SIZEOF_VOIDP)
 CHECK_TYPE_SIZE(float SIZEOF_FLOAT)
 CHECK_TYPE_SIZE(double SIZEOF_DOUBLE)
 
-# Detect Win64 Here..
-if(SIZEOF_VOIDP EQUAL 8)
+if(MOSH64)
     if(WIN32)
         add_definitions(-D_WIN64)
     endif()
@@ -462,7 +474,7 @@ include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc/include extlibs/libat
 if(XCODE)
     add_definitions(-DWITHOUT_FFI_STUB)
 elseif(WIN32)
-    if(CMAKE_CL_64)
+    if(MOSH64)
         message(STATUS 
             "FFI stub was disabled (build without call-back support)")
         add_definitions(-DWITHOUT_FFI_STUB)
@@ -807,7 +819,15 @@ if(MOSHPLUGIN_OPENCL)
     if(OPENCL_INCLUDE_DIRS)
         add_definitions(-DHAVE_CL)
         add_mosh_plugin(mosh_opencl src/ext/khronos/OpenCL/mosh_opencl.c)
-        include_directories(AFTER ${OPENCL_INCLUDE_DIRS})
+        # FIXME: Workaround for AMD APP SDK
+        if(MINGW)
+            set_source_files_properties(src/ext/khronos/OpenCL/mosh_opencl.c
+                PROPERTIES
+                COMPILE_FLAGS "-I\"${OPENCL_INCLUDE_DIRS}\""
+                )
+        else()
+            include_directories(AFTER ${OPENCL_INCLUDE_DIRS})
+        endif()
         target_link_libraries(mosh_opencl ${OPENCL_LIBRARIES})
     endif()
 endif(MOSHPLUGIN_OPENCL)

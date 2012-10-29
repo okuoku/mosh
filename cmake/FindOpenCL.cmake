@@ -31,12 +31,16 @@ ELSE (APPLE)
 	
 	    # The AMD SDK currently installs both x86 and x86_64 libraries
 	    # This is only a hack to find out architecture
-	    IF( ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64" )
+            IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
                 SET(OPENCL_LIB_DIR "$ENV{AMDAPPSDKROOT}/lib/x86_64")
-	    ELSE (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64")
+	    ELSE ()
                 SET(OPENCL_LIB_DIR "$ENV{AMDAPPSDKROOT}/lib/x86")
-	    ENDIF( ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64" )
+	    ENDIF()
+            if(MSVC)
 	    FIND_LIBRARY(OPENCL_LIBRARIES OpenCL.lib ${OPENCL_LIB_DIR})
+            else()
+	    FIND_LIBRARY(OPENCL_LIBRARIES OpenCL ${OPENCL_LIB_DIR})
+            endif()
 	    
 	    GET_FILENAME_COMPONENT(_OPENCL_INC_CAND ${OPENCL_LIB_DIR}/../../include ABSOLUTE)
 	    

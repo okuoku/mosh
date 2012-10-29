@@ -300,7 +300,7 @@ public:
     Object bitwiseBitCount() const
     {
         if (gt(this, 0)) {
-            return makeInteger(mpz_popcount(value_));
+            return makeInteger((uintptr_t)mpz_popcount(value_));
         } else {
             mpz_t temp;
             mpz_init(temp);
@@ -545,6 +545,17 @@ public:
         }
     }
 
+    static Object makeIntegerFromS32(int32_t n)
+    {
+        if (Fixnum::canFit(n)) {
+            return Object::makeFixnum(n);
+        } else {
+            mpz_t ret;
+            mpz_init_set_si(ret, n);
+            return Object::makeBignum(new Bignum(ret));
+        }
+    }
+
     static Object makeIntegerFromU32(uint32_t n)
     {
         if (Fixnum::canFit(n)) {
@@ -683,27 +694,7 @@ public:
             return 0;
         }
     }
-
-    static Object makeInteger(int n)
-    {
-        if (Fixnum::canFit(n)) {
-            return Object::makeFixnum(n);
-        } else {
-            return Object::makeBignum(n);
-        }
-    }
-    static Object makeInteger(unsigned int n)
-    {
-        if (Fixnum::canFitU(n)) {
-            return Object::makeFixnum(n);
-        } else {
-            return Object::makeBignum(n);
-        }
-    }
-// FIXME: We don't need (u)intptr_t makeInteger for 
-// sizeof(int) == sizeof(uintptr_t) archs
-#if MOSH_BIGNUM_SIZEOF_INTPTR_T != 4
-    static Object makeInteger(intptr_t n)
+    static Object makeInteger(int32_t n)
     {
         if (Fixnum::canFit(n)) {
             // Valid as fixedint
@@ -712,37 +703,37 @@ public:
             return Object::makeBignum(n);
         }
     }
-    static Object makeInteger(uintptr_t n)
+    static Object makeInteger(uint32_t n)
     {
         if (Fixnum::canFitU(n)) {
+            // Valid as fixedint
             return Object::makeFixnum((fixedint)n);
         } else {
             return Object::makeBignum(n);
         }
     }
-#else // ... But we need long int variants
-    static Object makeInteger(long int n)
+    static Object makeInteger(int64_t n)
     {
         if (Fixnum::canFit(n)) {
-            return Object::makeFixnum(n);
+            // Valid as fixedint
+            return Object::makeFixnum((fixedint)n);
         } else {
             return Object::makeBignum(n);
         }
     }
-    static Object makeInteger(unsigned long int n)
+    static Object makeInteger(uint64_t n)
     {
         if (Fixnum::canFitU(n)) {
-            return Object::makeFixnum(n);
+            // Valid as fixedint
+            return Object::makeFixnum((fixedint)n);
         } else {
             return Object::makeBignum(n);
         }
     }
-#endif //  MOSH_BIGNUM_SIZEOF_INTPTR_T != 4
-
     template <typename T> static Object makeIntegerFromSigned(T val)
     {
         if (sizeof(T) <= 4) {
-            return Bignum::makeInteger(static_cast<long>(val)); // todo
+            return Bignum::makeIntegerFromS32(static_cast<int32_t>(val));
         } else if (sizeof(T) == 8) {
             return Bignum::makeIntegerFromS64(static_cast<int64_t>(val));
         } else {

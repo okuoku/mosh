@@ -678,7 +678,7 @@ namespace scheme {
         {
 #ifdef _WIN32
             self()->stubInfo_->returnValue = exitValue;
-            GC_endthreadex((unsigned int)exitValue);
+            GC_endthreadex((unsigned int)(uintptr_t)exitValue);
 #else
             pthread_exit(exitValue);
 #endif

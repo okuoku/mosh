@@ -771,7 +771,7 @@ Object File::modifyTime(const ucs4string& path)
                                                Bignum::makeInteger(st.st_mtim.tv_sec)));
 #else
         return Arithmetic::mul(Bignum::makeInteger(1000000000),
-                               Bignum::makeInteger(st.st_mtime));
+                               Bignum::makeInteger((int64_t)st.st_mtime));
 #endif
     }
     return Object::Undef;
@@ -815,7 +815,7 @@ Object File::accessTime(const ucs4string& path)
                                                Bignum::makeInteger(st.st_atim.tv_sec)));
 #else
         return Arithmetic::mul(Bignum::makeInteger(1000000000),
-                               Bignum::makeInteger(st.st_atime));
+                               Bignum::makeInteger((int64_t)st.st_atime));
 #endif
     }
     return Object::Undef;
@@ -860,7 +860,7 @@ Object File::changeTime(const ucs4string& path)
                                                Bignum::makeInteger(st.st_ctim.tv_sec)));
 #else
         return Arithmetic::mul(Bignum::makeInteger(1000000000),
-                               Bignum::makeInteger(st.st_ctime));
+                               Bignum::makeInteger((int64_t)st.st_ctime));
 #endif
     }
     return Object::Undef;

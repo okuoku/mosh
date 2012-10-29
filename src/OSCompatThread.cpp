@@ -59,7 +59,7 @@ static void* stubFunction(void* param)
     }
     info->returnValue = info->func(info->argument);
 #ifdef _WIN32
-	return (unsigned int)info->returnValue;
+	return (unsigned int)(uintptr_t)info->returnValue;
 #else
     return info->returnValue;
 #endif

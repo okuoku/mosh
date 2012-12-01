@@ -1,4 +1,8 @@
 #!r6rs
 (library (r7b-impl lazy)
-         (export delay eager force lazy)
-         (import (r7b-util s45)))
+         (export delay force
+                 (rename (eager make-promise)
+                         (lazy delay-force))
+                 promise?)
+         (import (r7b-util s45))
+)

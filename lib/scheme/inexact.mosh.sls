@@ -8,6 +8,7 @@
              sin
              nan?
              log
+             infinite?
              finite?
              exp
              cos

@@ -1,13 +1,16 @@
 (library (r7b-util s45)
-         (export lazy eager delay force)
+         (export lazy eager delay force promise?)
          (import (scheme base))
+
+;; r7b-util addition for R7RS draft 7
+(define promise? list?)
 
 ;; Took from SRFI-45 document
 
 ;=========================================================================
 ; Boxes
 
-(define (box x) (list x))
+(define (box x) (list x)) ;; FIXME: Use unique type for promise?
 (define unbox car)
 (define set-box! set-car!)
 

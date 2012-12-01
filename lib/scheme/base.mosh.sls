@@ -5,7 +5,7 @@
          (export
              zero?
              write-u8
-             write-partial-bytevector
+             write-string
              write-char
              write-bytevector
              with-exception-handler
@@ -17,7 +17,9 @@
              vector-length
              vector-for-each
              vector-fill!
+             vector-copy!
              vector-copy
+             vector-append
              vector->string
              vector->list
              vector
@@ -27,11 +29,15 @@
              unquote
              unless
              u8-ready?
+             truncate/
+             truncate-remainder
+             truncate-quotient
              truncate
              textual-port?
              syntax-rules
              syntax-error
              symbol?
+             symbol=?
              symbol->string
              substring
              string?
@@ -46,6 +52,7 @@
              string-length
              string-for-each
              string-fill!
+             string-copy!
              string-copy
              string-append
              string->vector
@@ -54,6 +61,7 @@
              string->number
              string->list
              string
+             square
              set-cdr!
              set-car!
              set!
@@ -62,7 +70,9 @@
              remainder
              real?
              read-u8
+             read-string
              read-line
+             read-error?
              read-char
              read-bytevector!
              read-bytevector
@@ -76,12 +86,12 @@
              procedure?
              positive?
              port?
-             port-open?
              peek-u8
              peek-char
              parameterize
              pair?
              output-port?
+             output-port-open?
              or
              open-output-string
              open-output-bytevector
@@ -129,8 +139,11 @@
              integer?
              integer->char
              input-port?
+             input-port-open?
              inexact?
-             inexact->exact
+             inexact
+             include-ci
+             include
              import
              if
              guard
@@ -139,12 +152,17 @@
              gcd
              for-each
              flush-output-port
+             floor/
+             floor-remainder
+             floor-quotient
              floor
+             file-error?
+             features
              expt
              exact?
              exact-integer?
              exact-integer-sqrt
-             exact->inexact
+             exact
              even?
              error-object?
              error-object-message
@@ -154,6 +172,7 @@
              equal?
              eq?
              eof-object?
+             eof-object
              else
              dynamic-wind
              do
@@ -183,19 +202,7 @@
              ceiling
              cdr
              cddr
-             cdddr
-             cddddr
-             cdddar
-             cddar
-             cddadr
-             cddaar
              cdar
-             cdadr
-             cdaddr
-             cdadar
-             cdaar
-             cdaadr
-             cdaaar
              case
              car
              call/cc
@@ -203,28 +210,17 @@
              call-with-port
              call-with-current-continuation
              cadr
-             caddr
-             cadddr
-             caddar
-             cadar
-             cadadr
-             cadaar
              caar
-             caadr
-             caaddr
-             caadar
-             caaar
-             caaadr
-             caaaar
              bytevector?
              bytevector-u8-set!
              bytevector-u8-ref
              bytevector-length
-             bytevector-copy-partial!
-             bytevector-copy-partial
              bytevector-copy!
              bytevector-copy
+             bytevector-append
+             bytevector
              boolean?
+             boolean=?
              binary-port?
              begin
              assv

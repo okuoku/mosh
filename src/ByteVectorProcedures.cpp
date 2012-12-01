@@ -84,7 +84,7 @@ Object scheme::utf8TostringEx(VM* theVM, int argc, const Object* argv)
 {
     DeclareProcedureName("utf8->string");
     checkArgumentLength(1);
-    Object transcoder = Object::makeTranscoder(new UTF8Codec);
+    Object transcoder = Object::makeTranscoder(new UTF8Codec, EolStyle(E_NONE));
     Object args[2];
     args[0] = argv[0];
     args[1] = transcoder;
@@ -95,7 +95,7 @@ Object scheme::stringToutf8Ex(VM* theVM, int argc, const Object* argv)
 {
     DeclareProcedureName("string->utf8");
     checkArgumentLength(1);
-    Object transcoder = Object::makeTranscoder(new UTF8Codec);
+    Object transcoder = Object::makeTranscoder(new UTF8Codec, EolStyle(E_NONE));
     Object args[2];
     args[0] = argv[0];
     args[1] = transcoder;

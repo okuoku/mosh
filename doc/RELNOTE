@@ -1,4 +1,4 @@
-Mosh 0.2.X Release Note
+Mosh 0.2.8 Release Note
 =======================
 
 What's Mosh
@@ -21,19 +21,22 @@ About This Release
 
 Changes:
 
-    New libraries:
+    New library:
         SRFI-25 : Ported by Marco Maggi  (Issue 234)
 
     VM:
         BoehmGC was updated to upstream 7.3alpha.
 
-    TinyCLOS:
-        A bool value next-method? available within method definition. See
-        Issue 216 for details.
+    R6RS:
+        utf8->string and string->utf8 no longer converts CRLF into LF.
 
     R7RS small:
         A subset of R7RS small library is now included at (scheme base) and its 
         friends.
+
+    TinyCLOS:
+        A bool value next-method? available within method definition. See
+        Issue 216 for details.
 
     nmosh:
         nmosh now uses shortened filename for cache/debug-info. The shortened
@@ -65,11 +68,11 @@ Changes:
 
         nmosh CMake builds now built with clang compiler on MacOS 10.7 or later.
 
-        nmosh CMake builds now installs "testmosh.bat" to test built nmosh.exe
+        nmosh CMake builds now install "testmosh.bat" to test built nmosh.exe
         on Win32.
 
-        nmosh CMake builds now recognizes GStreamer SDK on Win32. Get GStreamer
-        SDK from: http://docs.gstreamer.com/display/GstSDK/Home
+        nmosh CMake builds now recognizes GStreamer SDK on Windows. Get 
+        GStreamer SDK from: http://docs.gstreamer.com/display/GstSDK/Home
 
         Autotools and CMake builds will install additional plugins (some shared
         objects suffixed with .mplg) for nmosh.

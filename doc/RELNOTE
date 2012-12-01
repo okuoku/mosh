@@ -18,7 +18,11 @@ Mosh is A Fast R6RS Scheme interpreter.
 About This Release
 ------------------
 
+
 Changes:
+
+    New libraries:
+        SRFI-25 : Ported by Marco Maggi  (Issue 234)
 
     VM:
         BoehmGC was updated to upstream 7.3alpha.

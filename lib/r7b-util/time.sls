@@ -6,8 +6,8 @@
 
 (define scale 1000000000.0)
 
-(define (jiffies-per-second) scale)
-(define (current-jiffy) (return-sec time-monotonic))
+(define (jiffies-per-second) (exact scale))
+(define (current-jiffy) (exact (return-sec time-monotonic)))
 (define (current-second) (return-sec time-tai))
 
 (define (return-sec sym)

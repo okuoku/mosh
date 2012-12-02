@@ -39,6 +39,9 @@ Changes:
         Issue 216 for details.
 
     nmosh:
+        Vector constants now evaluate to themselves. ie.) Expander would 
+        implicitly add a quote to a vector such as #(a b c).
+        
         nmosh now uses shortened filename for cache/debug-info. The shortened
         filename will be prefixed with "@"(at).
 

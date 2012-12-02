@@ -42,7 +42,12 @@ with-exception-handler write-bytevector write-char write-string write-u8 zero?
                          case
                          syntax-rules
                          error
-                         define-record-type)
+                         define-record-type
+                         ;; SRFI-1
+                         map for-each member assoc
+
+                         vector-map
+                         )
                  (rnrs mutable-pairs)
                  (rnrs mutable-strings)
                  (rnrs r5rs)
@@ -51,6 +56,7 @@ with-exception-handler write-bytevector write-char write-string write-u8 zero?
                  (srfi i23)
                  (srfi i9)
                  (srfi i39)
+                 (r7b-util s1)
                  (r7b-util bytevector-buffer)
                  (r7b-util char-ready)
                  (r7b-util u8-ready)
@@ -298,5 +304,8 @@ with-exception-handler write-bytevector write-char write-string write-u8 zero?
                                     (- (string-length str) start)))
     ((str port start end)
      (write-string (substring str start end) port))))
+
+(define (vector-map proc . args)
+  (list->vector (apply map proc (map vector->list args))))
 
 )

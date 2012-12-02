@@ -972,6 +972,7 @@
                            ((pattern-variable)
                             (syntax-violation #f "Pattern variable used outside syntax template" t))))
                 ((list? t)       (map expand t))
+                ((vector? t)     (syntax->datum t)) ;; NMOSH(self-quote vector)
                 ((identifier? t) (make-free-name (id-name t)))
                 ((pair? t)       (syntax-violation #f "Invalid procedure call syntax" t))
                 ((symbol? t)     (syntax-violation #f "Symbol may not appear in syntax object" t))

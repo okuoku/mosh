@@ -232,9 +232,8 @@ with-exception-handler write-bytevector write-char write-string write-u8 zero?
 (define (features) ;; FIXME: ???
   '(r7rs ratios exact-complex full-unicode))
 
-;; FIXME: Use much more precise definitions...
-(define file-error? error-object?)
-(define read-error? error-object?)
+(define file-error? i/o-error?)
+(define read-error? lexical-violation?)
 
 ;; From division library
 

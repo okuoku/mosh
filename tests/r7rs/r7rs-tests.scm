@@ -34,14 +34,18 @@
         (scheme file) (scheme read) (scheme write)
         (scheme eval) (scheme process-context) (scheme case-lambda)
         ;(scheme r5rs)
-        (except (rnrs r5rs) force delay)
-        (mosh test))
+        (srfi :48)
+        (nmosh debugger condition-printer)
+        (except (rnrs r5rs) force delay))
+
+(define total 0)
+(define success 0)
 
 (define (test-begin . x) 'ok)
 (define (test-end . x) 'ok)
 (define (true-test-end . x) 
-  (display "Test finished\n")
-  (test-results))
+  (display "Test finished.\n")
+  (format #t "~a/~a Fail\n" (- total success) total))
 #|
 (define-syntax test
   (syntax-rules ()
@@ -59,7 +63,8 @@
           (write 'expr)(newline)
           'WRONGWRONG))
 
-       (let ((res expr))
+       (set! total (+ total 1))
+       (let ((res (with-condition-printer/raise expr)))
          (cond
            ((not (equal? expr expected))
             (display "FAIL: ")
@@ -68,7 +73,9 @@
             (write expected)
             (display " but got ")
             (write res)
-            (newline))))))))
+            (newline))
+           (else
+             (set! success (+ 1 success)))))))))
 
 (define-syntax test-values
   (syntax-rules ()

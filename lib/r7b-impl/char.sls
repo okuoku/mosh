@@ -23,5 +23,5 @@ string-upcase
          ((#\7) 7)
          ((#\8) 8)
          ((#\9) 9)
-         (else (error "FIXME: unsupported char" char)))))
+         (else #f))))
 )

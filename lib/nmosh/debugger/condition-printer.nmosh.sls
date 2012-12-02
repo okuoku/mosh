@@ -3,6 +3,7 @@
                  debug-format
 		 with-condition-printer with-condition-printer/raise)
 	 (import (rnrs) (nmosh conditions)
+                 (primitives write/ss)
                  (nmosh global-flags)
                  (nmosh pathutils)
                  (srfi :48)
@@ -78,7 +79,7 @@
 	      (#t
 	       (if (condition? e)
 		 (begin 
-		   (condition-printer e (current-error-port))
+		   (condition-printer/normal e (current-error-port))
 		   (raise e))
 		 (display (list 'UNKNOWN-DATUM! e) (current-error-port)))))
 	    arg ...))))
@@ -89,7 +90,7 @@
      (guard (e
 	      (#t ;always handles
 	       (if (condition? e)
-		 (condition-printer e (current-error-port))
+		 (condition-printer/normal e (current-error-port))
 		 (display (list 'UNKNOWN-DATUM! e) (current-error-port)))))
 	    arg ...))))
 
@@ -170,6 +171,12 @@
 		  (newline port)
 		  (newline port)) trace))))
 
+(define (condition-printer/normal e port)
+  (cond
+    ((syntax-trace-condition? e)
+     (syntax-trace-printer e port))
+    (else (condition-printer/base e port))))
+
 (define (condition-printer/deco e)
   (cond
     ((syntax-trace-condition? e)
@@ -242,7 +249,7 @@
 		(display "       " port)
 		;(display (car field) port)
 		;(display ": " port)
-		(write (cdr field) port)
+		(write/ss (cdr field) port)
 		(newline port)
 		(loop #f (cdr fields-alist)))
 	      ]

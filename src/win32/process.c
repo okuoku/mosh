@@ -1014,15 +1014,21 @@ win32_socket_bind(uintptr_t s,uintptr_t name,int namelen){
 	int ret;
 	ret = bind((SOCKET)s,(const struct sockaddr *)name,namelen);
 	if(ret == SOCKET_ERROR){
-		return 0;
+		return WSAGetLastError();
 	}else{
-		return 1;
+		return 0;
 	}
 }
 
 int
 win32_socket_listen(uintptr_t s,int l){
-	return listen((SOCKET)s,(l == 0)?SOMAXCONN:l);
+    int ret;
+    ret = listen((SOCKET)s,(l == 0)?SOMAXCONN:l);
+    if(ret == SOCKET_ERROR){
+        return WSAGetLastError();
+    }else{
+        return 0;
+    }
 }
 
 void
@@ -1035,6 +1041,38 @@ void
 win32_socket_setreuseaddr(uintptr_t s){
     BOOL one = 1;
     setsockopt((SOCKET)s,SOL_SOCKET,SO_REUSEADDR,(const char*)&one,sizeof(one));
+}
+
+int 
+win32_socket_recvfrom(uintptr_t s, void* buf, int len, void* addr, 
+                      int* inout_addrlen, void* ovl){
+    int r;
+    WSABUF wb;
+    wb.len = len;
+    wb.buf = buf;
+    r = WSARecvFrom((SOCKET)s, &wb, 1, NULL, 0, (struct sockaddr *)addr, 
+                 inout_addrlen, ovl, NULL);
+    if(r == SOCKET_ERROR){
+        return WSAGetLastError();
+    }else{
+        return 0;
+    }
+}
+
+int
+win32_socket_sendto(uintptr_t s, void* buf, int len, void* addr, int addrlen,
+                    void* ovl){
+    int r;
+    WSABUF wb;
+    wb.buf = buf;
+    wb.len = len;
+    r = WSASendTo((SOCKET)s, &wb, 1, NULL, 0, (const struct sockaddr*)addr, 
+                  addrlen, ovl, NULL);
+    if(r == SOCKET_ERROR){
+        return WSAGetLastError();
+    }else{
+        return 0;
+    }
 }
 
 /* simple GUI elements */

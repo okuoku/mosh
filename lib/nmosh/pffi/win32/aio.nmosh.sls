@@ -34,6 +34,8 @@
                  win32_socket_getsockname
                  win32_socket_setnodelay
                  win32_socket_setreuseaddr
+                 win32_socket_recvfrom
+                 win32_socket_sendto
 
                  ;; GC related
                  win32_finalization_handler_alloc_overlapped
@@ -51,6 +53,7 @@
                  (yuni core)
                  (nmosh ffi box)
                  (nmosh pffi interface)
+                 (nmosh pffi util)
                  (nmosh pffi win32 util)
                  (nmosh finalizers)
                  (prefix (nmosh stubs aio-win32) stub:))
@@ -383,4 +386,30 @@
   (define finalizer (make-finalizer (stub:win32_finalization_handler_get)))
   (register-finalizer obj finalizer overlapped))
 
+(define* (win32_socket_sendto (s win32-handle)
+                              buf off len
+                              name name-off name-len
+                              ovl) ;; => err
+
+  (stub:win32_socket_sendto (handle->pointer s)
+                            (buffer-pointer buf off)
+                            len
+                            (if name 
+                              (buffer-pointer name name-off)
+                              0)
+                            (if name name-len 0)
+                            ovl))
+
+(define* (win32_socket_recvfrom (s win32-handle) 
+                                buf off len 
+                                name name-off name-len
+                                name-len-out
+                                ovl)
+  ;; => err
+  (stub:win32_socket_recvfrom (handle->pointer s)
+                              (buffer-pointer buf off)
+                              len
+                              (buffer-pointer name name-off)
+                              name-len-out
+                              ovl))
 )

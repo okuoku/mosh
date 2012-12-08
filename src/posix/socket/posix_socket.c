@@ -251,4 +251,18 @@ socket_setreuseaddr(int fd){
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,&one,sizeof(int));
 }
 
+int
+socket_recvfrom(int fd, void* buf, int len, void* addr, void* inout_addrlen){
+    int r;
+    r = recvfrom(fd, buf, len, 0, (struct sockaddr *)addr,(int *)inout_addrlen);
+    return r;
+}
+
+int
+socket_sendto(int fd, void* buf, int len, void* addr, int addrlen){
+    int r;
+    r = sendto(fd, buf, len, 0, (const struct sockaddr*)addr, addrlen);
+    return r;
+}
+
 #endif

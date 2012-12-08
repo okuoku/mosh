@@ -16,6 +16,9 @@ void socket_addrinfo_read(void* aip,int *ret_family,void** ret_addr,int* ret_len
 void socket_setnodelay(int fd);
 void socket_setreuseaddr(int fd);
 int socket_name_family(void* aip);
+int socket_recvfrom(int fd, void* buf, int len, void* addr, 
+                    void* inout_addrlen);
+int socket_sendto(int fd, void* buf, int len, void* addr, int addrlen);
 
 #ifdef __cplusplus
 }

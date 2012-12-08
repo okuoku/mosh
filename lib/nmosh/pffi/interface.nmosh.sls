@@ -13,6 +13,6 @@
                  (primitives bytevector-pointer
                              pointer-copy!
                              object->pointer
-                             pointer->object
-                             ))
+                             pointer->object))
+
 )

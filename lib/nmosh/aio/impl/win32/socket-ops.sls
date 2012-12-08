@@ -1,5 +1,7 @@
 (library (nmosh aio impl win32 socket-ops)
          (export 
+           ;; UDP
+           queue-make-udp0
            ;; TCP
            queue-connect
            queue-listen
@@ -9,10 +11,13 @@
            inetname-port
            resolve-socketname/4
            resolve-socketname/6
-           )
+           resolve-socketname-udp/4
+           resolve-socketname-udp/6)
          (import (rnrs)
                  (yuni core)
                  (srfi :8)
+                 (nmosh ffi box)
+                 (nmosh pffi util)
                  (nmosh pffi win32 aio)
                  (nmosh pffi interface)
                  (nmosh aio impl win32 queue-iocp)
@@ -41,13 +46,66 @@
          (my-ovl (win32_overlapped_alloc)))
     (define (connected err bytes ovl key)
       (win32_overlapped_free my-ovl)
-      (callback str)
-      )
+      (callback str))
     (win32_overlapped_setmydata my-ovl (object->pointer connected))
     (queue-register-handle Q sock str)
     (let-with name (sockaddr len)
       (win32_socket_connect connectex sock sockaddr len my-ovl))))
 
+(define (queue-make-udp0 Q bind? recv-callback recv-bufsize)
+  ;; callback := ^[bv name-bv => err] ;; send
+  ;; recv-callback := ^[err bv name-bv]
+  (define socket (socket/UDP))
+  (define recv-enable? #t)
+  (define send-ovl #f)
+  (define recv-ovl #f)
+  (define recv-buf (if recv-bufsize (make-bytevector recv-bufsize)))
+  (define recv-namebuf (if recv-bufsize 
+                         (make-bytevector (win32_sockaddr_storage_size))))
+  (define (recv-endgame) (set! recv-enable? #f))
+  (define (recv-result err bytes ovl key)
+    (recv-callback err (buffer->bytevector (bytevector-pointer recv-buf)
+                                           0
+                                           (pointer->integer bytes)))
+    (if recv-enable?
+      (receiver) ;; Enqueue next receive
+      (win32_overlapped_free recv-ovl)))
+  (define (receiver)
+    (let ((r (win32_socket_recvfrom socket recv-buf 0 recv-bufsize
+                                    recv-namebuf 0 (win32_sockaddr_storage_size)
+                                    recv-ovl)))
+      (when (not (= r 0))
+        (recv-callback r #f #f)
+        (recv-endgame)
+        (win32_overlapped_free recv-ovl))))
+  (define* (bind (inetname))
+    (win32_socket_bind socket 
+                       (~ inetname 'sockaddr)
+                       (~ inetname 'len)))
+  (define (sender bv? name? cb)
+    (define (result err bytes ovl key)
+      (cb err))
+    (cond
+      ((not bv?)
+       (recv-endgame)
+       (win32_overlapped_free send-ovl)
+       (queue-unregister-handle Q socket socket)
+       (cb 0))
+      (else
+        (win32_overlapped_setmydata send-ovl (object->pointer result))
+        (let ((r (win32_socket_sendto bv? 0 (bytevector-length bv?)
+                                      name? 0 (bytevector-length name?)
+                                      send-ovl)))
+          (unless (= r 0)
+            (cb r))))))
+  (queue-register-handle Q socket socket)
+  (when bind? (bind bind?))
+  (when (and recv-callback bind?)
+    (set! recv-ovl (win32_overlapped_alloc))
+    (win32_overlapped_setmydata recv-ovl (object->pointer recv-result))
+    (receiver))
+  (set! send-ovl (win32_overlapped_alloc))
+  sender)
 
 (define* listen-socket (ovl callback buf listen-sock accept-sock))
 
@@ -158,16 +216,21 @@
         l)
       #f)))
 
-;; FIXME:
+;; FIXME: sync API
 (define (resolve-socketname** Q name service mode proto cb)
   (cb (resolve-socketname**/sync name service mode proto)))
 
-;; FIXME: TCP only
 (define (resolve-socketname/4 Q name service cb)
   (resolve-socketname** Q name service 4 1 cb))
 
 (define (resolve-socketname/6 Q name service cb)
   (resolve-socketname** Q name service 6 1 cb))
+
+(define (resolve-socketname-udp/4 Q name service cb)
+  (resolve-socketname** Q name service 4 2 cb))
+
+(define (resolve-socketname-udp/6 Q name service cb)
+  (resolve-socketname** Q name service 6 2 cb))
 
 (define* (inetname-port (inetname))
   (let-with inetname (family sockaddr)

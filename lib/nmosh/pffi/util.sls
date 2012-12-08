@@ -1,14 +1,26 @@
 (library (nmosh pffi util)
          (export string->utf8/null
                  utf8/null->string
-                 null-filter)
+                 null-filter
+                 buffer-pointer
+                 buffer->bytevector)
          (import
+           (nmosh pffi interface)
            (only 
              (mosh ffi)
-             pointer?
-             pointer->integer
              null-terminated-utf8->string)
            (rnrs))
+
+(define (buffer->bytevector p off len)
+  (define bv (make-bytevector len))
+  (pointer-copy! (buffer-pointer p off)
+                 (bytevector-pointer bv)
+                 len)
+  bv)
+
+(define (buffer-pointer p off)
+  (let ((o (pointer->integer (if (bytevector? p) (bytevector-pointer p) p))))
+    (integer->pointer (+ off o))))
 
 (define (null-filter p)
   (and (pointer? p)

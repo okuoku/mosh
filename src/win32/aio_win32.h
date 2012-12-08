@@ -39,6 +39,10 @@ int win32_socket_close(uintptr_t s);
 int win32_socket_getsockname(uintptr_t s,uintptr_t buf,int len);
 void win32_socket_setnodelay(uintptr_t s);
 void win32_socket_setreuseaddr(uintptr_t s);
+int win32_socket_recvfrom(uintptr_t s, void* buf, int len, void* addr,
+                          int* inout_addrlen, void* ovl);
+int win32_socket_sendto(uintptr_t s, void* buf, int len, void* addr, 
+                        int addrlen, void* ovl);
 
 // GC related
 void* win32_finalization_handler_get(void);

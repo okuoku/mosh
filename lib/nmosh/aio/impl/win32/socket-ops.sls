@@ -64,15 +64,19 @@
                          (make-bytevector (win32_sockaddr_storage_size))))
   (define (recv-endgame) (set! recv-enable? #f))
   (define (recv-result err bytes ovl key)
-    (recv-callback err (buffer->bytevector (bytevector-pointer recv-buf)
-                                           0
-                                           (pointer->integer bytes)))
+    (recv-callback err 
+                   (buffer->bytevector (bytevector-pointer recv-buf)
+                                       0
+                                       (pointer->integer bytes))
+                   recv-namebuf)
     (if recv-enable?
       (receiver) ;; Enqueue next receive
       (win32_overlapped_free recv-ovl)))
   (define (receiver)
+    (define namelen (make-int-box))
     (let ((r (win32_socket_recvfrom socket recv-buf 0 recv-bufsize
                                     recv-namebuf 0 (win32_sockaddr_storage_size)
+                                    namelen
                                     recv-ovl)))
       (when (not (= r 0))
         (recv-callback r #f #f)
@@ -93,7 +97,8 @@
        (cb 0))
       (else
         (win32_overlapped_setmydata send-ovl (object->pointer result))
-        (let ((r (win32_socket_sendto bv? 0 (bytevector-length bv?)
+        (let ((r (win32_socket_sendto socket
+                                      bv? 0 (bytevector-length bv?)
                                       name? 0 (bytevector-length name?)
                                       send-ovl)))
           (unless (= r 0)

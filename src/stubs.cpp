@@ -155,12 +155,14 @@ CONS(FN(win32_socket_listen), \
 CONS(FN(win32_socket_getsockname), \
 CONS(FN(win32_socket_setnodelay), \
 CONS(FN(win32_socket_setreuseaddr), \
+CONS(FN(win32_socket_recvfrom), \
+CONS(FN(win32_socket_sendto), \
 CONS(FN(win32_getaddrinfo), \
 CONS(FN(win32_finalization_handler_get), \
 CONS(FN(win32_finalization_handler_create), \
 CONS(FN(win32_ticket_alloc), \
 CONS(FN(win32_get_ticket_chime), \
-	NIL)))))))))))))))))))))))))))))))))))
+	NIL)))))))))))))))))))))))))))))))))))))
 
 #define LIBDATA_WIN32_GUI CONS(SYM("win32-gui"), \
 CONS(FN(win32_messagebox) ,\

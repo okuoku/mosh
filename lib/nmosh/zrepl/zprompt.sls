@@ -155,7 +155,7 @@
         (do-ec (: i (- diff))
                (putline '())) ;; Clear previous data
         (zrepl-fmt-cursor-hmove (- (+ (- diff) next-upper-lines)))
-        (zrepl-output-vscroll (- diff))))
+        (zrepl-output-vscroll (- 0 diff 1))))
     (set! gadget-area gadget)
     (set! upper-area upper0)
     (set! lower-area lower)
@@ -222,7 +222,7 @@
             (event-route 'leave: obj)
             (set! event-route #f)
             (update-static-area '() #t #t)
-            (redraw))
+            (redraw/static #f))
 
            ;; Editline control
            ;; (NB: These never cause any scroll)

@@ -1047,11 +1047,12 @@ int
 win32_socket_recvfrom(uintptr_t s, void* buf, int len, void* addr, 
                       int* inout_addrlen, void* ovl){
     int r;
+    DWORD flg_null = 0;
     WSABUF wb;
     wb.len = len;
     wb.buf = buf;
-    r = WSARecvFrom((SOCKET)s, &wb, 1, NULL, 0, (struct sockaddr *)addr, 
-                 inout_addrlen, ovl, NULL);
+    r = WSARecvFrom((SOCKET)s, &wb, 1, NULL, &flg_null, 
+                    (struct sockaddr *)addr, inout_addrlen, ovl, NULL);
     if(r == SOCKET_ERROR){
         return WSAGetLastError();
     }else{

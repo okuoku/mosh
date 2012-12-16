@@ -74,14 +74,20 @@
       (win32_overlapped_free recv-ovl)))
   (define (receiver)
     (define namelen (make-int-box))
+    (int-box-set! namelen (win32_sockaddr_storage_size))
     (let ((r (win32_socket_recvfrom socket recv-buf 0 recv-bufsize
                                     recv-namebuf 0 (win32_sockaddr_storage_size)
                                     namelen
                                     recv-ovl)))
-      (when (not (= r 0))
+      (case r
+        ((0) ;; Completed immediately
+         'ok)
+        ((997) ;; Enqueued(WSA_IO_PENDING)
+         'ok)
+        (else
         (recv-callback r #f #f)
         (recv-endgame)
-        (win32_overlapped_free recv-ovl))))
+        (win32_overlapped_free recv-ovl)))))
   (define* (bind (inetname))
     (win32_socket_bind socket 
                        (~ inetname 'sockaddr)

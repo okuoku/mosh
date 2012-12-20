@@ -694,7 +694,7 @@ public:
             return 0;
         }
     }
-    static Object makeInteger(int32_t n)
+    static Object makeInteger(int n)
     {
         if (Fixnum::canFit(n)) {
             // Valid as fixedint
@@ -703,7 +703,7 @@ public:
             return Object::makeBignum(n);
         }
     }
-    static Object makeInteger(uint32_t n)
+    static Object makeInteger(unsigned int n)
     {
         if (Fixnum::canFitU(n)) {
             // Valid as fixedint
@@ -712,7 +712,7 @@ public:
             return Object::makeBignum(n);
         }
     }
-    static Object makeInteger(int64_t n)
+    static Object makeInteger(long int n)
     {
         if (Fixnum::canFit(n)) {
             // Valid as fixedint
@@ -721,7 +721,25 @@ public:
             return Object::makeBignum(n);
         }
     }
-    static Object makeInteger(uint64_t n)
+    static Object makeInteger(unsigned long int n)
+    {
+        if (Fixnum::canFitU(n)) {
+            // Valid as fixedint
+            return Object::makeFixnum((fixedint)n);
+        } else {
+            return Object::makeBignum(n);
+        }
+    }
+    static Object makeInteger(long long int n)
+    {
+        if (Fixnum::canFit(n)) {
+            // Valid as fixedint
+            return Object::makeFixnum((fixedint)n);
+        } else {
+            return Object::makeBignum(n);
+        }
+    }
+    static Object makeInteger(unsigned long long int n)
     {
         if (Fixnum::canFitU(n)) {
             // Valid as fixedint

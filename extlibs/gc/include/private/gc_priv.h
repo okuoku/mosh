@@ -144,10 +144,7 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 # define EXPECT(expr, outcome) (expr)
 #endif /* __GNUC__ */
 
-#ifdef HAVE_CONFIG_H
-  /* The "inline" keyword is as determined by Autoconf's AC_C_INLINE.   */
-# define GC_INLINE static inline
-#elif defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__DMC__) \
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__DMC__) \
         || defined(__WATCOMC__)
 # define GC_INLINE static __inline
 #elif (__GNUC__ >= 3) || defined(__sun)

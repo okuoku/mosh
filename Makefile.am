@@ -191,14 +191,15 @@ src/OSCompatThread.h src/OSCompatThread.cpp \
 src/VMFactory.cpp src/VMFactory.h \
 src/SimpleStruct.h \
 src/OSCompat.h src/OSCompat.cpp \
-src/stubs.cpp src/posix/terminal/terminal.c src/generic/boehmgc-stubs/boehmgc-stubs.c \
-src/posix/spawn/posixspawn.c src/posix/environ/mosh-environ.c \
-src/posix/fd/posix_fd.c src/posix/poll/posix_poll.c \
-src/posix/socket/posix_socket.c src/posix/sigchld_handler/sigchld_handler.c \
-src/posix/debugee/posix_debugee.c \
-src/bsd/kqueue/kqueue_stubs.c \
-src/posix/wait3/wait3.c \
-src/posix/pthread/mosh_pthread.c
+src/nmosh/mosh-stubs.cpp src/nmosh/posix/terminal/terminal.c \
+src/nmosh/generic/boehmgc-stubs/boehmgc-stubs.c \
+src/nmosh/posix/spawn/posixspawn.c src/nmosh/posix/environ/mosh-environ.c \
+src/nmosh/posix/fd/posix_fd.c src/nmosh/posix/poll/posix_poll.c \
+src/nmosh/posix/socket/posix_socket.c src/nmosh/posix/sigchld_handler/sigchld_handler.c \
+src/nmosh/posix/debugee/posix_debugee.c \
+src/nmosh/bsd/kqueue/kqueue_stubs.c \
+src/nmosh/posix/wait3/wait3.c \
+src/nmosh/posix/pthread/mosh_pthread.c
 
 if FFI_I386
 MOSH_CORE_SRCS += src/ffi_stub_i386.S
@@ -213,7 +214,7 @@ MOSH_CORE_SRCS += src/win32/process.c
 endif
 
 if PTRACE_COMMON
-MOSH_CORE_SRCS += src/posix/ptrace/ptrace_common.c
+MOSH_CORE_SRCS += src/nmosh/posix/ptrace/ptrace_common.c
 endif
 
 GC_SRCS = \
@@ -314,7 +315,7 @@ MOSH_PLUGINS=
 if MOSH_OPENCL
 MOSH_PLUGINS+= $(top_builddir)/plugins/mosh_opencl.mplg
 mosh-plugins: $(top_builddir)/plugins/mosh_opencl.mplg
-$(top_builddir)/plugins/mosh_opencl.mplg: $(top_srcdir)/src/ext/khronos/OpenCL/mosh_opencl.c
+$(top_builddir)/plugins/mosh_opencl.mplg: $(top_srcdir)/src/nmosh/ext/khronos/OpenCL/mosh_opencl.c
 	mkdir -p $(top_builddir)/plugins
 	$(CC) -std=c99 -Wall -fPIC $(SHLIB_SO_LDFLAGS) $(GLOBAL_CFLAGS) $(CL_CFLAGS) -DMOSHEXPORT= $(CL_LIBS) $< -o $@
 endif
@@ -322,7 +323,7 @@ endif
 if MOSH_CURSES
 MOSH_PLUGINS+= $(top_builddir)/plugins/mosh_curses.mplg
 mosh-plugins: $(top_builddir)/plugins/mosh_curses.mplg
-$(top_builddir)/plugins/mosh_curses.mplg: $(top_srcdir)/src/ext/curses/mosh_curses.c
+$(top_builddir)/plugins/mosh_curses.mplg: $(top_srcdir)/src/nmosh/ext/curses/mosh_curses.c
 	mkdir -p $(top_builddir)/plugins
 	$(CC) -std=c99 -Wall -fPIC $(SHLIB_SO_LDFLAGS) $(GLOBAL_CFLAGS) -DMOSHEXPORT= $< $(CURSES_LIB) -o $@
 endif

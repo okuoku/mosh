@@ -1,7 +1,7 @@
 #include "config.h"
 #ifdef HAVE_SOCKET
 
-#include "posix/socket/posix_socket.h"
+#include "posix_socket.h"
 
 #include <string.h>
 #include <errno.h>

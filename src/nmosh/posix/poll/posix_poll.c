@@ -1,7 +1,7 @@
 #include "config.h"
 #ifdef HAVE_POLL
 
-#include "posix/poll/posix_poll.h"
+#include "posix_poll.h"
 
 #include <stdlib.h>
 #include <poll.h>

@@ -1,7 +1,7 @@
 #include "config.h"
 #ifdef HAVE_FCNTL
 
-#include "posix/fd/posix_fd.h"
+#include "posix_fd.h"
 
 #include <stdio.h>
 #include <stdlib.h>

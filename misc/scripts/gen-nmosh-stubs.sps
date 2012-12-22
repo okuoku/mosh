@@ -8,8 +8,8 @@
         (mosh pp) 
         (shorten))
 
-(define targets '("src/ext" "src/posix" "src/win32" "src/generic"
-                  "src/bsd"))
+(define targets '("src/nmosh/ext" "src/nmosh/posix" "src/nmosh/win32" "src/nmosh/generic"
+                  "src/nmosh/bsd"))
 (define callstub "src/call-stubs.inc.c")
 
 (define signatures '())

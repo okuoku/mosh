@@ -469,7 +469,7 @@ ${MOSH_ONIG_DIR}/enc/cp1251.c
 
 # mosh
 
-include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc/include extlibs/libatomic_ops/src src ${GMP_INCLUDE_DIR} ${MOSH_ONIG_DIR} ${ARCH_INCLUDE} gtest src/posix/terminal src/generic)
+include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc/include extlibs/libatomic_ops/src src ${GMP_INCLUDE_DIR} ${MOSH_ONIG_DIR} ${ARCH_INCLUDE})
 
 if(XCODE)
     add_definitions(-DWITHOUT_FFI_STUB)
@@ -696,22 +696,22 @@ src/OSCompatSocket.cpp
 src/OSCompatThread.cpp
 src/VMFactory.cpp
 src/OSCompat.cpp
-src/stubs.cpp
-src/generic/boehmgc-stubs/boehmgc-stubs.c
+src/nmosh/mosh-stubs.cpp
+src/nmosh/generic/boehmgc-stubs/boehmgc-stubs.c
 )
 
 set(mosh_posix_srcs
-src/posix/terminal/terminal.c
-src/posix/spawn/posixspawn.c
-src/posix/environ/mosh-environ.c
-src/posix/fd/posix_fd.c
-src/posix/poll/posix_poll.c
-src/posix/socket/posix_socket.c
-src/posix/sigchld_handler/sigchld_handler.c
-src/posix/debugee/posix_debugee.c
-src/bsd/kqueue/kqueue_stubs.c
-src/posix/wait3/wait3.c
-src/posix/pthread/mosh_pthread.c
+src/nmosh/posix/terminal/terminal.c
+src/nmosh/posix/spawn/posixspawn.c
+src/nmosh/posix/environ/mosh-environ.c
+src/nmosh/posix/fd/posix_fd.c
+src/nmosh/posix/poll/posix_poll.c
+src/nmosh/posix/socket/posix_socket.c
+src/nmosh/posix/sigchld_handler/sigchld_handler.c
+src/nmosh/posix/debugee/posix_debugee.c
+src/nmosh/bsd/kqueue/kqueue_stubs.c
+src/nmosh/posix/wait3/wait3.c
+src/nmosh/posix/pthread/mosh_pthread.c
 )
 
 set(mosh_core_srcs ${mosh_core_cxxsrcs} ${ffi_stub})
@@ -721,7 +721,7 @@ endif()
 
 if(WIN32)
 set(mosh_win32_srcs
-src/win32/process.c)
+src/nmosh/win32/process.c)
 source_group(win32 FILES ${mosh_win32_srcs})
 set(mosh_core_srcs 
 ${mosh_core_srcs}
@@ -764,7 +764,7 @@ if(MOSH_WITH_NMOSH_GUI)
     ${mosh_core_srcs} 
     ${mosh_core_hdrs}
     ${mosh_runtime_src}
-    src/win32/winmain.cpp)
+    src/nmosh/win32/winmain.cpp)
 target_link_libraries(${MOSH_GUI_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
 
 if(MOSH_PORTABLE)
@@ -818,10 +818,10 @@ endif()
 if(MOSHPLUGIN_OPENCL)
     if(OPENCL_INCLUDE_DIRS)
         add_definitions(-DHAVE_CL)
-        add_mosh_plugin(mosh_opencl src/ext/khronos/OpenCL/mosh_opencl.c)
+        add_mosh_plugin(mosh_opencl src/nmosh/ext/khronos/OpenCL/mosh_opencl.c)
         # FIXME: Workaround for AMD APP SDK
         if(MINGW)
-            set_source_files_properties(src/ext/khronos/OpenCL/mosh_opencl.c
+            set_source_files_properties(src/nmosh/ext/khronos/OpenCL/mosh_opencl.c
                 PROPERTIES
                 COMPILE_FLAGS "-I\"${OPENCL_INCLUDE_DIRS}\""
                 )
@@ -847,13 +847,13 @@ else(CURSES_FOUND)
 endif(CURSES_FOUND)
 
 if(MOSHPLUGIN_CURSES)
-    add_mosh_plugin(mosh_curses src/ext/curses/mosh_curses.c)
+    add_mosh_plugin(mosh_curses src/nmosh/ext/curses/mosh_curses.c)
     if(CURSES_LIBRARIES)
         target_link_libraries(mosh_curses ${CURSES_LIBRARIES})
         include_directories(AFTER ${CURSES_INCLUDE_DIR})
     elseif(MOSHPLUGIN_CURSES_WITH_NMOSH)
         if(EXISTS ${MOSHPLUGIN_CURSES_NMOSH_DIR})
-            add_mosh_plugin(mosh_curses_cui src/ext/curses/mosh_curses.c)
+            add_mosh_plugin(mosh_curses_cui src/nmosh/ext/curses/mosh_curses.c)
             add_subdirectory(${MOSHPLUGIN_CURSES_NMOSH_DIR} pdcurses) # => pdcurses_win32a
             target_link_libraries(mosh_curses_cui pdcurses_win32)
             target_link_libraries(mosh_curses pdcurses_win32a)
@@ -876,7 +876,7 @@ else()
     option(MOSHPLUGIN_GOBJECT "build nmosh GObject plugin" OFF)
 endif()
 if(MOSHPLUGIN_GOBJECT)
-    add_mosh_plugin(mosh_gobj src/ext/gobject/mgobj.c)
+    add_mosh_plugin(mosh_gobj src/nmosh/ext/gobject/mgobj.c)
     include_directories(AFTER ${GTK2_GLIB_INCLUDE_DIR})
     if(NOT GTK2_GTHREAD_LIBRARY)
         find_library(GTK2_GTHREAD_LIBRARY gthread-2.0)
@@ -943,7 +943,7 @@ else()
 endif()
 
 if(MOSHPLUGIN_CAIRO)
-    add_mosh_plugin(mosh_cairo src/ext/cairo/moshcairo.c)
+    add_mosh_plugin(mosh_cairo src/nmosh/ext/cairo/moshcairo.c)
     target_link_libraries(mosh_cairo ${CAIRO_LIBS} ${CAIRO_LIBRARY})
     include_directories(AFTER ${CAIRO_INCLUDE_DIR})
 endif()
@@ -985,7 +985,7 @@ else()
 endif()
 
 if(MOSHPLUGIN_LIBUSB1)
-    add_mosh_plugin(mosh_usb src/ext/libusb1/libusb1.c)
+    add_mosh_plugin(mosh_usb src/nmosh/ext/libusb1/libusb1.c)
     include_directories(AFTER ${LIBUSB1_INCLUDE_DIR})
     target_link_libraries(mosh_usb ${LIBUSB1_LIBRARY})
 endif()
@@ -993,7 +993,7 @@ endif()
 # Groonga
 option(MOSHPLUGIN_GROONGA "build nmosh groonga plugin" OFF)
 if(MOSHPLUGIN_GROONGA)
-    add_mosh_plugin(mosh_groonga src/ext/groonga/mgrn.c)
+    add_mosh_plugin(mosh_groonga src/nmosh/ext/groonga/mgrn.c)
     include_directories(AFTER ${MOSHPLUGIN_GROONGA_DIR}/include)
     add_subdirectory(${MOSHPLUGIN_GROONGA_DIR} EXCLUDE_FROM_ALL nmosh-groonga)
     target_link_libraries(mosh_groonga libgroonga)
@@ -1001,13 +1001,13 @@ endif()
 
 # Win32 plugins
 if(WIN32)
-    add_mosh_plugin(mosh_winmm src/win32/plugins/mm/moshmm.c)
+    add_mosh_plugin(mosh_winmm src/nmosh/win32/plugins/mm/moshmm.c)
     target_link_libraries(mosh_winmm winmm)
 endif()
 
 # SDL Plugin
 if(MOSHPLUGIN_SDL)
-    add_mosh_plugin(mosh_sdl src/ext/sdl/mosh_sdl_core.c)
+    add_mosh_plugin(mosh_sdl src/nmosh/ext/sdl/mosh_sdl_core.c)
     include_directories(AFTER ${SDL_INCLUDE_DIR})
     target_link_libraries(mosh_sdl ${SDL_LIBS})
 endif()

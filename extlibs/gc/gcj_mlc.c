@@ -88,8 +88,8 @@ GC_API void GC_CALL GC_init_gcj_malloc(int mp_index,
 #   else
       ignore_gcj_info = (0 != GETENV("GC_IGNORE_GCJ_INFO"));
 #   endif
-    if (GC_print_stats && ignore_gcj_info) {
-        GC_log_printf("Gcj-style type information is disabled!\n");
+    if (ignore_gcj_info) {
+      GC_COND_LOG_PRINTF("Gcj-style type information is disabled!\n");
     }
     GC_ASSERT(GC_mark_procs[mp_index] == (GC_mark_proc)0); /* unused */
     GC_mark_procs[mp_index] = (GC_mark_proc)(word)mp;
@@ -168,6 +168,7 @@ static void maybe_finalize(void)
     word lg;
     DCL_LOCK_STATE;
 
+    GC_DBG_COLLECT_AT_MALLOC(lb);
     if(SMALL_OBJ(lb)) {
         lg = GC_size_map[lb];
         opp = &(GC_gcjobjfreelist[lg]);
@@ -219,10 +220,8 @@ GC_API void * GC_CALL GC_debug_gcj_malloc(size_t lb,
     if (result == 0) {
         GC_oom_func oom_fn = GC_oom_fn;
         UNLOCK();
-        GC_err_printf("GC_debug_gcj_malloc(%lu, %p) returning NULL (",
-                      (unsigned long)lb, ptr_to_struct_containing_descr);
-        GC_err_puts(s);
-        GC_err_printf(":%d)\n", i);
+        GC_err_printf("GC_debug_gcj_malloc(%lu, %p) returning NULL (%s:%d)\n",
+                (unsigned long)lb, ptr_to_struct_containing_descr, s, i);
         return((*oom_fn)(lb));
     }
     *((void **)((ptr_t)result + sizeof(oh))) = ptr_to_struct_containing_descr;
@@ -243,6 +242,7 @@ GC_API void * GC_CALL GC_gcj_malloc_ignore_off_page(size_t lb,
     word lg;
     DCL_LOCK_STATE;
 
+    GC_DBG_COLLECT_AT_MALLOC(lb);
     if(SMALL_OBJ(lb)) {
         lg = GC_size_map[lb];
         opp = &(GC_gcjobjfreelist[lg]);

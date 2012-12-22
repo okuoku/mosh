@@ -1,4 +1,8 @@
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #ifndef GC_THREADS
 # define GC_THREADS
 #endif
@@ -86,8 +90,9 @@ int main (void)
     pthread_t t;
     void *res;
     if (GC_pthread_create (&t, NULL, entry, NULL) == 0
-        && (i & 1) != 0)
-      GC_pthread_join (t, &res);
+        && (i & 1) != 0) {
+      (void)GC_pthread_join(t, &res);
+    }
   }
   return 0;
 }

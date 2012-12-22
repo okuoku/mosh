@@ -187,15 +187,20 @@ void test_extras(void)
     if (CORD_str(x,0,"9abcdefghijx") != CORD_NOT_FOUND)
         ABORT("CORD_str failed 3");
     if (CORD_str(x,0,"9>") != CORD_NOT_FOUND) ABORT("CORD_str failed 4");
+    /* Note: f1a, f1b, f2 handles are closed lazily by CORD library.    */
+    /* TODO: Propose and use CORD_fclose. */
+    *(CORD volatile *)&w = CORD_EMPTY;
+    *(CORD volatile *)&z = CORD_EMPTY;
+    GC_gcollect();
+    GC_invoke_finalizers();
+            /* Of course, this does not guarantee the files are closed. */
     if (remove(FNAME1) != 0) {
         /* On some systems, e.g. OS2, this may fail if f1 is still open. */
-        if ((fclose(f1a) == EOF) & (fclose(f1b) == EOF))
-            ABORT("fclose(f1) failed");
-        if (remove(FNAME1) != 0) ABORT("remove 1 failed");
+        /* But we cannot call fclose as it might lead to double close.   */
+        fprintf(stderr, "WARNING: remove(FNAME1) failed\n");
     }
     if (remove(FNAME2) != 0) {
-        if (fclose(f2) == EOF) ABORT("fclose(f2) failed");
-        if (remove(FNAME2) != 0) ABORT("remove 2 failed");
+        fprintf(stderr, "WARNING: remove(FNAME2) failed\n");
     }
 }
 
@@ -203,8 +208,8 @@ void test_printf(void)
 {
     CORD result;
     char result2[200];
-    long l;
-    short s;
+    long l = -1;
+    short s = (short)-1;
     CORD x;
 
     if (CORD_sprintf(&result, "%7.2f%ln", 3.14159F, &l) != 7)
@@ -221,7 +226,9 @@ void test_printf(void)
     x = CORD_cat(x,x);
     if (CORD_sprintf(&result, "->%-120.78r!\n", x) != 124)
         ABORT("CORD_sprintf failed 3");
-    (void) sprintf(result2, "->%-120.78s!\n", CORD_to_char_star(x));
+    (void)snprintf(result2, sizeof(result2), "->%-120.78s!\n",
+                   CORD_to_char_star(x));
+    result2[sizeof(result2) - 1] = '\0';
     if (CORD_cmp(result, result2) != 0)ABORT("CORD_sprintf goofed 5");
 }
 

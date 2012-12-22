@@ -15,12 +15,6 @@
 #include "private/gc_priv.h"
 
 #include <stdio.h>
-#include <setjmp.h>
-
-#if defined(OS2) || defined(CX_UX) || defined(__CC_ARM)
-# define _setjmp(b) setjmp(b)
-# define _longjmp(b,v) longjmp(b,v)
-#endif
 
 #ifdef AMIGA
 # ifndef __GNUC__
@@ -219,7 +213,7 @@
 GC_INNER void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
                                           ptr_t arg)
 {
-    word dummy;
+    volatile int dummy;
     void * context = 0;
 
 #   if defined(HAVE_PUSH_REGS)
@@ -276,7 +270,7 @@ GC_INNER void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
         /* Generic code                          */
         /* The idea is due to Parag Patel at HP. */
         /* We're not sure whether he would like  */
-        /* to be he acknowledged for it or not.  */
+        /* to be acknowledged for it or not.     */
         jmp_buf regs;
         register word * i = (word *) regs;
         register ptr_t lim = (ptr_t)(regs) + (sizeof regs);
@@ -287,6 +281,7 @@ GC_INNER void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
             *i = 0;
         }
 #       if defined(MSWIN32) || defined(MSWINCE) || defined(UTS4) \
+           || defined(OS2) || defined(CX_UX) || defined(__CC_ARM) \
            || defined(LINUX) || defined(EWS4800) || defined(RTEMS)
           (void) setjmp(regs);
 #       else

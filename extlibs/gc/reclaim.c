@@ -89,18 +89,15 @@ GC_INNER void GC_print_all_errors(void)
       have_errors = FALSE;
     }
 
+    if (GC_n_leaked > 0) {
+        GC_err_printf("Found %u leaked objects:\n", GC_n_leaked);
+        have_errors = TRUE;
+    }
     for (i = 0; i < GC_n_leaked; ++i) {
         ptr_t p = GC_leaked[i];
-        if (HDR(p) -> hb_obj_kind == PTRFREE) {
-            GC_err_printf("Leaked atomic object at ");
-        } else {
-            GC_err_printf("Leaked composite object at ");
-        }
         GC_print_heap_obj(p);
-        GC_err_printf("\n");
         GC_free(p);
         GC_leaked[i] = 0;
-        have_errors = TRUE;
     }
     GC_n_leaked = 0;
 
@@ -535,10 +532,10 @@ STATIC void GC_print_block_descr(struct hblk *h,
     unsigned n_marks = GC_n_set_marks(hhdr);
 
     if (hhdr -> hb_n_marks != n_marks) {
-      GC_printf("(%u:%u,%u!=%u)", hhdr -> hb_obj_kind, (unsigned)bytes,
-                (unsigned)hhdr -> hb_n_marks, n_marks);
+      GC_printf("(%u:%u,%u!=%u)\n", hhdr->hb_obj_kind, (unsigned)bytes,
+                (unsigned)hhdr->hb_n_marks, n_marks);
     } else {
-      GC_printf("(%u:%u,%u)", hhdr -> hb_obj_kind,
+      GC_printf("(%u:%u,%u)\n", hhdr->hb_obj_kind,
                 (unsigned)bytes, n_marks);
     }
     bytes += HBLKSIZE-1;
@@ -557,7 +554,7 @@ void GC_print_block_list(void)
     pstats.number_of_blocks = 0;
     pstats.total_bytes = 0;
     GC_apply_to_all_blocks(GC_print_block_descr, (word)&pstats);
-    GC_printf("\nblocks = %lu, bytes = %lu\n",
+    GC_printf("blocks= %lu, bytes= %lu\n",
               (unsigned long)pstats.number_of_blocks,
               (unsigned long)pstats.total_bytes);
 }
@@ -567,16 +564,12 @@ void GC_print_free_list(int kind, size_t sz_in_granules)
 {
     struct obj_kind * ok = &GC_obj_kinds[kind];
     ptr_t flh = ok -> ok_freelist[sz_in_granules];
-    struct hblk *lastBlock = 0;
     int n;
 
-    for (n = 1; flh; n++) {
+    for (n = 0; flh; n++) {
         struct hblk *block = HBLKPTR(flh);
-        if (block != lastBlock) {
-          GC_printf("\nIn heap block at %p:\n\t", (void *)block);
-          lastBlock = block;
-        }
-        GC_printf("%d: %p;", n, flh);
+        GC_printf("Free object in heap block %p [%d]: %p\n",
+                  (void *)block, n, flh);
         flh = obj_link(flh);
     }
 }
@@ -734,8 +727,8 @@ GC_INNER GC_bool GC_reclaim_all(GC_stop_func stop_func, GC_bool ignore_old)
 #   ifndef SMALL_CONFIG
       if (GC_print_stats == VERBOSE) {
         GET_TIME(done_time);
-        GC_log_printf("Disposing of reclaim lists took %lu msecs\n",
-                      MS_TIME_DIFF(done_time,start_time));
+        GC_verbose_log_printf("Disposing of reclaim lists took %lu msecs\n",
+                              MS_TIME_DIFF(done_time,start_time));
       }
 #   endif
     return(TRUE);

@@ -20,8 +20,8 @@
 
 STATIC void GC_CALLBACK GC_default_same_obj_print_proc(void * p, void * q)
 {
-    GC_err_printf("%p and %p are not in the same object\n", p, q);
-    ABORT("GC_same_obj test failed");
+    ABORT_ARG2("GC_same_obj test failed",
+               ": %p and %p are not in the same object", p, q);
 }
 
 void (GC_CALLBACK *GC_same_obj_print_proc) (void *, void *)
@@ -102,8 +102,7 @@ fail:
 
 STATIC void GC_CALLBACK GC_default_is_valid_displacement_print_proc (void *p)
 {
-    GC_err_printf("%p does not point to valid object displacement\n", p);
-    ABORT("GC_is_valid_displacement test failed");
+    ABORT_ARG1("GC_is_valid_displacement test failed", ": %p not valid", p);
 }
 
 void (GC_CALLBACK *GC_is_valid_displacement_print_proc)(void *) =
@@ -152,8 +151,7 @@ fail:
 
 STATIC void GC_CALLBACK GC_default_is_visible_print_proc(void * p)
 {
-    GC_err_printf("%p is not a GC visible pointer location\n", p);
-    ABORT("GC_is_visible test failed");
+    ABORT_ARG1("GC_is_visible test failed", ": %p not GC-visible", p);
 }
 
 void (GC_CALLBACK *GC_is_visible_print_proc)(void * p) =
@@ -163,17 +161,18 @@ void (GC_CALLBACK *GC_is_visible_print_proc)(void * p) =
 /* Could p be a stack address? */
    STATIC GC_bool GC_on_stack(ptr_t p)
    {
-        int dummy;
-#       ifdef STACK_GROWS_DOWN
-            if ((word)p >= (word)(&dummy) && (word)p < (word)GC_stackbottom) {
-                return(TRUE);
-            }
-#       else
-            if ((word)p <= (word)(&dummy) && (word)p > (word)GC_stackbottom) {
-                return(TRUE);
-            }
-#       endif
-        return(FALSE);
+#    ifdef STACK_GROWS_DOWN
+       if ((word)p >= (word)GC_approx_sp()
+           && (word)p < (word)GC_stackbottom) {
+         return(TRUE);
+       }
+#    else
+       if ((word)p <= (word)GC_approx_sp()
+           && (word)p > (word)GC_stackbottom) {
+         return(TRUE);
+       }
+#    endif
+     return(FALSE);
    }
 #endif
 

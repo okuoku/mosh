@@ -600,11 +600,11 @@
  * On UNIX-like systems, the collector will scan the area between DATASTART
  * and DATAEND for root pointers.
  *
- * DATAEND, if not `end' where `end' is defined as ``extern int end[];''.
+ * DATAEND, if not "end", where "end" is defined as "extern int end[]".
  * RTH suggests gaining access to linker script synth'd values with
- * this idiom instead of `&end' where `end' is defined as ``extern int end;'' .
- * Otherwise, ``GCC will assume these are in .sdata/.sbss'' and it will, e.g.,
- * cause failures on alpha*-*-* with ``-msmall-data or -fpic'' or mips-*-*
+ * this idiom instead of "&end", where "end" is defined as "extern int end".
+ * Otherwise, "GCC will assume these are in .sdata/.sbss" and it will, e.g.,
+ * cause failures on alpha*-*-* with -msmall-data or -fpic or mips-*-*
  * without any special options.
  *
  * STACKBOTTOM is the cool end of the stack, which is usually the
@@ -664,7 +664,7 @@
  *              int argc;
  *              char **argv, **envp;
  *              {
- *                  int dummy;
+ *                  volatile int dummy;
  *
  *                  GC_stackbottom = (ptr_t)(&dummy);
  *                  return(real_main(argc, argv, envp));
@@ -878,7 +878,7 @@
 #     else
 #       include <sys/param.h>
 #       include <uvm/uvm_extern.h>
-#       define STACKBOTTOM USRSTACK
+#       define STACKBOTTOM ((ptr_t) USRSTACK)
 #     endif
       extern int __data_start[];
 #     define DATASTART ((ptr_t)__data_start)
@@ -928,6 +928,9 @@
 #     define DATAEND (ptr_t)(_end)
 #     define DATASTART (ptr_t)(__bss_start)
 #     define STACKBOTTOM ((ptr_t)ps3_get_stack_bottom())
+#     define NO_PTHREAD_TRYLOCK
+                /* Current GC LOCK() implementation for PS3 explicitly  */
+                /* use pthread_mutex_lock for some reason.              */
 #   endif
 #   ifdef AIX
 #     define OS_TYPE "AIX"
@@ -1080,7 +1083,7 @@
 #     else
 #       include <sys/param.h>
 #       include <uvm/uvm_extern.h>
-#       define STACKBOTTOM USRSTACK
+#       define STACKBOTTOM ((ptr_t) USRSTACK)
 #     endif
       extern int __data_start[];
 #     define DATASTART ((ptr_t)__data_start)
@@ -1282,6 +1285,11 @@
 #            endif
              extern int _end[];
 #            define DATAEND (ptr_t)(_end)
+#            if defined(PLATFORM_ANDROID) && !defined(GC_NO_SIGSETJMP)
+               /* As of Android NDK r8b, _sigsetjmp is still missing    */
+               /* for x86 (setjmp is used instead to find data_start).  */
+#              define GC_NO_SIGSETJMP
+#            endif
 #       else
              extern int etext[];
 #            define DATASTART ((ptr_t)((((word) (etext)) + 0xfff) & ~0xfff))
@@ -1357,7 +1365,7 @@
 #       else
 #         include <sys/param.h>
 #         include <uvm/uvm_extern.h>
-#         define STACKBOTTOM USRSTACK
+#         define STACKBOTTOM ((ptr_t) USRSTACK)
 #       endif
         extern int __data_start[];
 #       define DATASTART ((ptr_t)__data_start)
@@ -1594,7 +1602,7 @@
 #    else
 #      include <sys/param.h>
 #      include <uvm/uvm_extern.h>
-#      define STACKBOTTOM USRSTACK
+#      define STACKBOTTOM ((ptr_t) USRSTACK)
 #    endif
      extern int _fdata[];
 #    define DATASTART ((ptr_t)_fdata)
@@ -1633,7 +1641,7 @@
 #     define DATASTART ((ptr_t)(__data_start))
 #     ifdef USE_HPUX_FIXED_STACKBOTTOM
         /* The following appears to work for 7xx systems running HP/UX  */
-        /* 9.xx Furthermore, it might result in much faster             */
+        /* 9.xx.  Furthermore, it might result in much faster           */
         /* collections than HEURISTIC2, which may involve scanning      */
         /* segments that directly precede the stack.  It is not the     */
         /* default, since it may not work on older machine/OS           */
@@ -1672,7 +1680,7 @@
 #     else
 #       include <sys/param.h>
 #       include <uvm/uvm_extern.h>
-#       define STACKBOTTOM USRSTACK
+#       define STACKBOTTOM ((ptr_t) USRSTACK)
 #     endif
       extern int __data_start[];
 #     define DATASTART ((ptr_t)__data_start)
@@ -1704,7 +1712,7 @@
 #       else
 #         include <sys/param.h>
 #         include <uvm/uvm_extern.h>
-#         define STACKBOTTOM USRSTACK
+#         define STACKBOTTOM ((ptr_t) USRSTACK)
 #       endif
         extern int __data_start[];
 #       define DATASTART ((ptr_t)__data_start)
@@ -2014,7 +2022,7 @@
 #     else
 #       include <sys/param.h>
 #       include <uvm/uvm_extern.h>
-#       define STACKBOTTOM USRSTACK
+#       define STACKBOTTOM ((ptr_t) USRSTACK)
 #     endif
       extern int __data_start[];
 #     define DATASTART ((ptr_t)__data_start)
@@ -2073,7 +2081,7 @@
 #      else
 #        include <sys/param.h>
 #        include <uvm/uvm_extern.h>
-#        define STACKBOTTOM USRSTACK
+#        define STACKBOTTOM ((ptr_t) USRSTACK)
 #      endif
        extern int __data_start[];
 #      define DATASTART ((ptr_t)__data_start)
@@ -2139,7 +2147,7 @@
 #       else
 #         include <sys/param.h>
 #         include <uvm/uvm_extern.h>
-#         define STACKBOTTOM USRSTACK
+#         define STACKBOTTOM ((ptr_t) USRSTACK)
 #       endif
         extern int __data_start[];
 #       define DATASTART ((ptr_t)__data_start)
@@ -2529,7 +2537,8 @@
                              || defined(OPENBSD) || defined(ARM32) \
                              || defined(MIPS) || defined(AVR32))) \
      || (defined(LINUX) && (defined(SPARC) || defined(M68K))) \
-     || (defined(RTEMS) && defined(I386))) && !defined(NO_GETCONTEXT)
+     || ((defined(RTEMS) || defined(PLATFORM_ANDROID)) && defined(I386))) \
+    && !defined(NO_GETCONTEXT)
 # define NO_GETCONTEXT
 #endif
 
@@ -2647,13 +2656,25 @@
 #endif
 
 #if !defined(CAN_HANDLE_FORK) && !defined(NO_HANDLE_FORK) \
-    && ((defined(GC_PTHREADS) && !defined(HURD) && !defined(NACL) \
-         && !defined(PLATFORM_ANDROID) && !defined(GC_WIN32_PTHREADS) \
-         && !defined(USE_WINALLOC)) \
+    && !defined(HAVE_NO_FORK) \
+    && ((defined(GC_PTHREADS) && !defined(NACL) \
+         && !defined(GC_WIN32_PTHREADS) && !defined(USE_WINALLOC)) \
         || (defined(DARWIN) && defined(MPROTECT_VDB)) || defined(HANDLE_FORK))
   /* Attempts (where supported and requested) to make GC_malloc work in */
   /* a child process fork'ed from a multi-threaded parent.              */
 # define CAN_HANDLE_FORK
+#endif
+
+#if defined(CAN_HANDLE_FORK) && !defined(CAN_CALL_ATFORK) \
+    && !defined(HURD) && !defined(PLATFORM_ANDROID)
+  /* Have working pthread_atfork().     */
+# define CAN_CALL_ATFORK
+#endif
+
+#if !defined(CAN_HANDLE_FORK) && !defined(HAVE_NO_FORK) \
+    && (defined(MSWIN32) || defined(MSWINCE) || defined(DOS4GW) \
+        || defined(OS2) || defined(SYMBIAN) /* and probably others ... */)
+# define HAVE_NO_FORK
 #endif
 
 #if !defined(USE_MARK_BITS) && !defined(USE_MARK_BYTES) \

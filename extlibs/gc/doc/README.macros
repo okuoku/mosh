@@ -30,6 +30,9 @@ MACRO           EXPLANATION
 GC_DEBUG        Tested by gc.h.  Causes all-upper-case macros to
                 expand to calls to debug versions of collector routines.
 
+GC_NAMESPACE    Tested by gc_cpp.h. Causes gc_cpp symbols to be defined
+                in "boehmgc" namespace.
+
 GC_DEBUG_REPLACEMENT    Tested by gc.h. Causes GC_MALLOC/REALLOC() to be
                 defined as GC_debug_malloc/realloc_replacement().
 
@@ -234,6 +237,10 @@ NO_DEBUGGING    Removes GC_dump and the debugging routines it calls.
 
 DEBUG_THREADS   Turn on printing additional thread-support debugging
   information.
+
+GC_COLLECT_AT_MALLOC=<n>        Force garbage collection at every
+  GC_malloc_* call with the size greater than the specified value.
+  (Might be useful for application debugging or in find-leak mode.)
 
 JAVA_FINALIZATION       Makes it somewhat safer to finalize objects out of
   order by specifying a nonstandard finalization mark procedure  (see
@@ -524,6 +531,8 @@ GC_PRINT_VERBOSE_STATS  Permanently turn on verbose logging (useful for
 GC_ONLY_LOG_TO_FILE     Don't redirect GC stdout and stderr to the log file
   specified by GC_LOG_FILE environment variable.  Has effect only when the
   variable is set (to anything other than "0").
+
+GC_ANDROID_LOG (Android only)   Output error/debug information to Android log.
 
 GC_DONT_EXPAND  Don't expand the heap unless explicitly requested or forced to.
 

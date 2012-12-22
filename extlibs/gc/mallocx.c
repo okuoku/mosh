@@ -165,11 +165,10 @@ void * realloc(void * p, size_t lb)
 # undef GC_debug_realloc_replacement
 # endif /* REDIRECT_REALLOC */
 
-
 /* Allocate memory such that only pointers to near the          */
 /* beginning of the object are considered.                      */
-/* We avoid holding allocation lock while we clear memory.      */
-GC_INNER void * GC_generic_malloc_ignore_off_page(size_t lb, int k)
+/* We avoid holding allocation lock while we clear the memory.  */
+GC_API void * GC_CALL GC_generic_malloc_ignore_off_page(size_t lb, int k)
 {
     void *result;
     size_t lg;
@@ -189,6 +188,7 @@ GC_INNER void * GC_generic_malloc_ignore_off_page(size_t lb, int k)
     if (EXPECT(GC_have_errors, FALSE))
       GC_print_all_errors();
     GC_INVOKE_FINALIZERS();
+    GC_DBG_COLLECT_AT_MALLOC(lb);
     LOCK();
     result = (ptr_t)GC_alloc_large(ADD_SLOP(lb), k, IGNORE_OFF_PAGE);
     if (0 != result) {
@@ -293,6 +293,7 @@ GC_API void GC_CALL GC_generic_malloc_many(size_t lb, int k, void **result)
     if (EXPECT(GC_have_errors, FALSE))
       GC_print_all_errors();
     GC_INVOKE_FINALIZERS();
+    GC_DBG_COLLECT_AT_MALLOC(lb);
     LOCK();
     if (!EXPECT(GC_is_initialized, TRUE)) GC_init();
     /* Do our share of marking work */
@@ -513,6 +514,7 @@ GC_API int GC_CALL GC_posix_memalign(void **memptr, size_t align, size_t lb)
     DCL_LOCK_STATE;
 
     if( SMALL_OBJ(lb) ) {
+        GC_DBG_COLLECT_AT_MALLOC(lb);
         if (EXTRA_BYTES != 0 && lb != 0) lb--;
                   /* We don't need the extra byte, since this won't be  */
                   /* collected anyway.                                  */
@@ -568,12 +570,7 @@ GC_API char * GC_CALL GC_strdup(const char *s)
 #   endif
     return NULL;
   }
-# ifndef MSWINCE
-    strcpy(copy, s);
-# else
-    /* strcpy() is deprecated in WinCE */
-    memcpy(copy, s, lb);
-# endif
+  BCOPY(s, copy, lb);
   return copy;
 }
 

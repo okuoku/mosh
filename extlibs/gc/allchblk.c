@@ -751,11 +751,12 @@ GC_allochblk_nth(size_t sz, int kind, unsigned flags, int n, int may_split)
                       GC_bytes_dropped += total_size;
                       GC_remove_from_fl_at(hhdr, n);
                       for (h = hbp; (word)h < (word)limit; h++) {
-                        if (h == hbp || 0 != (hhdr = GC_install_header(h))) {
-                          (void) setup_header(
-                                  hhdr, h,
-                                  HBLKSIZE,
-                                  PTRFREE, 0); /* Can't fail */
+                        if (h != hbp) {
+                          hhdr = GC_install_header(h);
+                        }
+                        if (NULL != hhdr) {
+                          (void)setup_header(hhdr, h, HBLKSIZE, PTRFREE, 0);
+                                                    /* Can't fail. */
                           if (GC_debugging_started) {
                             BZERO(h, HBLKSIZE);
                           }
@@ -844,10 +845,8 @@ GC_INNER void GC_freehblk(struct hblk *hbp)
 
     /* Check for duplicate deallocation in the easy case */
       if (HBLK_IS_FREE(hhdr)) {
-        if (GC_print_stats)
-          GC_log_printf("Duplicate large block deallocation of %p\n",
-                        (void *)hbp);
-        ABORT("Duplicate large block deallocation");
+        ABORT_ARG1("Duplicate large block deallocation",
+                   " of %p", (void *)hbp);
       }
 
     GC_ASSERT(IS_MAPPED(hhdr));

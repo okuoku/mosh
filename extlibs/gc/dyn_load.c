@@ -151,7 +151,8 @@ GC_FirstDLOpenedLinkMap(void)
         dynStructureAddr = &_DYNAMIC;
 #   endif
 
-    if( dynStructureAddr == 0) {
+    if (dynStructureAddr == 0) {
+        /* _DYNAMIC symbol not resolved. */
         return(0);
     }
     if( cachedResult == 0 ) {
@@ -445,7 +446,7 @@ STATIC int GC_register_dynlib_callback(struct dl_phdr_info * info,
         case PT_GNU_RELRO:
         /* This entry is known to be constant and will eventually be remapped
            read-only.  However, the address range covered by this entry is
-           typically a subset of a previously encountered `LOAD' segment, so
+           typically a subset of a previously encountered "LOAD" segment, so
            we need to exclude it.  */
         {
             int j;
@@ -640,7 +641,8 @@ GC_FirstDLOpenedLinkMap(void)
     ElfW(Dyn) *dp;
     static struct link_map *cachedResult = 0;
 
-    if( _DYNAMIC == 0) {
+    if (0 == (ptr_t)_DYNAMIC) {
+        /* _DYNAMIC symbol not resolved. */
         return(0);
     }
     if( cachedResult == 0 ) {
@@ -741,7 +743,8 @@ GC_INNER void GC_register_dynamic_libraries(void)
 #   endif /* SOLARISDL */
 
     if (fd < 0) {
-      sprintf(buf, "/proc/%ld", (long)getpid());
+      (void)snprintf(buf, sizeof(buf), "/proc/%ld", (long)getpid());
+      buf[sizeof(buf) - 1] = '\0';
         /* The above generates a lint complaint, since pid_t varies.    */
         /* It's unclear how to improve this.                            */
       fd = open(buf, O_RDONLY);
@@ -750,8 +753,8 @@ GC_INNER void GC_register_dynamic_libraries(void)
       }
     }
     if (ioctl(fd, PIOCNMAP, &needed_sz) < 0) {
-        GC_err_printf("fd = %d, errno = %d\n", fd, errno);
-        ABORT("/proc PIOCNMAP ioctl failed");
+        ABORT_ARG2("/proc PIOCNMAP ioctl failed",
+                   ": fd = %d, errno = %d", fd, errno);
     }
     if (needed_sz >= current_sz) {
         current_sz = needed_sz * 2 + 1;
@@ -762,9 +765,9 @@ GC_INNER void GC_register_dynamic_libraries(void)
           ABORT("Insufficient memory for address map");
     }
     if (ioctl(fd, PIOCMAP, addr_map) < 0) {
-        GC_err_printf("fd = %d, errno = %d, needed_sz = %d, addr_map = %p\n",
-                        fd, errno, needed_sz, addr_map);
-        ABORT("/proc PIOCMAP ioctl failed");
+        ABORT_ARG3("/proc PIOCMAP ioctl failed",
+                   ": errcode= %d, needed_sz= %d, addr_map= %p",
+                   errno, needed_sz, addr_map);
     };
     if (GC_n_heap_sects > 0) {
         heap_end = GC_heap_sects[GC_n_heap_sects-1].hs_start
@@ -862,9 +865,10 @@ GC_INNER void GC_register_dynamic_libraries(void)
       if ((word)curr_base < (word)limit)
         GC_add_roots_inner(curr_base, limit, TRUE);
 #   else
-      char dummy;
       char * stack_top
-         = (char *) ((word)(&dummy) & ~(GC_sysinfo.dwAllocationGranularity-1));
+         = (char *)((word)GC_approx_sp() &
+                        ~(GC_sysinfo.dwAllocationGranularity - 1));
+
       if (base == limit) return;
       if ((word)limit > (word)stack_top
           && (word)base < (word)GC_stackbottom) {
@@ -1011,18 +1015,12 @@ GC_INNER void GC_register_dynamic_libraries(void)
         if (moduleid == LDR_NULL_MODULE)
             break;    /* No more modules */
 
-      /* Check status AFTER checking moduleid because */
-      /* of a bug in the non-shared ldr_next_module stub */
+      /* Check status AFTER checking moduleid because       */
+      /* of a bug in the non-shared ldr_next_module stub.   */
         if (status != 0) {
-          if (GC_print_stats) {
-            GC_log_printf("dynamic_load: status = %d\n", status);
-            if (errno < sys_nerr) {
-              GC_log_printf("dynamic_load: %s\n", sys_errlist[errno]);
-            } else {
-              GC_log_printf("dynamic_load: err_code = %d\n", errno);
-            }
-          }
-          ABORT("ldr_next_module failed");
+          ABORT_ARG3("ldr_next_module failed",
+                     ": status= %d, errcode= %d (%s)", status, errno,
+                     errno < sys_nerr ? sys_errlist[errno] : "");
         }
 
       /* Get the module information */
@@ -1107,14 +1105,9 @@ GC_INNER void GC_register_dynamic_libraries(void)
           if (errno == EINVAL) {
             break; /* Moved past end of shared library list --> finished */
           } else {
-            if (GC_print_stats) {
-              if (errno < sys_nerr) {
-                GC_log_printf("dynamic_load: %s\n", sys_errlist[errno]);
-              } else {
-                GC_log_printf("dynamic_load: err_code = %d\n", errno);
-              }
-            }
-            ABORT("shl_get failed");
+            ABORT_ARG3("shl_get failed",
+                       ": status= %d, errcode= %d (%s)", status, errno,
+                       errno < sys_nerr ? sys_errlist[errno] : "");
           }
 #        endif
         }
@@ -1279,7 +1272,8 @@ STATIC void GC_dyld_image_add(const struct GC_MACH_HEADER *hdr,
     fmt = GC_dyld_add_sect_fmts[j];
     /* Add our manufactured aligned BSS sections.       */
     for (i = 0; i <= L2_MAX_OFILE_ALIGNMENT; i++) {
-      snprintf(secnam, sizeof(secnam), fmt, (unsigned)i);
+      (void)snprintf(secnam, sizeof(secnam), fmt, (unsigned)i);
+      secnam[sizeof(secnam) - 1] = '\0';
       sec = GC_GETSECTBYNAME(hdr, SEG_DATA, secnam);
       if (sec == NULL || sec->size == 0)
         continue;
@@ -1330,7 +1324,8 @@ STATIC void GC_dyld_image_remove(const struct GC_MACH_HEADER *hdr,
   for (j = 0; j < sizeof(GC_dyld_add_sect_fmts) / sizeof(char *); j++) {
     fmt = GC_dyld_add_sect_fmts[j];
     for (i = 0; i <= L2_MAX_OFILE_ALIGNMENT; i++) {
-      snprintf(secnam, sizeof(secnam), fmt, (unsigned)i);
+      (void)snprintf(secnam, sizeof(secnam), fmt, (unsigned)i);
+      secnam[sizeof(secnam) - 1] = '\0';
       sec = GC_GETSECTBYNAME(hdr, SEG_DATA, secnam);
       if (sec == NULL || sec->size == 0)
         continue;

@@ -19,7 +19,7 @@
 /* checking for some of the tests.                              */
 
 # ifdef HAVE_CONFIG_H
-#   include "private/config.h"
+#   include "config.h"
 # endif
 
 # undef GC_BUILD
@@ -89,14 +89,24 @@
 # if (!defined(THREADS) || !defined(HANDLE_FORK) \
       || (defined(DARWIN) && defined(MPROTECT_VDB) \
           && !defined(NO_INCREMENTAL) && !defined(MAKE_BACK_GRAPH))) \
-     && !defined(NO_TEST_HANDLE_FORK)
+     && !defined(NO_TEST_HANDLE_FORK) && !defined(TEST_HANDLE_FORK) \
+     && !defined(TEST_FORK_WITHOUT_ATFORK)
 #   define NO_TEST_HANDLE_FORK
 # endif
 
 # ifndef NO_TEST_HANDLE_FORK
 #   include <unistd.h>
-#   define INIT_FORK_SUPPORT GC_set_handle_fork(1)
-# else
+#   ifdef HANDLE_FORK
+#     define INIT_FORK_SUPPORT GC_set_handle_fork(1)
+                /* Causes abort in GC_init on pthread_atfork failure.   */
+#   elif !defined(TEST_FORK_WITHOUT_ATFORK)
+#     define INIT_FORK_SUPPORT GC_set_handle_fork(-1)
+                /* Passing -1 implies fork() should be as well manually */
+                /* surrounded with GC_atfork_prepare/parent/child.      */
+#   endif
+# endif
+
+# ifndef INIT_FORK_SUPPORT
 #   define INIT_FORK_SUPPORT /* empty */
 # endif
 
@@ -522,7 +532,10 @@ void check_marks_int_list(sexpr x)
     {
         DWORD thread_id;
         HANDLE h;
-        h = GC_CreateThread(NULL, 0, tiny_reverse_test, 0, 0, &thread_id);
+        h = GC_CreateThread((SECURITY_ATTRIBUTES *)NULL, (word)0,
+                            tiny_reverse_test, NULL, (DWORD)0, &thread_id);
+                                /* Explicitly specify types of the      */
+                                /* arguments to test the prototype.     */
         if (h == (HANDLE)NULL) {
             GC_printf("Small thread creation failed %d\n",
                           (int)GetLastError());
@@ -729,9 +742,15 @@ size_t counter = 0;
 
 # if !defined(MACOS)
   GC_FAR GC_word live_indicators[MAX_FINALIZED] = {0};
+# ifndef GC_LONG_REFS_NOT_NEEDED
+    GC_FAR void *live_long_refs[MAX_FINALIZED] = {  NULL };
+# endif
 #else
   /* Too big for THINK_C. have to allocate it dynamically. */
   GC_word *live_indicators = 0;
+# ifndef GC_LONG_REFS_NOT_NEEDED
+#   define GC_LONG_REFS_NOT_NEEDED
+# endif
 #endif
 
 int live_indicators_count = 0;
@@ -832,6 +851,36 @@ tn * mktree(int n)
                 GC_printf("GC_general_register_disappearing_link failed 2\n");
                 FAIL;
         }
+#       ifndef GC_LONG_REFS_NOT_NEEDED
+          if (GC_REGISTER_LONG_LINK(&live_long_refs[my_index], result) != 0) {
+            GC_printf("GC_register_long_link failed\n");
+            FAIL;
+          }
+          if (GC_move_long_link(&live_long_refs[my_index],
+                                &live_long_refs[my_index]) != GC_SUCCESS) {
+            GC_printf("GC_move_long_link(link,link) failed\n");
+            FAIL;
+          }
+          new_link = live_long_refs[my_index];
+          if (GC_move_long_link(&live_long_refs[my_index],
+                                &new_link) != GC_SUCCESS) {
+            GC_printf("GC_move_long_link(new_link) failed\n");
+            FAIL;
+          }
+          if (GC_unregister_long_link(&new_link) == 0) {
+            GC_printf("GC_unregister_long_link failed\n");
+            FAIL;
+          }
+          if (GC_move_long_link(&live_long_refs[my_index],
+                                &new_link) != GC_NOT_FOUND) {
+            GC_printf("GC_move_long_link(new_link) failed 2\n");
+            FAIL;
+          }
+          if (GC_REGISTER_LONG_LINK(&live_long_refs[my_index], result) != 0) {
+            GC_printf("GC_register_long_link failed 2\n");
+            FAIL;
+          }
+#       endif
 #     endif
         GC_reachable_here(result);
     }
@@ -1201,7 +1250,7 @@ void run_one_test(void)
         {
           size_t i;
 
-          GC_malloc(17);
+          (void)GC_malloc(17);
           for (i = sizeof(GC_word); i < 512; i *= 2) {
             GC_word result = (GC_word) GC_memalign(i, 17);
             if (result % i != 0 || result == 0 || *(int *)result != 0) FAIL;
@@ -1234,9 +1283,9 @@ void run_one_test(void)
         {
            size_t i;
            for (i = 0; i < 10000; ++i) {
-             GC_MALLOC(0);
+             (void)GC_MALLOC(0);
              GC_FREE(GC_MALLOC(0));
-             GC_MALLOC_ATOMIC(0);
+             (void)GC_MALLOC_ATOMIC(0);
              GC_FREE(GC_MALLOC_ATOMIC(0));
            }
          }
@@ -1262,6 +1311,32 @@ void run_one_test(void)
         GC_free(GC_malloc_atomic(0));
         GC_free(GC_malloc(0));
         GC_free(GC_malloc_atomic(0));
+#   ifndef NO_TEST_HANDLE_FORK
+        GC_atfork_prepare();
+        if (fork() != 0) {
+          GC_atfork_parent();
+          if (print_stats)
+            GC_log_printf("Forked child process (or failed)\n");
+        } else {
+          GC_atfork_child();
+          if (print_stats)
+            GC_log_printf("Started a child process\n");
+#         ifdef THREADS
+#           ifdef PARALLEL_MARK
+              GC_gcollect(); /* no parallel markers */
+#           endif
+            GC_start_mark_threads();
+#         endif
+          GC_gcollect();
+#         ifdef THREADS
+            tiny_reverse_test(0);
+            GC_gcollect();
+#         endif
+          if (print_stats)
+            GC_log_printf("Finished a child process\n");
+          exit(0);
+        }
+#   endif
     /* Repeated list reversal test. */
         GET_TIME(start_time);
         reverse_test();
@@ -1299,16 +1374,6 @@ void run_one_test(void)
     /* GC_allocate_ml and GC_need_to_lock are no longer exported, and   */
     /* AO_fetch_and_add1() may be unavailable to update a counter.      */
     (void)GC_call_with_alloc_lock(inc_int_counter, &n_tests);
-#   ifndef NO_TEST_HANDLE_FORK
-      if (fork() == 0) {
-        GC_gcollect();
-        tiny_reverse_test(0);
-        GC_gcollect();
-        if (print_stats)
-          GC_log_printf("Finished a child process\n");
-        exit(0);
-      }
-#   endif
     if (print_stats)
       GC_log_printf("Finished %p\n", (void *)&start_time);
 }
@@ -1321,6 +1386,9 @@ void check_heap_stats(void)
     int i;
 #   ifndef GC_NO_FINALIZATION
       int still_live;
+#     ifndef GC_LONG_REFS_NOT_NEEDED
+        int still_long_live = 0;
+#     endif
 #     ifdef FINALIZE_ON_DEMAND
         int late_finalize_count = 0;
 #     endif
@@ -1409,6 +1477,11 @@ void check_heap_stats(void)
         if (live_indicators[i] != 0) {
             still_live++;
         }
+#       ifndef GC_LONG_REFS_NOT_NEEDED
+          if (live_long_refs[i] != NULL) {
+              still_long_live++;
+          }
+#       endif
       }
       i = finalizable_count - finalized_count - still_live;
       if (0 != i) {
@@ -1420,6 +1493,11 @@ void check_heap_stats(void)
             GC_printf("\tSlightly suspicious, but probably OK\n");
         }
       }
+#     ifndef GC_LONG_REFS_NOT_NEEDED
+        if (0 != still_long_live) {
+          GC_printf("%d 'long' links remain\n", still_long_live);
+        }
+#     endif
 #   endif
     GC_printf("Total number of bytes allocated is %lu\n",
                   (unsigned long)GC_get_total_bytes());
@@ -1442,6 +1520,19 @@ void check_heap_stats(void)
             (unsigned long)max_heap_sz);
         FAIL;
     }
+
+#   ifndef GC_GET_HEAP_USAGE_NOT_NEEDED
+      /* Get global counters (just to check the functions work).  */
+      GC_get_heap_usage_safe(NULL, NULL, NULL, NULL, NULL);
+      {
+        struct GC_prof_stats_s stats;
+        (void)GC_get_prof_stats(&stats, sizeof(stats));
+#       ifdef THREADS
+          (void)GC_get_prof_stats_unsafe(&stats, sizeof(stats));
+#       endif
+      }
+#   endif
+
 #   ifdef THREADS
       GC_unregister_my_thread(); /* just to check it works (for main) */
 #   endif
@@ -1532,21 +1623,6 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
     check_heap_stats();
 #   ifndef MSWINCE
       fflush(stdout);
-#   endif
-#   ifdef LINT
-        /* Entry points we should be testing, but aren't.                  */
-        /* Some can be tested by defining GC_DEBUG at the top of this file */
-        /* This is a bit SunOS4 specific.                                  */
-        GC_noop(GC_expand_hp, GC_add_roots, GC_clear_roots,
-                GC_register_disappearing_link,
-                GC_register_finalizer_ignore_self,
-                GC_debug_register_displacement, GC_debug_change_stubborn,
-                GC_debug_end_stubborn_change, GC_debug_malloc_uncollectable,
-                GC_debug_free, GC_debug_realloc,
-                GC_generic_malloc_words_small, GC_init,
-                GC_malloc_ignore_off_page, GC_malloc_atomic_ignore_off_page,
-                GC_set_max_heap_size, GC_get_bytes_since_gc,
-                GC_get_total_bytes, GC_pre_incr, GC_post_incr);
 #   endif
 #   ifdef MSWIN32
       GC_win32_free_heap();

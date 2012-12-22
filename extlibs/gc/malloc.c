@@ -73,6 +73,7 @@ GC_INNER ptr_t GC_alloc_large(size_t lb, int k, unsigned flags)
             if (GC_large_allocd_bytes > GC_max_large_allocd_bytes)
                 GC_max_large_allocd_bytes = GC_large_allocd_bytes;
         }
+        /* FIXME: Do we need some way to reset GC_max_large_allocd_bytes? */
         result = h -> hb_body;
     }
     return result;
@@ -161,6 +162,12 @@ GC_INNER void * GC_generic_malloc_inner_ignore_off_page(size_t lb, int k)
     return op;
 }
 
+#ifdef GC_COLLECT_AT_MALLOC
+  /* Parameter to force GC at every malloc of size greater or equal to  */
+  /* the given value.  This might be handy during debugging.            */
+  size_t GC_dbg_collect_at_malloc_min_lb = (GC_COLLECT_AT_MALLOC);
+#endif
+
 GC_API void * GC_CALL GC_generic_malloc(size_t lb, int k)
 {
     void * result;
@@ -169,6 +176,7 @@ GC_API void * GC_CALL GC_generic_malloc(size_t lb, int k)
     if (EXPECT(GC_have_errors, FALSE))
       GC_print_all_errors();
     GC_INVOKE_FINALIZERS();
+    GC_DBG_COLLECT_AT_MALLOC(lb);
     if (SMALL_OBJ(lb)) {
         LOCK();
         result = GC_generic_malloc_inner((word)lb, k);
@@ -178,6 +186,7 @@ GC_API void * GC_CALL GC_generic_malloc(size_t lb, int k)
         size_t lb_rounded;
         word n_blocks;
         GC_bool init;
+
         lg = ROUNDED_UP_GRANULES(lb);
         lb_rounded = GRANULES_TO_BYTES(lg);
         if (lb_rounded < lb)
@@ -226,6 +235,7 @@ GC_API void * GC_CALL GC_generic_malloc(size_t lb, int k)
     DCL_LOCK_STATE;
 
     if(SMALL_OBJ(lb)) {
+        GC_DBG_COLLECT_AT_MALLOC(lb);
         lg = GC_size_map[lb];
         opp = &(GC_aobjfreelist[lg]);
         LOCK();
@@ -255,6 +265,7 @@ GC_API void * GC_CALL GC_generic_malloc(size_t lb, int k)
     DCL_LOCK_STATE;
 
     if(SMALL_OBJ(lb)) {
+        GC_DBG_COLLECT_AT_MALLOC(lb);
         lg = GC_size_map[lb];
         opp = (void **)&(GC_objfreelist[lg]);
         LOCK();
@@ -286,6 +297,7 @@ GC_API void * GC_CALL GC_malloc_uncollectable(size_t lb)
     DCL_LOCK_STATE;
 
     if( SMALL_OBJ(lb) ) {
+        GC_DBG_COLLECT_AT_MALLOC(lb);
         if (EXTRA_BYTES != 0 && lb != 0) lb--;
                   /* We don't need the extra byte, since this won't be  */
                   /* collected anyway.                                  */
@@ -482,7 +494,8 @@ GC_API void GC_CALL GC_free(void * p)
     if (p == 0) return;
         /* Required by ANSI.  It's not my fault ...     */
 #   ifdef LOG_ALLOCS
-      GC_err_printf("GC_free(%p), GC: %lu\n", p, (unsigned long)GC_gc_no);
+      GC_log_printf("GC_free(%p) after GC #%lu\n",
+                    p, (unsigned long)GC_gc_no);
 #   endif
     h = HBLKPTR(p);
     hhdr = HDR(h);

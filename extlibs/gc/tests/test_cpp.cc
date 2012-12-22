@@ -23,7 +23,7 @@ few minutes to complete.
 ***************************************************************************/
 
 #ifdef HAVE_CONFIG_H
-# include "private/config.h"
+# include "config.h"
 #endif
 
 #undef GC_BUILD
@@ -58,10 +58,10 @@ extern "C" {
 #endif
 
 #ifdef GC_NAME_CONFLICT
-# define USE_GC UseGC
+# define USE_GC GC_NS_QUALIFY(UseGC)
   struct foo * GC;
 #else
-# define USE_GC GC
+# define USE_GC GC_NS_QUALIFY(GC)
 #endif
 
 #define my_assert( e ) \
@@ -85,7 +85,7 @@ class A {public:
     int i;};
 
 
-class B: public gc, public A {public:
+class B: public GC_NS_QUALIFY(gc), public A { public:
     /* A collectable class. */
 
     B( int j ): A( j ) {}
@@ -98,7 +98,7 @@ class B: public gc, public A {public:
 int B::deleting = 0;
 
 
-class C: public gc_cleanup, public A {public:
+class C: public GC_NS_QUALIFY(gc_cleanup), public A { public:
     /* A collectable class with cleanup and virtual multiple inheritance. */
 
     C( int levelArg ): A( levelArg ), level( levelArg ) {
@@ -129,7 +129,7 @@ int C::nFreed = 0;
 int C::nAllocated = 0;
 
 
-class D: public gc {public:
+class D: public GC_NS_QUALIFY(gc) { public:
     /* A collectable class with a static member function to be used as
     an explicit clean-up function supplied to ::new. */
 
@@ -150,7 +150,7 @@ int D::nFreed = 0;
 int D::nAllocated = 0;
 
 
-class E: public gc_cleanup {public:
+class E: public GC_NS_QUALIFY(gc_cleanup) { public:
     /* A collectable class with clean-up for use by F. */
 
     E() {
@@ -195,10 +195,11 @@ void* Undisguise( GC_word i ) {
 int APIENTRY WinMain( HINSTANCE instance ATTR_UNUSED,
         HINSTANCE prev ATTR_UNUSED, LPSTR cmd, int cmdShow ATTR_UNUSED )
 {
-    int argc;
+    int argc = 0;
     char* argv[ 3 ];
 
-    for (argc = 1; argc < (int)(sizeof(argv) / sizeof(argv[0])); argc++) {
+    if (cmd != 0)
+      for (argc = 1; argc < (int)(sizeof(argv) / sizeof(argv[0])); argc++) {
         argv[ argc ] = strtok( argc == 1 ? cmd : 0, " \t" );
         if (0 == argv[ argc ]) break;}
 #elif defined(MACOS)
@@ -209,6 +210,9 @@ int APIENTRY WinMain( HINSTANCE instance ATTR_UNUSED,
 #else
   int main( int argc, char* argv[] ) {
 #endif
+
+    GC_set_all_interior_pointers(1);
+                        /* needed due to C++ multiple inheritance used  */
 
     GC_INIT();
 
@@ -224,6 +228,10 @@ int APIENTRY WinMain( HINSTANCE instance ATTR_UNUSED,
 #   endif
     *x = 29;
 #   ifndef DONT_USE_STD_ALLOCATOR
+      if (!xptr) {
+        fprintf(stderr, "Out of memory!\n");
+        exit(3);
+      }
       *xptr = x;
       x = 0;
 #   endif
@@ -240,8 +248,8 @@ int APIENTRY WinMain( HINSTANCE instance ATTR_UNUSED,
         GC_word as[ 1000 ];
         GC_word bs[ 1000 ];
         for (i = 0; i < 1000; i++) {
-            as[ i ] = Disguise( new (NoGC ) A( i ) );
-            bs[ i ] = Disguise( new (NoGC) B( i ) );}
+            as[ i ] = Disguise( new (GC_NS_QUALIFY(NoGC)) A(i) );
+            bs[ i ] = Disguise( new (GC_NS_QUALIFY(NoGC)) B(i) ); }
 
             /* Allocate a fair number of finalizable Cs, Ds, and Fs.
             Later we'll check to make sure they've gone away. */
@@ -263,7 +271,9 @@ int APIENTRY WinMain( HINSTANCE instance ATTR_UNUSED,
             A* a;
             a = new (USE_GC) A( i );
             (void)a;
-            B* b = new B( i );
+            B* b;
+            b = new B( i );
+            (void)b;
             b = new (USE_GC) B( i );
             if (0 == i % 10) {
                 B::Deleting( 1 );

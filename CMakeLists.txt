@@ -1005,8 +1005,22 @@ if(WIN32)
     target_link_libraries(mosh_winmm winmm)
 endif()
 
-# SDL Plugin
+# SDL2 Plugin
+option(MOSHPLUGIN_SDL "build nmosh SDL2 plugin" OFF)
+option(MOSHPLUGIN_SDL_WITH_NMOSH "build nmosh flavor of SDL2" OFF)
+set(MOSHPLUGIN_SDL_NMOSH_DIR "${CMAKE_CURRENT_LIST_DIR}/../SDL" CACHE STRING "path to SDL2 repository") 
 if(MOSHPLUGIN_SDL)
+    if(MOSHPLUGIN_SDL_WITH_NMOSH)
+        if(WIN32) # Favor static library on Win32 to avoid pull-in of SDL1
+            set(SDL_STATIC ON CACHE BOOL "Forced by nmosh")
+            set(SDL_LIBS SDL2-static)
+        else()
+            set(SDL_SHARED ON CACHE BOOL "Forced by nmosh")
+            set(SDL_LIBS SDL2)
+        endif()
+        add_subdirectory(${MOSHPLUGIN_SDL_NMOSH_DIR} SDL-nmosh EXCLUDE_FROM_ALL)
+        set(SDL_INCLUDE_DIR ${MOSHPLUGIN_SDL_NMOSH_DIR}/include)
+    endif()
     add_mosh_plugin(mosh_sdl src/nmosh/ext/sdl/mosh_sdl_core.c)
     include_directories(AFTER ${SDL_INCLUDE_DIR})
     target_link_libraries(mosh_sdl ${SDL_LIBS})

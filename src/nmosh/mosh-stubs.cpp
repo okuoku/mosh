@@ -36,7 +36,7 @@
 
 #ifdef _WIN32
 #define HAVE_AIO_WIN32
-#include "aio_win32.h"
+#include "win32/aio_win32.h"
 #endif
 
 #ifdef HAVE_TERMINAL

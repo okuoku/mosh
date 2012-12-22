@@ -1142,4 +1142,8 @@ if(WIN32)
             ${CMAKE_CURRENT_BINARY_DIR}/mpir.dll
             COPYONLY)
     endif()
+else()
+    configure_file(cmake/testmosh.sh.in 
+        ${CMAKE_CURRENT_BINARY_DIR}/testmosh.sh
+        @ONLY)
 endif()

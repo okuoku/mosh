@@ -25,6 +25,11 @@ int win32_handle_setbaud(void* h,int b);
 void* win32_ticket_alloc(void* h);
 void* win32_get_ticket_chime(void);
 
+int win32_timer_create(void*);
+int win32_timer_set(void*,int,int,int,int,void*,void*);
+int win32_timer_cancel(void*);
+int win32_timer_destroy(void*);
+
 //winsock
 int win32_sockaddr_storage_size(void);
 uintptr_t win32_socket_create(int mode,int proto,uintptr_t ret_connectex,uintptr_t ret_acceptex);

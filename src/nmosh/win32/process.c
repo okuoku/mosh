@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include <nmosh/plugin-if.h>
+
 #define GC_NO_THREAD_REDIRECTS // we don't need override
 #include <gc.h>
 
@@ -823,6 +825,91 @@ win32_process_get_result(void* process){
 	return res;
 }
 #endif
+
+/* Timers */
+typedef struct {
+    HANDLE h;
+    nmosh_chime_callback_t caller;
+    void* state;
+}win32_timer_t;
+
+static void CALLBACK
+win32_timer_callback(void* timer, DWORD l, DWORD h){
+    win32_timer_t* tm = (win32_timer_t*)timer;
+    tm->caller(tm->state);
+}
+
+int /* = err */
+win32_timer_create(void* out_timer){
+    win32_timer_t* tm;
+    tm = (win32_timer_t*)malloc(sizeof(win32_timer_t));
+    if(!tm){
+        return -1;
+    }
+    tm->caller = NULL;
+    tm->state = NULL;
+    tm->h = CreateWaitableTimer(NULL, FALSE, NULL);
+    if(!tm->h){
+        free(tm);
+        return GetLastError();
+    }
+    out_timer = tm;
+    return 0;
+}
+
+/* Mode = 0 .. Absolute to UTC
+ *        1 .. Relative */
+int /* = err */
+win32_timer_set(void* timer, int mode, int time_hi, int time_lo,
+                int interval /* ms */, void* caller, void* caller_state){
+    long long lltime;
+    win32_timer_t* tm = (win32_timer_t*)timer;
+    LARGE_INTEGER time;
+    if(!timer){
+        return -1;
+    }
+
+    lltime = (((uint64_t)time_hi)<<32) + (uint64_t)time_lo;
+    /* Create time value from mode and due time */
+    switch(mode){
+        case 0:
+            time.QuadPart = lltime;
+            break;
+        case 1:
+            time.QuadPart = -lltime;
+            break;
+        default: /* Invalid argument */
+            return -1;
+    }
+    if(!SetWaitableTimer(tm->h, &time, interval, &win32_timer_callback,
+                         timer, TRUE)){
+        return GetLastError();
+    }else{
+        return 0;
+    }
+}
+
+int /* = err */
+win32_timer_cancel(void* timer){
+    win32_timer_t* tm = (win32_timer_t*)timer;
+    if(!CancelWaitableTimer(tm->h)){
+        return GetLastError();
+    }else{
+        return 0;
+    }
+}
+
+int
+win32_timer_destroy(void* timer){
+    win32_timer_t* tm = (win32_timer_t*)timer;
+    if(!timer){
+        return -1;
+    }
+    CloseHandle(tm->h);
+    free(timer);
+    return 0;
+}
+
 
 /* windows sockets */
 int

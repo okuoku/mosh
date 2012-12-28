@@ -1013,8 +1013,14 @@ set(MOSHPLUGIN_SDL_NMOSH_DIR "${CMAKE_CURRENT_LIST_DIR}/../SDL" CACHE STRING "pa
 if(MOSHPLUGIN_SDL)
     if(MOSHPLUGIN_SDL_WITH_NMOSH)
         if(WIN32) # Favor static library on Win32 to avoid pull-in of SDL1
+            add_definitions(-DDECLSPEC=) # Magic. Not export SDL functions.
             set(SDL_STATIC ON CACHE BOOL "Forced by nmosh")
             set(SDL_LIBS SDL2-static)
+            if(MOSH64)
+                link_directories($ENV{DXSDK_DIR}\\lib\\x64)
+            else()
+                link_directories($ENV{DXSDK_DIR}\\lib\\x86)
+            endif()
         else()
             set(SDL_SHARED ON CACHE BOOL "Forced by nmosh")
             set(SDL_LIBS SDL2)

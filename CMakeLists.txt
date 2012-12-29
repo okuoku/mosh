@@ -45,6 +45,7 @@ add_plugin(mosh_curses src/nmosh/ext/curses)
 add_plugin(mosh_gobj src/nmosh/ext/gobject)
 add_plugin(mosh_cairo src/nmosh/ext/cairo)
 add_plugin(mosh_usb src/nmosh/ext/libusb1)
+add_plugin(mosh_groonga src/nmosh/ext/groonga)
 
 # MOSH
 
@@ -753,15 +754,6 @@ macro(generate_applet appletname)
 endmacro(generate_applet)
 
 # generate_applet(debug-expand)
-
-# Groonga
-option(MOSHPLUGIN_GROONGA "build nmosh groonga plugin" OFF)
-if(MOSHPLUGIN_GROONGA)
-    add_mosh_plugin(mosh_groonga src/nmosh/ext/groonga/mgrn.c)
-    include_directories(AFTER ${MOSHPLUGIN_GROONGA_DIR}/include)
-    add_subdirectory(${MOSHPLUGIN_GROONGA_DIR} EXCLUDE_FROM_ALL nmosh-groonga)
-    target_link_libraries(mosh_groonga libgroonga)
-endif()
 
 # Win32 plugins
 if(WIN32)

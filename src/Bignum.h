@@ -92,19 +92,50 @@ public:
         mpz_clear(value_);
     }
 
-#ifndef _WIN64
+    Bignum(int value)
+    {
+        mpz_init(value_);
+        mpz_set_si(value_, value);
+    }
     Bignum(long value)
     {
         mpz_init(value_);
         mpz_set_si(value_, value);
     }
-#else // Win64 requires this...
-    Bignum(intptr_t value)
+    Bignum(unsigned int value)
     {
         mpz_init(value_);
-        mpz_import(value_, 1, -1, sizeof(intptr_t), -1, 0, &value);
+        mpz_set_ui(value_, value);
     }
-#endif
+    Bignum(unsigned long int value)
+    {
+        mpz_init(value_);
+        mpz_set_ui(value_, value);
+    }
+    Bignum(long long int value)
+    {
+        mpz_init(value_);
+        if(sizeof(long long) != sizeof(long)){
+            mpz_import(value_, 1, -1 /* Little endian */, 
+                       sizeof(long long), 
+                       0/* Native endianness */, 
+                       0, &value);
+        }else{
+            mpz_set_si(value_, (long)value);
+        }
+    }
+    Bignum(unsigned long long int value)
+    {
+        mpz_init(value_);
+        if(sizeof(long long) != sizeof(long)){
+            mpz_import(value_, 1, -1 /* Little endian */, 
+                       sizeof(long long), 
+                       0/* Native endianness */, 
+                       0, &value);
+        }else{
+            mpz_set_ui(value_, (unsigned long)value);
+        }
+    }
 
     char* toString(int radix = 10) const
     {
@@ -778,7 +809,32 @@ public:
     }
 };
 
-inline Object Object::makeBignum(intptr_t n)
+inline Object Object::makeBignum(int n)
+{
+    return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::Bignum,
+                                                        reinterpret_cast<intptr_t>(new Bignum(n)))));
+}
+inline Object Object::makeBignum(long int n)
+{
+    return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::Bignum,
+                                                        reinterpret_cast<intptr_t>(new Bignum(n)))));
+}
+inline Object Object::makeBignum(long long int n)
+{
+    return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::Bignum,
+                                                        reinterpret_cast<intptr_t>(new Bignum(n)))));
+}
+inline Object Object::makeBignum(unsigned int n)
+{
+    return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::Bignum,
+                                                        reinterpret_cast<intptr_t>(new Bignum(n)))));
+}
+inline Object Object::makeBignum(unsigned long int n)
+{
+    return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::Bignum,
+                                                        reinterpret_cast<intptr_t>(new Bignum(n)))));
+}
+inline Object Object::makeBignum(unsigned long long int n)
 {
     return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::Bignum,
                                                         reinterpret_cast<intptr_t>(new Bignum(n)))));

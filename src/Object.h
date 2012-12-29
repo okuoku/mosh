@@ -185,7 +185,12 @@ public:
     static Object* makeObjectArray(int size);
     static Object* makeObjectArrayLocal(int size);
     static Object makeFixnum(fixedint n);
-    static Object makeBignum(intptr_t n);
+    static Object makeBignum(int n);
+    static Object makeBignum(long int n);
+    static Object makeBignum(long long int n);
+    static Object makeBignum(unsigned int n);
+    static Object makeBignum(unsigned long int n);
+    static Object makeBignum(unsigned long long int n);
     static Object makeBignum(Bignum* b);
     static Object makeFlonum(double value);
     static Object makeRaw(intptr_t n);

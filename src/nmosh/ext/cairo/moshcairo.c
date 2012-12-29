@@ -260,7 +260,7 @@ mc_kick(cairo_t* cr,const unsigned char* ops,int count_ops,void* objs[],int coun
             case Matrix_Copy:
                 M(m);
                 M(m0);
-                m = m0;
+                *m = *m0;
                 break;
         }
     }

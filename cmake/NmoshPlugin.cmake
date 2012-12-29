@@ -14,7 +14,7 @@ macro(add_mosh_plugin nam)
     install(TARGETS ${nam} DESTINATION plugins)
 endmacro(add_mosh_plugin)
 
-macro(add_nmosh_plugin nam)
+macro(do_add_nmosh_plugin nam)
     set(_nulargs
         NODEFAULT)
     set(_multiargs
@@ -62,5 +62,11 @@ macro(add_nmosh_plugin nam)
     else()
         install(TARGETS ${nam} DESTINATION plugins)
     endif()
-endmacro(add_nmosh_plugin)
+endmacro(do_add_nmosh_plugin)
 
+macro(add_nmosh_plugin nam)
+    if(NMOSHPLUGIN_${nam}_BUILD)
+        project(${nam})
+        do_add_nmosh_plugin(${nam} ${ARGN})
+    endif()
+endmacro(add_nmosh_plugin)

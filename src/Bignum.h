@@ -330,15 +330,17 @@ public:
 
     Object bitwiseBitCount() const
     {
-        if (gt(this, 0)) {
-            return makeInteger((uintptr_t)mpz_popcount(value_));
+        if (ge(this, 0)) {
+            return makeInteger(mpz_popcount(value_));
         } else {
             mpz_t temp;
             mpz_init(temp);
             mpz_com(temp, value_);
-            const uintptr_t ret = mpz_popcount(temp);
+            // FIXME: It does not handle bitcounts >long
+            const ssize_t zero = 0;
+            const size_t ret = mpz_popcount(temp);
             mpz_clear(temp);
-            return makeInteger(~ret);
+            return makeInteger(zero - (ssize_t)(ret+1));
         }
     }
 
@@ -603,7 +605,7 @@ public:
         mpz_t ret;
         mpz_init_set_ui(ret, n >> 32);
         mpz_mul_2exp(ret, ret, 32);
-        mpz_add_ui(ret, ret, (n & 0xffffffff));
+        mpz_add_ui(ret, ret, (n & 0xffffffffUL));
         return makeInteger(ret);
     }
 
@@ -612,7 +614,7 @@ public:
         mpz_t ret;
         mpz_init_set_si(ret, n >> 32);
         mpz_mul_2exp(ret, ret, 32);
-        const unsigned int val = n & 0xffffffff;
+        const unsigned int val = n & 0xffffffffUL;
         mpz_add_ui(ret, ret, val);
         return makeInteger(ret);
     }

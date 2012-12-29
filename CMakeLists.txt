@@ -44,6 +44,7 @@ add_plugin(mosh_opencl src/nmosh/ext/khronos/OpenCL)
 add_plugin(mosh_curses src/nmosh/ext/curses)
 add_plugin(mosh_gobj src/nmosh/ext/gobject)
 add_plugin(mosh_cairo src/nmosh/ext/cairo)
+add_plugin(mosh_usb src/nmosh/ext/libusb1)
 
 # MOSH
 
@@ -752,48 +753,6 @@ macro(generate_applet appletname)
 endmacro(generate_applet)
 
 # generate_applet(debug-expand)
-
-# libusb
-if(PKG_CONFIG_FOUND)
-    # check module with pkgconfig
-    pkg_check_modules(PKG_LIBUSB1 libusb-1.0)
-endif()
-
-if(PKG_LIBUSB1_FOUND)
-    link_directories(${PKG_LIBUSB1_LIBRARY_DIRS})
-    set(LIBUSB1_LIBRARY ${PKG_LIBUSB1_LIBRARIES})
-    set(LIBUSB1_INCLUDE_DIR ${PKG_LIBUSB1_INCLUDE_DIRS})
-elseif(WIN32)
-    set(MOSHWIN32_LIBUSB1_PREFIX CACHE PATH "libusbx-win package prefix")
-    if(MOSHWIN32_LIBUSB1_PREFIX)
-        if(MSVC)
-            set(LIBUSB1_LIBRARY 
-                ${MOSHWIN32_LIBUSB1_PREFIX}/MS32/static/libusb-1.0.lib)
-        else()
-            set(LIBUSB1_LIBRARY
-                ${MOSHWIN32_LIBUSB1_PREFIX}/MinGW32/static/libusb-1.0.a)
-        endif()
-        set(LIBUSB1_INCLUDE_DIR
-            ${MOSHWIN32_LIBUSB1_PREFIX}/include/libusbx-1.0)
-    else()
-        message("libusb missing(MOSHWIN32_LIBUSB1_PREFIX)")
-    endif()
-else()
-    # Detect FreeBSD libusb
-    find_library(LIBUSB1_LIBRARY usb)
-endif()
-
-if(LIBUSB1_LIBRARY)
-    option(MOSHPLUGIN_LIBUSB1 "build nmosh libusb-1.0 plugin" ON)
-else()
-    option(MOSHPLUGIN_LIBUSB1 "build nmosh libusb-1.0 plugin" OFF)
-endif()
-
-if(MOSHPLUGIN_LIBUSB1)
-    add_mosh_plugin(mosh_usb src/nmosh/ext/libusb1/libusb1.c)
-    include_directories(AFTER ${LIBUSB1_INCLUDE_DIR})
-    target_link_libraries(mosh_usb ${LIBUSB1_LIBRARY})
-endif()
 
 # Groonga
 option(MOSHPLUGIN_GROONGA "build nmosh groonga plugin" OFF)

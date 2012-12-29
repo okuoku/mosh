@@ -1,6 +1,7 @@
 #include <nmosh/plugin-if.h>
 #include <glib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 static uintptr_t
 waitloop(uintptr_t in0, uintptr_t in1, uintptr_t* out0,uintptr_t* out1){

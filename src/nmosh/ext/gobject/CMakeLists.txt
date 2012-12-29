@@ -19,6 +19,6 @@ if(_build)
     add_nmosh_plugin(mosh_gobj 
         LINK_LIBRARIES 
         ${GTK2_GLIB_LIBRARY} ${GTK2_GOBJECT_LIBRARY} ${GTK2_GTHREAD_LIBRARY}
-        C_SOURCES src/nmosh/ext/gobject/mgobj.c)
+        C_SOURCES mgobj.c)
 endif()
 

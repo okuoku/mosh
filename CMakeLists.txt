@@ -43,6 +43,7 @@ add_plugin(mosh_sdl src/nmosh/ext/sdl)
 add_plugin(mosh_opencl src/nmosh/ext/khronos/OpenCL)
 add_plugin(mosh_curses src/nmosh/ext/curses)
 add_plugin(mosh_gobj src/nmosh/ext/gobject)
+add_plugin(mosh_cairo src/nmosh/ext/cairo)
 
 # MOSH
 
@@ -751,67 +752,6 @@ macro(generate_applet appletname)
 endmacro(generate_applet)
 
 # generate_applet(debug-expand)
-
-# Cairo
-
-# Don't use pkg-config to search cairo iff GStreamer SDK available
-if(PKG_CONFIG_FOUND AND NOT GST_FRAMEWORK)
-    pkg_check_modules(PKG_CAIRO cairo)
-endif()
-
-if(PKG_CAIRO_FOUND)
-    # Use pkg-config data
-    link_directories(${PKG_CAIRO_LIBRARY_DIRS})
-    set(CAIRO_LIBRARY ${PKG_CAIRO_LIBRARIES})
-    set(CAIRO_INCLUDE_DIR ${PKG_CAIRO_INCLUDE_DIRS})
-elseif(GST_FRAMEWORK)
-    set(CAIRO_INCLUDE_DIR ${GST_FRAMEWORK})
-    set(CAIRO_LIBRARY ${GST_FRAMEWORK}/Libraries/libcairo.dylib)
-    add_definitions(-DHAVE_CAIRO_H)
-else()
-    # handwritten..
-
-    set(CAIRO_LIBS "" CACHE STRING "additional cairo libraries")
-
-    if(MSVC)
-        set(CAIROLIB "cairo.lib")
-    else()
-        if(APPLE)
-            set(CAIROLIB "libcairo.dylib")
-        else()
-            set(CAIROLIB "libcairo.so")
-        endif()
-    endif()
-
-    find_path(CAIRO_INCLUDE_DIR cairo/cairo.h)
-    if(CAIRO_INCLUDE_DIR)
-        set(HAVE_CAIRO_CAIRO_H 1)
-        add_definitions(-DHAVE_CAIRO_CAIRO_H)
-    else()
-        find_path(CAIRO_INCLUDE_DIR cairo.h)
-        if(CAIRO_INCLUDE_DIR)
-            add_definitions(-DHAVE_CAIRO_H)
-        endif()
-    endif()
-
-    find_library(CAIRO_LIBRARY ${CAIROLIB})
-
-    if(NOT CAIRO_LIBRARY AND GTK2_CAIRO_LIBRARY)
-        set(CAIRO_LIBRARY ${GTK2_CAIRO_LIBRARY})
-    endif()
-endif()
-
-if(PKG_CAIRO_FOUND OR CAIRO_INCLUDE_DIR)
-    option(MOSHPLUGIN_CAIRO "build nmosh cairo 2D vector graphics plugin" ON)
-else()
-    option(MOSHPLUGIN_CAIRO "build nmosh cairo 2D vector graphics plugin" OFF)
-endif()
-
-if(MOSHPLUGIN_CAIRO)
-    add_mosh_plugin(mosh_cairo src/nmosh/ext/cairo/moshcairo.c)
-    target_link_libraries(mosh_cairo ${CAIRO_LIBS} ${CAIRO_LIBRARY})
-    include_directories(AFTER ${CAIRO_INCLUDE_DIR})
-endif()
 
 # libusb
 if(PKG_CONFIG_FOUND)

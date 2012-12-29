@@ -12,16 +12,13 @@ endmacro(target_link_nmosh_plugin)
 
 macro(add_nmosh_plugin_directory0 default_p prefer_embded_p 
         nam dir)
-    option(NMOSHPLUGIN_${nam}_BUILD
-        "Build nmosh plugin ${nam}" ${default_p})
+    # FIXME: Handle default_p
+    add_subdirectory(${dir} ${nam})
     option(NMOSHPLUGIN_${nam}_EMBED
-        "Embed nmosh plugin ${nam}" ${prefer_embded_p})
-    if(NMOSHPLUGIN_${nam}_BUILD)
-        add_subdirectory(${dir} ${nam})
-    endif()
+        "Embed nmosh plugin ${nam}" OFF)
 endmacro(add_nmosh_plugin_directory0)
 
 macro(add_nmosh_plugin_directory default_p nam dir)
-    add_nmosh_plugin_directory0(OFF ${default_p}
+    add_nmosh_plugin_directory0(${default_p} OFF
         ${nam} ${dir})
 endmacro(add_nmosh_plugin_directory)

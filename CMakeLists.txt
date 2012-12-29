@@ -41,6 +41,7 @@ endmacro(add_plugin)
 
 add_plugin(mosh_sdl src/nmosh/ext/sdl)
 add_plugin(mosh_opencl src/nmosh/ext/khronos/OpenCL)
+add_plugin(mosh_curses src/nmosh/ext/curses)
 
 # MOSH
 
@@ -749,41 +750,6 @@ macro(generate_applet appletname)
 endmacro(generate_applet)
 
 # generate_applet(debug-expand)
-
-# Curses
-find_package( Curses )
-
-
-if(CURSES_FOUND)
-    option(MOSHPLUGIN_CURSES "build nmosh curses plugin" ON)
-else(CURSES_FOUND)
-    option(MOSHPLUGIN_CURSES "build nmosh curses plugin" OFF)
-    if(WIN32)
-        option(MOSHPLUGIN_CURSES_WITH_NMOSH "build nmosh flavor of pdcurses win32a" OFF)
-        set(MOSHPLUGIN_CURSES_NMOSH_DIR "${CMAKE_CURRENT_LIST_DIR}/../nmosh-pdcurses" CACHE STRING "path to nmosh-pdcurses") 
-    endif()
-endif(CURSES_FOUND)
-
-if(MOSHPLUGIN_CURSES)
-    add_mosh_plugin(mosh_curses src/nmosh/ext/curses/mosh_curses.c)
-    if(CURSES_LIBRARIES)
-        target_link_libraries(mosh_curses ${CURSES_LIBRARIES})
-        include_directories(AFTER ${CURSES_INCLUDE_DIR})
-    elseif(MOSHPLUGIN_CURSES_WITH_NMOSH)
-        if(EXISTS ${MOSHPLUGIN_CURSES_NMOSH_DIR})
-            add_mosh_plugin(mosh_curses_cui src/nmosh/ext/curses/mosh_curses.c)
-            add_subdirectory(${MOSHPLUGIN_CURSES_NMOSH_DIR} pdcurses) # => pdcurses_win32a
-            target_link_libraries(mosh_curses_cui pdcurses_win32)
-            target_link_libraries(mosh_curses pdcurses_win32a)
-            include_directories(AFTER ${MOSHPLUGIN_CURSES_NMOSH_DIR})
-        else()
-            message(FATAL_ERROR "Set MOSHPLUGIN_CURSES_NMOSH_DIR to nmosh-pdcurses directory.")
-        endif()
-    else()
-        target_link_libraries(mosh_curses ${CURSES_LIBRARY})
-        include_directories(AFTER ${CURSES_INCLUDE_PATH})
-    endif()
-endif(MOSHPLUGIN_CURSES)
 
 # GTK2
 find_package(GTK)

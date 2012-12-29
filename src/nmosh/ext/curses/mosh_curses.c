@@ -1,4 +1,4 @@
-#include "config.h"
+#include <nmosh/plugin-if.h>
 #include <stdint.h>
 #include <wchar.h>
 

@@ -10,13 +10,22 @@ macro(add_mosh_plugin nam)
 endmacro(add_mosh_plugin)
 
 macro(add_nmosh_plugin nam)
+    set(_nulargs
+        NODEFAULT)
     set(_multiargs
         C_SOURCES LINK_LIBRARIES LINK_DIRECTORIES)
     cmake_parse_arguments(NMOSH_PLUGIN
-        ""
+        "${_nulargs}"
         ""
         "${_multiargs}"
         ${ARGN})
+    if(NMOSH_PLUGIN_NODEFAULT)
+        set(_default OFF)
+    else()
+        set(_default ON)
+    endif()
+    option(NMOSHPLUGIN_${nam}_BUILD
+        "Build nmosh plugin ${nam}" ${_default})
     if(NMOSHPLUGIN_${nam}_EMBED)
         add_definitions(-DNMOSHPLUGIN_EMBED)
         set(_disposition STATIC)

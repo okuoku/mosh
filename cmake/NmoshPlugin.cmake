@@ -36,8 +36,8 @@ macro(add_nmosh_plugin nam)
         set(_disposition MODULE)
         set(_folder Plugins)
     endif()
-    add_library(${nam} ${_disposition} ${NMOSH_PLUGIN_C_SOURCES})
     link_directories(${NMOSH_PLUGIN_LINK_DIRECTORIES})
+    add_library(${nam} ${_disposition} ${NMOSH_PLUGIN_C_SOURCES})
     target_link_libraries(${nam} ${NMOSH_PLUGIN_LINK_LIBRARIES})
     set_target_properties(${nam} PROPERTIES
         FOLDER ${_folder}

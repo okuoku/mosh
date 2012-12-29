@@ -1,3 +1,8 @@
+# FIXME: Each plugin should handle it, not globally..
+if(NOT WIN32)
+    find_package(PkgConfig)
+endif()
+
 include(CMakeParseArguments)
 # FIXME: Legacy!
 macro(add_mosh_plugin nam)

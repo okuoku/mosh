@@ -1,4 +1,4 @@
-#include "config.h"
+#include <nmosh/plugin-if.h>
 #include "moshcairo.h"
 #ifdef HAVE_CAIRO_H
 #include <cairo.h> /* For GStreamer SDK */

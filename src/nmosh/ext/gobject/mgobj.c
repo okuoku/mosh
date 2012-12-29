@@ -1,5 +1,5 @@
+#include <nmosh/plugin-if.h>
 #include <glib.h>
-#include "config.h"
 #include <stdio.h>
 
 static uintptr_t

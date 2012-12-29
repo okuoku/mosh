@@ -17,14 +17,20 @@ elseif(WIN32)
     set(NMOSH_LIBUSB1_PREFIX CACHE PATH "libusbx-win package prefix")
     if(NMOSH_LIBUSB1_PREFIX)
         if(MSVC)
-            set(LIBUSB1_LIBRARY
-                ${MOSHWIN32_LIBUSB1_PREFIX}/MS32/static/libusb-1.0.lib)
+            if(MOSH32)
+                set(LIBUSB1_LIBRARY
+                    ${NMOSH_LIBUSB1_PREFIX}/MS32/static/libusb-1.0.lib)
+            else()
+                set(LIBUSB1_LIBRARY
+                    ${NMOSH_LIBUSB1_PREFIX}/MS64/static/libusb-1.0.lib)
+            endif()
+
         else()
             set(LIBUSB1_LIBRARY
-                ${MOSHWIN32_LIBUSB1_PREFIX}/MinGW32/static/libusb-1.0.a)
+                ${NMOSH_LIBUSB1_PREFIX}/MinGW32/static/libusb-1.0.a)
         endif()
         set(LIBUSB1_INCLUDE_DIR
-            ${MOSHWIN32_LIBUSB1_PREFIX}/include/libusbx-1.0)
+            ${NMOSH_LIBUSB1_PREFIX}/include/libusbx-1.0)
     else()
         message(STATUS "libusb missing(NMOSH_LIBUSB1_PREFIX)")
     endif()

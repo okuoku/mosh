@@ -1,5 +1,4 @@
-#include "config.h"
-
+#include <nmosh/plugin-if.h>
 #include <windows.h>
 #include <mmsystem.h>
 

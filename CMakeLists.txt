@@ -12,8 +12,6 @@ include(CheckFunctionExists)
 include(CheckTypeSize)
 ENABLE_TESTING()
 
-find_package(PkgConfig)
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # mosh/nmosh select
@@ -49,7 +47,9 @@ add_plugin(mosh_groonga src/nmosh/ext/groonga)
 if(WIN32)
     add_plugin(mosh_winmm src/nmosh/win32/plugins/mm)
 endif()
-# MOSH
+
+
+# MOSH Core
 
 # only ONE runtime source will be allowed.
 set(nmosh_runtime_src

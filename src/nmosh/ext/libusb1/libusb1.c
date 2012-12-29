@@ -1,4 +1,3 @@
-#include "config.h"
 #include <nmosh/plugin-if.h>
 #include <libusb.h>
 
@@ -23,21 +22,21 @@ MOSHEXPORT
 int
 musb_configuration_set(void* p, int c){
     int r;
-    r = libusb_set_configuration((libusb_device_handle)p,c);
+    r = libusb_set_configuration((libusb_device_handle*)p,c);
     return r;
 }
 MOSHEXPORT
 int
 musb_interface_claim(void* p, int ifnum){
     int r;
-    r = libusb_claim_interface((libusb_device_handle)p, ifnum);
+    r = libusb_claim_interface((libusb_device_handle*)p, ifnum);
     return r;
 }
 MOSHEXPORT
 int
 musb_interface_release(void* p, int ifnum){
     int r;
-    r = libusb_release_interface((libusb_device_handle)p, ifnum);
+    r = libusb_release_interface((libusb_device_handle*)p, ifnum);
     return r;
 }
 
@@ -51,6 +50,7 @@ musb_device_close(void* p){
 MOSHEXPORT
 int
 musb_device_open(void* p, void** out_handle){
+    libusb_device* dev = (libusb_device*)p;
     libusb_device_handle* h;
     int r;
     r = libusb_open(dev,&h);
@@ -82,14 +82,14 @@ musb_device_list_query(void* p, int* out_vid, int* out_pid,
         *out_pathlen = 0;
         return -1;
     }
-    i = libusb_get_deivce_descriptor(dev, &desc);
+    i = libusb_get_device_descriptor(dev, &desc);
     if(i == 0){
         *out_vid = desc.idVendor;
         *out_pid = desc.idProduct;
         *out_class = desc.bDeviceClass;
         *out_subclass = desc.bDeviceSubClass;
-        *out_proto = desc.bDeviceProtocol;
-        *out_ep0size = desc.bMacPacketSize0;
+        *out_protocol = desc.bDeviceProtocol;
+        *out_ep0size = desc.bMaxPacketSize0;
     }else{
         return -1;
     }
@@ -104,7 +104,7 @@ musb_device_list_get(void* dest){
     return count;
 }
 MOSHEXPORT
-int
+void
 musb_device_list_dispose(void* p){
     libusb_free_device_list((libusb_device **)p,1);
 }

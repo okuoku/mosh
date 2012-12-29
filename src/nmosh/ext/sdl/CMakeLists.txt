@@ -7,14 +7,6 @@ set(NMOSH_WITH_SDL CACHE PATH "Path to SDL2 directory")
 
 # SDL2 Plugin
 if(NMOSH_WITH_SDL)
-    option(NMOSHPLUGIN_mosh_sdl_WITH_NMOSH 
-        "build nmosh flavor of SDL2" ON)
-else()
-    option(NMOSHPLUGIN_mosh_sdl_WITH_NMOSH 
-        "build nmosh flavor of SDL2" OFF)
-endif()
-
-if(NMOSHPLUGIN_mosh_sdl_WITH_NMOSH)
     project(mosh_sdl)
     set(_linkdir "")
     if(WIN32) # Favor static library on Win32 to avoid pull-in of SDL1

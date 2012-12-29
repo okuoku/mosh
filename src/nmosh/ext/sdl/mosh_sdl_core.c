@@ -1,6 +1,6 @@
 /* SDL mainloop and Window handler */
 
-#include "config.h"
+#include <nmosh/plugin-if.h>
 #include <stdlib.h>
 #include "SDL.h"
 

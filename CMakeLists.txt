@@ -1,26 +1,11 @@
 # please check doc/README.CMake for instructions
-
-set(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
-cmake_minimum_required(VERSION 2.8)
-
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
-# FIXME: trick
-if(APPLE)
-    # Enforce Clang for XCode
-    set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION com.apple.compilers.llvm.clang.1_0)
-    # Enforce Clang for Makefiles/Ninja
-    if(NOT CMAKE_C_COMPILER)
-        set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE PATH
-            "Enfoced by mosh")
-    endif()
-    if(NOT CMAKE_CXX_COMPILER)
-        set(CMAKE_CXX_COMPILER "/usr/bin/clang++" CACHE PATH
-            "Enforced by mosh")
-    endif()
-endif()
-
+cmake_minimum_required(VERSION 2.8)
 PROJECT(mosh)
+include(MoshGlobals)
+include(NmoshPlugin) # FIXME: Remove it when add_mosh_plugin retired
+include(NmoshPluginHost)
 include(CheckIncludeFile)
 include(CheckFunctionExists)
 include(CheckTypeSize)
@@ -37,24 +22,14 @@ option(MOSH_PREFIXLESS "build prefix-less version of mosh interpreter" ON)
 option(MOSH_PRELOAD_CORE "always use precompiled base library" OFF)
 if(WIN32)
 option(MOSH_WITH_NMOSH_GUI "build GUI version of mosh interpreter" OFF)
-set(MOSH_GUI_EXECUTABLE_NAME "nmoshw" CACHE STRING "GUI Interpreter executable name")
+set(MOSH_GUI_EXECUTABLE_NAME "nmoshw" 
+    CACHE STRING "GUI interpreter executable name")
 endif()
 option(MOSH_DEBUG_VERSION "build Debug version of mosh interpreter" OFF)
 option(MOSH_GC_PARALLEL_MARK "Boehm GC: Turn on parallel-marking" OFF)
 set(MOSH_EXECUTABLE_NAME "nmosh" CACHE STRING "Interpreter executable name")
 
 # Configuration
-
-# Detect Win64 or other 64bit
-if(NOT CMAKE_SIZEOF_VOID_P)
-    message(WARNING "CMAKE_SIZEOF_VOID_P was not defined!!")
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(MOSH64 1)
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set(MOSH32 1)
-else()
-    message(WARNING "Unsupported pointer size!(${CMAKE_SIZEOF_VOID_P}")
-endif()
 
 # Pick-up GStreamer SDK from fluendo
 
@@ -98,6 +73,15 @@ if(APPLE)
             "Using GStreamer Framework")
     endif()
 endif()
+
+# Plugins
+nmosh_plugin_reset()
+include_directories(src/nmosh/include)
+macro(add_plugin nam dir)
+    add_nmosh_plugin_directory(OFF ${nam} ${dir})
+endmacro(add_plugin)
+
+add_plugin(mosh_sdl src/nmosh/ext/sdl)
 
 # MOSH
 
@@ -319,7 +303,8 @@ if(APPLE)
 elseif(WIN32)
     if(CMAKE_HOST_WIN32)
         set(GMP_SEARCH false)
-        set(MOSH_GMP_DIR CACHE PATH "path to MPIR library (mpir-2.X.X/[lib|dll]/Win32/[Debug|Release])")
+        set(MOSH_GMP_DIR CACHE PATH 
+            "path to MPIR library (mpir-2.X.X/[lib|dll]/Win32/[Debug|Release])")
         set(GMP_INCLUDE_DIR ${MOSH_GMP_DIR})
         if(MSVC)
             set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.lib)
@@ -469,7 +454,12 @@ ${MOSH_ONIG_DIR}/enc/cp1251.c
 
 # mosh
 
-include_directories(${PROJECT_BINARY_DIR}/cmake extlibs/gc/include extlibs/libatomic_ops/src src ${GMP_INCLUDE_DIR} ${MOSH_ONIG_DIR} ${ARCH_INCLUDE}
+include_directories(${PROJECT_BINARY_DIR}/cmake 
+    extlibs/gc/include 
+    extlibs/libatomic_ops/src src 
+    ${GMP_INCLUDE_DIR} 
+    ${MOSH_ONIG_DIR} 
+    ${ARCH_INCLUDE}
     src/nmosh/include)
 
 if(XCODE)
@@ -750,6 +740,7 @@ add_executable(${MOSH_EXECUTABLE_NAME}
     ${mosh_core_hdrs}
     ${mosh_runtime_src}
     src/main.cpp)
+target_link_nmosh_plugin(${MOSH_EXECUTABLE_NAME})
 target_link_libraries(${MOSH_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
 
 if(MOSH_PORTABLE)
@@ -766,6 +757,7 @@ if(MOSH_WITH_NMOSH_GUI)
     ${mosh_core_hdrs}
     ${mosh_runtime_src}
     src/nmosh/win32/winmain.cpp)
+target_link_nmosh_plugin(${MOSH_GUI_EXECUTABLE_NAME})
 target_link_libraries(${MOSH_GUI_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
 
 if(MOSH_PORTABLE)
@@ -796,17 +788,6 @@ macro(generate_applet appletname)
 endmacro(generate_applet)
 
 # generate_applet(debug-expand)
-
-# Plugins
-macro(add_mosh_plugin nam)
-    add_library(${nam} MODULE ${ARGN})
-    set_target_properties(${nam} PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY "plugins"
-        FOLDER Plugins
-        PREFIX ""
-        SUFFIX ".mplg")
-    install(TARGETS ${nam} DESTINATION plugins)
-endmacro(add_mosh_plugin)
 
 # OpenCL
 find_package( OpenCL )
@@ -1004,33 +985,6 @@ endif()
 if(WIN32)
     add_mosh_plugin(mosh_winmm src/nmosh/win32/plugins/mm/moshmm.c)
     target_link_libraries(mosh_winmm winmm)
-endif()
-
-# SDL2 Plugin
-option(MOSHPLUGIN_SDL "build nmosh SDL2 plugin" OFF)
-option(MOSHPLUGIN_SDL_WITH_NMOSH "build nmosh flavor of SDL2" OFF)
-set(MOSHPLUGIN_SDL_NMOSH_DIR "${CMAKE_CURRENT_LIST_DIR}/../SDL" CACHE STRING "path to SDL2 repository") 
-if(MOSHPLUGIN_SDL)
-    if(MOSHPLUGIN_SDL_WITH_NMOSH)
-        if(WIN32) # Favor static library on Win32 to avoid pull-in of SDL1
-            add_definitions(-DDECLSPEC=) # Magic. Not export SDL functions.
-            set(SDL_STATIC ON CACHE BOOL "Forced by nmosh")
-            set(SDL_LIBS SDL2-static)
-            if(MOSH64)
-                link_directories($ENV{DXSDK_DIR}\\lib\\x64)
-            else()
-                link_directories($ENV{DXSDK_DIR}\\lib\\x86)
-            endif()
-        else()
-            set(SDL_SHARED ON CACHE BOOL "Forced by nmosh")
-            set(SDL_LIBS SDL2)
-        endif()
-        add_subdirectory(${MOSHPLUGIN_SDL_NMOSH_DIR} SDL-nmosh EXCLUDE_FROM_ALL)
-        set(SDL_INCLUDE_DIR ${MOSHPLUGIN_SDL_NMOSH_DIR}/include)
-    endif()
-    add_mosh_plugin(mosh_sdl src/nmosh/ext/sdl/mosh_sdl_core.c)
-    include_directories(AFTER ${SDL_INCLUDE_DIR})
-    target_link_libraries(mosh_sdl ${SDL_LIBS})
 endif()
 
 # tests

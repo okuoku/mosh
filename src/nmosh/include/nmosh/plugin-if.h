@@ -1,6 +1,20 @@
 #ifndef __NMOSH__PLUGIN_IF_H
 #define __NMOSH__PLUGIN_IF_H
 
+/* Definitions */
+
+
+#if !defined(NMOSHPLUGIN_EMBED)
+#if defined(_WIN32)
+#define MOSHEXPORT __declspec(dllexport)
+#else
+#define MOSHEXPORT
+#endif
+#else
+#define MOSHEXPORT /* non export */
+#endif /* !NMOSHPLUGIN_EMBED */
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

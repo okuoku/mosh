@@ -46,7 +46,9 @@ add_plugin(mosh_gobj src/nmosh/ext/gobject)
 add_plugin(mosh_cairo src/nmosh/ext/cairo)
 add_plugin(mosh_usb src/nmosh/ext/libusb1)
 add_plugin(mosh_groonga src/nmosh/ext/groonga)
-
+if(WIN32)
+    add_plugin(mosh_winmm src/nmosh/win32/plugins/mm)
+endif()
 # MOSH
 
 # only ONE runtime source will be allowed.
@@ -754,12 +756,6 @@ macro(generate_applet appletname)
 endmacro(generate_applet)
 
 # generate_applet(debug-expand)
-
-# Win32 plugins
-if(WIN32)
-    add_mosh_plugin(mosh_winmm src/nmosh/win32/plugins/mm/moshmm.c)
-    target_link_libraries(mosh_winmm winmm)
-endif()
 
 # tests
 

@@ -42,6 +42,7 @@ endmacro(add_plugin)
 add_plugin(mosh_sdl src/nmosh/ext/sdl)
 add_plugin(mosh_opencl src/nmosh/ext/khronos/OpenCL)
 add_plugin(mosh_curses src/nmosh/ext/curses)
+add_plugin(mosh_gobj src/nmosh/ext/gobject)
 
 # MOSH
 
@@ -750,26 +751,6 @@ macro(generate_applet appletname)
 endmacro(generate_applet)
 
 # generate_applet(debug-expand)
-
-# GTK2
-find_package(GTK)
-find_package(GTK2)
-if(HAVE_GST_SDK)
-    option(MOSHPLUGIN_GOBJECT "build nmosh GObject plugin" ON)
-else()
-    option(MOSHPLUGIN_GOBJECT "build nmosh GObject plugin" OFF)
-endif()
-if(MOSHPLUGIN_GOBJECT)
-    add_mosh_plugin(mosh_gobj src/nmosh/ext/gobject/mgobj.c)
-    include_directories(AFTER ${GTK2_GLIB_INCLUDE_DIR})
-    if(NOT GTK2_GTHREAD_LIBRARY)
-        find_library(GTK2_GTHREAD_LIBRARY gthread-2.0)
-    endif()
-    target_link_libraries(mosh_gobj ${GTK2_GLIB_LIBRARY}
-        ${GTK2_GOBJECT_LIBRARY}
-        ${GTK2_GTHREAD_LIBRARY}
-        )
-endif()
 
 # Cairo
 

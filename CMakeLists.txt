@@ -40,6 +40,7 @@ macro(add_plugin nam dir)
 endmacro(add_plugin)
 
 add_plugin(mosh_sdl src/nmosh/ext/sdl)
+add_plugin(mosh_opencl src/nmosh/ext/khronos/OpenCL)
 
 # MOSH
 
@@ -748,31 +749,6 @@ macro(generate_applet appletname)
 endmacro(generate_applet)
 
 # generate_applet(debug-expand)
-
-# OpenCL
-find_package( OpenCL )
-if(OPENCL_FOUND)
-    option(MOSHPLUGIN_OPENCL "build nmosh OpenCL plugin" ON)
-else()
-    option(MOSHPLUGIN_OPENCL "build nmosh OpenCL plugin" OFF)
-endif()
-
-if(MOSHPLUGIN_OPENCL)
-    if(OPENCL_INCLUDE_DIRS)
-        add_definitions(-DHAVE_CL)
-        add_mosh_plugin(mosh_opencl src/nmosh/ext/khronos/OpenCL/mosh_opencl.c)
-        # FIXME: Workaround for AMD APP SDK
-        if(MINGW)
-            set_source_files_properties(src/nmosh/ext/khronos/OpenCL/mosh_opencl.c
-                PROPERTIES
-                COMPILE_FLAGS "-I\"${OPENCL_INCLUDE_DIRS}\""
-                )
-        else()
-            include_directories(AFTER ${OPENCL_INCLUDE_DIRS})
-        endif()
-        target_link_libraries(mosh_opencl ${OPENCL_LIBRARIES})
-    endif()
-endif(MOSHPLUGIN_OPENCL)
 
 # Curses
 find_package( Curses )

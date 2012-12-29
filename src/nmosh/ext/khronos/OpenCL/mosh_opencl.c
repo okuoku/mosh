@@ -1,4 +1,4 @@
-#include <config.h>
+#include <nmosh/plugin-if.h>
 
 #if defined(HAVE_CL)||defined(HAVE_CL_CL_H)||defined(HAVE_OPENCL_CL_H)
 #define __HAVE_CL 1

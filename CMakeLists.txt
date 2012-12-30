@@ -184,6 +184,7 @@ else() # so it is UNIX
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_definitions(-DMOSH_HOST_OS=\"linux\")
         add_definitions(-DGTEST_HAS_PTHREAD=0) # for GC
+        add_definitions(-D_GNU_SOURCE) # FIXME: Assume glibc here..
         set(arch_libs ${arch_libs} pthread dl)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
         add_definitions(-DMOSH_HOST_OS=\"bsd\")

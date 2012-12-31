@@ -337,10 +337,18 @@ public:
             mpz_init(temp);
             mpz_com(temp, value_);
             // FIXME: It does not handle bitcounts >long
+#ifdef _WIN32 // FIXME: why??
+            const SSIZE_T zero = 0;
+#else
             const ssize_t zero = 0;
+#endif
             const size_t ret = mpz_popcount(temp);
             mpz_clear(temp);
+#ifdef _WIN32 // FIXME: why??
+            return makeInteger(zero - (SSIZE_T)(ret+1));
+#else
             return makeInteger(zero - (ssize_t)(ret+1));
+#endif
         }
     }
 

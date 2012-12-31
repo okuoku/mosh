@@ -13,7 +13,7 @@ endmacro(target_link_nmosh_plugin)
 macro(add_nmosh_plugin_directory0 default_p prefer_embded_p 
         nam dir)
     # FIXME: Handle default_p
-    add_subdirectory(${dir} ${nam})
+    add_subdirectory(${dir} plugins/${nam})
     option(NMOSHPLUGIN_${nam}_EMBED
         "Embed nmosh plugin ${nam}" OFF)
 endmacro(add_nmosh_plugin_directory0)

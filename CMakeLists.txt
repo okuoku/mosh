@@ -878,24 +878,20 @@ INCLUDE(CPack)
 
 # Generate test script
 if(WIN32)
-    configure_file(cmake/testmosh.bat.in 
-        ${CMAKE_CURRENT_BINARY_DIR}/testmosh.bat
+    nmosh_config_uninstalled(cmake/testmosh.bat.in 
+        testmosh.bat
         @ONLY
         NEWLINE_STYLE DOS)
     if(EXISTS ${MOSH_GMP_DIR}/mpir.dll)
-        configure_file(${MOSH_GMP_DIR}/mpir.dll
-            ${CMAKE_CURRENT_BINARY_DIR}/mpir.dll
-            COPYONLY)
+        nmosh_dist_uninstalled(${MOSH_GMP_DIR}/mpir.dll)
     elseif(HAVE_GST_SDK) # GST SDK case
         set(_nam ${GMP_INCLUDE_DIR}/../bin/libgmp-10.dll)
         if(EXISTS ${_nam})
-            configure_file(${_nam}
-                ${CMAKE_CURRENT_BINARY_DIR}/libgmp-10.dll
-                COPYONLY)
+            nmosh_dist_uninstalled(${_nam})
         endif()
     endif()
 else()
-    configure_file(cmake/testmosh.sh.in 
-        ${CMAKE_CURRENT_BINARY_DIR}/testmosh.sh
+    nmosh_config_uninstalled(cmake/testmosh.sh.in 
+        testmosh.sh
         @ONLY)
 endif()

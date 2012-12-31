@@ -1,4 +1,5 @@
 # FIXME: Each plugin should handle it, not globally..
+include(NmoshPluginUtil)
 if(NOT WIN32)
     find_package(PkgConfig)
 endif()
@@ -42,17 +43,25 @@ macro(do_add_nmosh_plugin nam)
         set(_folder Plugins)
     endif()
     link_directories(${NMOSH_PLUGIN_LINK_DIRECTORIES})
-    add_library(${nam} ${_disposition} ${NMOSH_PLUGIN_C_SOURCES})
-    target_link_libraries(${nam} ${NMOSH_PLUGIN_LINK_LIBRARIES})
-    set_target_properties(${nam} PROPERTIES
-        FOLDER ${_folder}
-        PREFIX ""
-        SUFFIX ".mplg")
     if(NMOSHPLUGIN_${nam}_EMBED)
-        # We have no file to install
+        add_library(${nam} ${_disposition} ${NMOSH_PLUGIN_C_SOURCES})
     else()
+        set(_or ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+        set(_ol ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${NMOSH_UNINSTALLED_PATH})
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${NMOSH_UNINSTALLED_PATH})
+        add_library(${nam} ${_disposition} 
+            ${NMOSH_PLUGIN_C_SOURCES})
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_or})
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${_ol})
+        set_target_properties(${nam} PROPERTIES
+            FOLDER ${_folder}
+            PREFIX ""
+            SUFFIX ".mplg")
+        # Move library destination to the side of main executable
         install(TARGETS ${nam} DESTINATION plugins)
     endif()
+    target_link_libraries(${nam} ${NMOSH_PLUGIN_LINK_LIBRARIES})
 endmacro(do_add_nmosh_plugin)
 
 macro(add_nmosh_plugin nam)

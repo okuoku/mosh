@@ -1,3 +1,4 @@
+include(NmoshPluginUtil)
 macro(nmosh_plugin_reset)
     set(ZZNMOSHPLUGIN_ADDLIBS "" CACHE STRING "nmosh internal" FORCE) 
     set(ZZNMOSHPLUGIN_ADDLIBDIR "" CACHE STRING "nmosh internal" FORCE) 
@@ -22,3 +23,8 @@ macro(add_nmosh_plugin_directory default_p nam dir)
     add_nmosh_plugin_directory0(${default_p} OFF
         ${nam} ${dir})
 endmacro(add_nmosh_plugin_directory)
+
+# Configurable options
+set(NMOSH_UNINSTALLED_PATH ${CMAKE_CURRENT_BINARY_DIR}
+    CACHE PATH "Build path prefix for debugging uninstalled build")
+mark_as_advanced(NMOSH_UNINSTALLED_PATH)

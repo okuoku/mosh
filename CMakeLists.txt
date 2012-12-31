@@ -5,7 +5,6 @@ cmake_minimum_required(VERSION 2.8)
 PROJECT(mosh)
 include(MoshGlobals)
 include(NmoshGstSDK)
-include(NmoshPlugin) # FIXME: Remove it when add_mosh_plugin retired
 include(NmoshPluginHost)
 include(CheckIncludeFile)
 include(CheckFunctionExists)

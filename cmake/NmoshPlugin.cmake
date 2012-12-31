@@ -4,15 +4,6 @@ if(NOT WIN32)
 endif()
 
 include(CMakeParseArguments)
-# FIXME: Legacy!
-macro(add_mosh_plugin nam)
-    add_library(${nam} MODULE ${ARGN})
-    set_target_properties(${nam} PROPERTIES
-        FOLDER Plugins
-        PREFIX ""
-        SUFFIX ".mplg")
-    install(TARGETS ${nam} DESTINATION plugins)
-endmacro(add_mosh_plugin)
 
 macro(do_add_nmosh_plugin nam)
     set(_nulargs

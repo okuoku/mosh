@@ -184,7 +184,11 @@ else() # so it is UNIX
         add_definitions(-DMOSH_HOST_OS=\"linux\")
         add_definitions(-DGTEST_HAS_PTHREAD=0) # for GC
         add_definitions(-D_GNU_SOURCE) # FIXME: Assume glibc here..
-        set(arch_libs ${arch_libs} pthread dl)
+        if(ANDROID)
+            set(arch_libs ${arch_libs} dl)
+        else()
+            set(arch_libs ${arch_libs} pthread dl)
+        endif()
     elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
         add_definitions(-DMOSH_HOST_OS=\"bsd\")
         set(arch_libs ${arch_libs} pthread)
@@ -312,7 +316,6 @@ extlibs/gc/alloc.c
 extlibs/gc/blacklst.c
 extlibs/gc/checksums.c
 extlibs/gc/dbg_mlc.c
-extlibs/gc/dyn_load.c
 extlibs/gc/finalize.c
 extlibs/gc/gc_dlopen.c
 extlibs/gc/gcj_mlc.c
@@ -337,6 +340,9 @@ extlibs/gc/backgraph.c
 extlibs/gc/thread_local_alloc.c
 )
 
+set(gc_dyn_srcs
+    extlibs/gc/dyn_load.c)
+
 set(gc_pthread_srcs
 extlibs/gc/pthread_start.c
 extlibs/gc/pthread_support.c
@@ -352,19 +358,28 @@ extlibs/gc/win32_threads.c
 if(WIN32)
 set(gc_srcs
 ${gc_core_srcs}
+${gc_dyn_srcs}
 ${gc_win32_srcs}
 )
 elseif(APPLE)
 set(gc_srcs
 ${gc_core_srcs}
+${gc_dyn_srcs}
 ${gc_pthread_srcs}
 ${gc_darwin_srcs}
 )
-else(WIN32) # it's UNIX!!
-set(gc_srcs
-${gc_core_srcs}
-${gc_pthread_srcs}
-)
+elseif(ANDROID)
+    # Dynamic loading is not needed in Android platform...
+    add_definitions(-DIGNORE_DYNAMIC_LOADING)
+    set(gc_srcs
+        ${gc_core_srcs}
+        ${gc_pthread_srcs})
+else(WIN32) 
+    # it's UNIX!!
+    set(gc_srcs
+        ${gc_core_srcs}
+        ${gc_dyn_srcs}
+        ${gc_pthread_srcs})
 endif(WIN32)
 
 # Onigruma things
@@ -701,6 +716,7 @@ set_source_files_properties(src/main.cpp src/TestingSignalHandler.cpp
 endif(WIN32)
 source_group(gc FILES ${gc_srcs})
 source_group(oniguruma FILES ${onig_srcs})
+if(NOT ANDROID)
 add_executable(${MOSH_EXECUTABLE_NAME}
     ${onig_srcs} 
     ${gc_srcs} 
@@ -708,6 +724,16 @@ add_executable(${MOSH_EXECUTABLE_NAME}
     ${mosh_core_hdrs}
     ${mosh_runtime_src}
     src/main.cpp)
+else() # Android
+    add_library(${MOSH_EXECUTABLE_NAME} SHARED
+        ${onig_srcs} 
+        ${gc_srcs} 
+        ${mosh_core_srcs} 
+        ${mosh_core_hdrs}
+        ${mosh_runtime_src}
+        # src/main.cpp # FIXME: We need something sensible
+    )
+endif()
 target_link_nmosh_plugin(${MOSH_EXECUTABLE_NAME})
 target_link_libraries(${MOSH_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
 

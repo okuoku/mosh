@@ -43,4 +43,10 @@ elseif(APPLE) # Apple , from GStreamer framework
             CACHE PATH
             "Using GStreamer Framework")
     endif()
+elseif(ANDROID)
+    if(NMOSH_GST_SDK_PATH)
+        message(STATUS "Using GStreamer SDK from ${NMOSH_GST_SDK_PATH}")
+        # FIXME: Use everything from Gst SDK for now..
+        list(APPEND CMAKE_FIND_ROOT_PATH ${NMOSH_GST_SDK_PATH})
+    endif()
 endif()

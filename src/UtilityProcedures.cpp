@@ -1083,7 +1083,7 @@ Object scheme::internalConfstrEx(VM* theVM, int argc, const Object* argv)
     checkArgumentLength(1);
     argumentAsFixnum(0, name);
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__ANDROID__)
     Object val;    // return value of this procedure
     int save_errno  = errno;
 

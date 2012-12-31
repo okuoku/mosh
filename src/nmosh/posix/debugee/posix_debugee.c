@@ -20,6 +20,10 @@
 #include <sys/ptrace.h>
 #endif
 
+#ifdef __ANDROID__
+#define PT_TRACE_ME PTRACE_TRACEME /* FIXME: Why?? */
+#endif
+
 typedef enum {
     ACT_DUP2,
     ACT_CLOSE 

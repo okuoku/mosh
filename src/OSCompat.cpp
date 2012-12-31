@@ -765,7 +765,7 @@ Object File::modifyTime(const ucs4string& path)
         return Arithmetic::add(Bignum::makeInteger(st.st_mtimespec.tv_nsec),
                                Arithmetic::mul(Bignum::makeInteger(1000000000),
                                                Bignum::makeInteger(st.st_mtimespec.tv_sec)));
-#elif defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
+#elif (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__ANDROID__)
         return Arithmetic::add(Bignum::makeInteger(st.st_mtim.tv_nsec),
                                Arithmetic::mul(Bignum::makeInteger(1000000000),
                                                Bignum::makeInteger(st.st_mtim.tv_sec)));
@@ -809,7 +809,7 @@ Object File::accessTime(const ucs4string& path)
         return Arithmetic::add(Bignum::makeInteger(st.st_atimespec.tv_nsec),
                                Arithmetic::mul(Bignum::makeInteger(1000000000),
                                                Bignum::makeInteger(st.st_atimespec.tv_sec)));
-#elif defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
+#elif (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__ANDROID__)
         return Arithmetic::add(Bignum::makeInteger(st.st_atim.tv_nsec),
                                Arithmetic::mul(Bignum::makeInteger(1000000000),
                                                Bignum::makeInteger(st.st_atim.tv_sec)));
@@ -854,7 +854,7 @@ Object File::changeTime(const ucs4string& path)
         return Arithmetic::add(Bignum::makeInteger(st.st_ctimespec.tv_nsec),
                                Arithmetic::mul(Bignum::makeInteger(1000000000),
                                                Bignum::makeInteger(st.st_ctimespec.tv_sec)));
-#elif defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
+#elif (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__ANDROID__)
         return Arithmetic::add(Bignum::makeInteger(st.st_ctim.tv_nsec),
                                Arithmetic::mul(Bignum::makeInteger(1000000000),
                                                Bignum::makeInteger(st.st_ctim.tv_sec)));

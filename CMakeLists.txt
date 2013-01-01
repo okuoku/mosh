@@ -14,14 +14,14 @@ ENABLE_TESTING()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # mosh/nmosh select
-option(MOSH_WITH_NMOSH "build nmosh version of mosh interpreter" ON)
+set(MOSH_WITH_NMOSH ON) # Psyntax support was dropped
 option(MOSH_PORTABLE "build portable version of mosh interpreter" OFF)
 option(MOSH_PREFIXLESS "build prefix-less version of mosh interpreter" ON)
 option(MOSH_PRELOAD_CORE "always use precompiled base library" OFF)
 if(WIN32)
-option(MOSH_WITH_NMOSH_GUI "build GUI version of mosh interpreter" OFF)
-set(MOSH_GUI_EXECUTABLE_NAME "nmoshw" 
-    CACHE STRING "GUI interpreter executable name")
+    option(MOSH_WITH_NMOSH_GUI "build GUI version of mosh interpreter" OFF)
+    set(MOSH_GUI_EXECUTABLE_NAME "nmoshw" 
+        CACHE STRING "GUI interpreter executable name")
 endif()
 option(MOSH_DEBUG_VERSION "build Debug version of mosh interpreter" OFF)
 option(MOSH_GC_PARALLEL_MARK "Boehm GC: Turn on parallel-marking" OFF)
@@ -47,28 +47,15 @@ if(WIN32)
     add_plugin(mosh_winmm src/nmosh/win32/plugins/mm)
 endif()
 
-
 # MOSH Core
 
 # only ONE runtime source will be allowed.
 set(nmosh_runtime_src
 src/nmosh_image.cpp)
 
-set(psyntax_mosh_runtime_src
-src/psyntax_mosh_image.cpp)
-
-if(WIN32 OR ANDROID)
-    add_definitions(-DWITH_MOSH_ALTMAIN)
-endif()
-
-if(MOSH_WITH_NMOSH)
-    set(TARGET_FLAVOR nmosh)
-    add_definitions(-DWITH_NMOSH_DEFAULTS)
-    set(mosh_runtime_src ${nmosh_runtime_src})
-else(MOSH_WITH_NMOSH)
-    set(TARGET_FLAVOR mosh)
-    set(mosh_runtime_src ${psyntax_mosh_runtime_src})
-endif(MOSH_WITH_NMOSH)
+set(TARGET_FLAVOR nmosh)
+add_definitions(-DWITH_NMOSH_DEFAULTS)
+set(mosh_runtime_src ${nmosh_runtime_src})
 
 if(MOSH_PRELOAD_CORE)
     add_definitions(-DWITH_PRELOAD_CORE)
@@ -81,19 +68,19 @@ if(MOSH_PORTABLE)
         message(STATUS "Prefix-less mode was silently enabled.")
         add_definitions(-DWITH_NMOSH_PREFIXLESS)
     endif()
-endif(MOSH_PORTABLE)
+endif()
 
 if(MOSH_GC_PARALLEL_MARK)
     add_definitions(-DPARALLEL_MARK)
-endif(MOSH_GC_PARALLEL_MARK)
+endif()
 
 if(MOSH_DEBUG_VERSION)
     add_definitions(-DDEBUG_VERSION)
-endif(MOSH_DEBUG_VERSION)
+endif()
 
 if(MOSH_PREFIXLESS)
     add_definitions(-DWITH_NMOSH_PREFIXLESS)
-endif(MOSH_PREFIXLESS)
+endif()
 
 # external libraries
 # MOSH_GMP_DIR is MSVC only
@@ -107,8 +94,9 @@ endif()
 set(MOSH_VERSION_MAJOR "0")
 set(MOSH_VERSION_MINOR "2")
 set(MOSH_VERSION_MICRO "8")
-set(MOSH_VERSION "${MOSH_VERSION_MAJOR}.${MOSH_VERSION_MINOR}.${MOSH_VERSION_MICRO}" CACHE STRING "mosh release version string")
-# set(MOSH_BUGREPORT "bogus" CACHE STRING "bugreport mail address")
+set(MOSH_VERSION 
+    "${MOSH_VERSION_MAJOR}.${MOSH_VERSION_MINOR}.${MOSH_VERSION_MICRO}" 
+    CACHE STRING "mosh release version string")
 set(MOSH_NAME "mosh" CACHE STRING "mosh PACKAGE_NAME")
 
 if(MOSH_PORTABLE)
@@ -116,7 +104,8 @@ if(MOSH_PORTABLE)
 elseif(MOSH_PREFIXLESS)
     set(MOSH_LIB_PATH "../share/${MOSH_NAME}/${MOSH_VERSION}/lib")
 else()
-    set(MOSH_LIB_PATH "${CMAKE_INSTALL_PREFIX}/share/${MOSH_NAME}/${MOSH_VERSION}/lib")
+    set(MOSH_LIB_PATH 
+        "${CMAKE_INSTALL_PREFIX}/share/${MOSH_NAME}/${MOSH_VERSION}/lib")
 endif()
 
 mark_as_advanced(MOSH_WITH_NMOSH 
@@ -148,6 +137,14 @@ endif()
 
 # OS Settings
 if(WIN32)
+    add_definitions(
+        -DWINVER=0x501
+        -DGC_NOT_DLL
+        -DONIG_EXTERN=extern
+        )
+    set(ARCH_INCLUDE "${PROJECT_SOURCE_DIR}/src/win/include"
+        "${PROJECT_SOURCE_DIR}/src/win32")
+    add_definitions(-DWITH_MOSH_ALTMAIN)
     add_definitions(-DMOSH_HOST_OS=\"win32\")
     add_definitions(-DLINE_FEED_CODE_CRLF=1)
     # we set ARCH_* here. (Win32 only. when at other O/S, these flags are
@@ -171,26 +168,34 @@ if(WIN32)
         set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${MOSH_ADDFLAGS}")
         add_definitions(-DMOSH_MINGW32)
         add_definitions(-DHAVE_EXT_HASHES=1)
-    endif(MSVC)
+    endif()
 elseif(APPLE)
-    if(XCODE_VERSION)
-        add_definitions(-DHAVE_EXT_HASHES=1)
-        add_definitions(-DUSE_XCODE) # to disable direct-threaded code in XCode 3.x
-    endif(XCODE_VERSION)
-
+    # do not set arch here 
+    # As MacOS X 10.4 workaround, we do not enable TR1 hashes...
+    # FIXME: Do we still need this?
     add_definitions(-DMOSH_HOST_OS=\"darwin\")
     add_definitions(-DLINE_FEED_CODE_LF=1)
-    # do not set arch here 
-else() # so it is UNIX
+    if(XCODE_VERSION)
+        add_definitions(-DHAVE_EXT_HASHES=1)
+        # to disable direct-threaded code in XCode 3.x
+        # FIXME: Do we still need this?
+        add_definitions(-DUSE_XCODE) 
+    endif()
+else() 
+    # so it is UNIX
+    # Assume GCC 4.x or later with enough recent libstdc++
     add_definitions(-DHAVE_TR1_HASHES=1)
     add_definitions(-DHAVE_TR1_UNORDERED_MAP=1)
+    add_definitions(-DLINE_FEED_CODE_LF=1)
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        add_definitions(-DMOSH_HOST_OS=\"linux\")
         add_definitions(-DGTEST_HAS_PTHREAD=0) # for GC
-        add_definitions(-D_GNU_SOURCE) # FIXME: Assume glibc here..
         if(ANDROID)
+            add_definitions(-DMOSH_HOST_OS=\"android\")
+            add_definitions(-DWITH_MOSH_ALTMAIN)
             set(arch_libs ${arch_libs} dl)
         else()
+            add_definitions(-DMOSH_HOST_OS=\"linux\")
+            add_definitions(-D_GNU_SOURCE) # FIXME: Assume glibc here..
             set(arch_libs ${arch_libs} pthread dl)
         endif()
     elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
@@ -199,17 +204,6 @@ else() # so it is UNIX
     else()
         add_definitions(-DMOSH_HOST_OS=\"unknown\")
     endif()
-    add_definitions(-DLINE_FEED_CODE_LF=1)
-endif()
-
-if(WIN32)
-add_definitions(
-    -DWINVER=0x501
-    -DGC_NOT_DLL
-    -DONIG_EXTERN=extern
-    )
-set(ARCH_INCLUDE "${PROJECT_SOURCE_DIR}/src/win/include"
-    "${PROJECT_SOURCE_DIR}/src/win32")
 endif()
 
 # includes
@@ -264,8 +258,7 @@ endif()
 
 if(HAVE_STDARG_H)
     add_definitions(-DHAVE_STDARG_PROTOTYPES)
-endif(HAVE_STDARG_H)
-
+endif()
 
 # GMP things
 # => GMP_INCLUDE_DIR, GMP_LIBRARY
@@ -291,24 +284,24 @@ elseif(WIN32)
 endif()
 
 if(GMP_SEARCH)
-find_path(GMP_INCLUDE_DIR gmp.h)
-find_library(GMP_LIBRARY NAMES gmp)
+    find_path(GMP_INCLUDE_DIR gmp.h)
+    find_library(GMP_LIBRARY NAMES gmp)
 
-if (GMP_INCLUDE_DIR AND GMP_LIBRARY)
-   SET(GMP_FOUND TRUE)
-endif (GMP_INCLUDE_DIR AND GMP_LIBRARY)
+    if(GMP_INCLUDE_DIR AND GMP_LIBRARY)
+        set(GMP_FOUND TRUE)
+    endif(GMP_INCLUDE_DIR AND GMP_LIBRARY)
 
-if (GMP_FOUND)
-    message(STATUS "using GMP from : ${GMP_INCLUDE_DIR}, ${GMP_LIBRARY}")
-else (GMP_FOUND)
-    message(SEND_ERROR "GMP not found..")
-endif (GMP_FOUND)
-else (GMP_SEARCH)
-# check gmp.h in GMP_INCLUDE_DIR
-if(NOT EXISTS ${GMP_INCLUDE_DIR}/gmp.h)
-    message(SEND_ERROR "MPIR/GMP is not installed at ${GMP_INCLUDE_DIR}! (gmp.h could not found. please build MPIR(http://www.mpir.org) first and specify mpir-2.X.X/[lib|dll]/Win32/[Debug|Release] to MOSH_GMP_DIR.")
-endif(NOT EXISTS ${GMP_INCLUDE_DIR}/gmp.h)
-endif(GMP_SEARCH)
+    if(GMP_FOUND)
+        message(STATUS "using GMP from : ${GMP_INCLUDE_DIR}, ${GMP_LIBRARY}")
+    else()
+        message(SEND_ERROR "GMP not found..")
+    endif()
+else()
+    # check gmp.h in GMP_INCLUDE_DIR
+    if(NOT EXISTS ${GMP_INCLUDE_DIR}/gmp.h)
+        message(SEND_ERROR "MPIR/GMP is not installed at ${GMP_INCLUDE_DIR}! (gmp.h could not found. please build MPIR(http://www.mpir.org) first and specify mpir-2.X.X/[lib|dll]/Win32/[Debug|Release] to MOSH_GMP_DIR.")
+    endif()
+endif()
 
 
 # GC things
@@ -348,43 +341,38 @@ set(gc_dyn_srcs
     extlibs/gc/dyn_load.c)
 
 set(gc_pthread_srcs
-extlibs/gc/pthread_start.c
-extlibs/gc/pthread_support.c
-extlibs/gc/pthread_stop_world.c
-)
+    extlibs/gc/pthread_start.c
+    extlibs/gc/pthread_support.c
+    extlibs/gc/pthread_stop_world.c)
 set(gc_darwin_srcs
-extlibs/gc/darwin_stop_world.c
-)
+    extlibs/gc/darwin_stop_world.c)
 set(gc_win32_srcs
-extlibs/gc/win32_threads.c
-)
+    extlibs/gc/win32_threads.c)
 
 if(WIN32)
-set(gc_srcs
-${gc_core_srcs}
-${gc_dyn_srcs}
-${gc_win32_srcs}
-)
+    set(gc_srcs
+        ${gc_core_srcs}
+        ${gc_dyn_srcs}
+        ${gc_win32_srcs})
 elseif(APPLE)
-set(gc_srcs
-${gc_core_srcs}
-${gc_dyn_srcs}
-${gc_pthread_srcs}
-${gc_darwin_srcs}
-)
+    set(gc_srcs
+        ${gc_core_srcs}
+        ${gc_dyn_srcs}
+        ${gc_pthread_srcs}
+        ${gc_darwin_srcs})
 elseif(ANDROID)
     # Dynamic loading is not needed in Android platform...
     add_definitions(-DIGNORE_DYNAMIC_LOADING)
     set(gc_srcs
         ${gc_core_srcs}
         ${gc_pthread_srcs})
-else(WIN32) 
-    # it's UNIX!!
+else() 
+    # pthreads
     set(gc_srcs
         ${gc_core_srcs}
         ${gc_dyn_srcs}
         ${gc_pthread_srcs})
-endif(WIN32)
+endif()
 
 # Onigruma things
 
@@ -678,6 +666,7 @@ src/nmosh/mosh-stubs.cpp
 src/nmosh/generic/boehmgc-stubs/boehmgc-stubs.c
 )
 
+# FIXME: Move them to plugin
 set(mosh_posix_srcs
 src/nmosh/posix/terminal/terminal.c
 src/nmosh/posix/spawn/posixspawn.c
@@ -698,29 +687,33 @@ if(NOT WIN32)
 endif()
 
 if(WIN32)
-set(mosh_win32_srcs
-src/nmosh/win32/process.c)
-source_group(win32 FILES ${mosh_win32_srcs})
-set(mosh_core_srcs 
-${mosh_core_srcs}
-${mosh_win32_srcs}
-src/win/win.cpp
-src/win/mosh.rc)
-set_source_files_properties(${mosh_core_cxxsrcs}
-    PROPERTIES COMPILE_FLAGS "-D_UNICODE -DUNICODE -DWIN32_LEAN_AND_MEAN")
+    set(mosh_win32_srcs
+        src/nmosh/win32/process.c)
+    source_group(win32 FILES ${mosh_win32_srcs})
+    set(mosh_core_srcs 
+        ${mosh_core_srcs}
+        ${mosh_win32_srcs}
+        src/win/win.cpp
+        src/win/mosh.rc)
+    # FIXME: Exclude tests?
+    set_source_files_properties(${mosh_core_cxxsrcs} src/main.cpp 
+        src/TestingSignalHandler.cpp src/TestingVM.cpp
+        PROPERTIES COMPILE_FLAGS "-D_UNICODE -DUNICODE -DWIN32_LEAN_AND_MEAN")
 endif()
 
 configure_file(cmake/config-cmake.h.in
     ${PROJECT_BINARY_DIR}/cmake/config.h)
 
-if(WIN32)
-set_source_files_properties(src/main.cpp src/TestingSignalHandler.cpp
-    src/TestingVM.cpp
-    PROPERTIES COMPILE_FLAGS "-D_UNICODE -DUNICODE -DWIN32_LEAN_AND_MEAN")
-endif(WIN32)
 source_group(gc FILES ${gc_srcs})
 source_group(oniguruma FILES ${onig_srcs})
+
+# Generate executable
 if(WIN32)
+    if(WIN32)
+        # FIXME: We should use configure_file
+        file(COPY ${PROJECT_SOURCE_DIR}/misc/logo/mosh.ico DESTINATION 
+            ${PROJECT_BINARY_DIR}/misc/logo)
+    endif()
     add_executable(${MOSH_EXECUTABLE_NAME}
         ${onig_srcs} 
         ${gc_srcs} 
@@ -749,7 +742,7 @@ endif()
 target_link_nmosh_plugin(${MOSH_EXECUTABLE_NAME})
 target_link_libraries(${MOSH_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
 
-if(MOSH_PORTABLE)
+if(MOSH_PORTABLE) # FIXME: Bogus in ANDROID
     install(TARGETS ${MOSH_EXECUTABLE_NAME} DESTINATION .)
 else()
     install(TARGETS ${MOSH_EXECUTABLE_NAME} DESTINATION bin)
@@ -757,47 +750,44 @@ endif()
 
 if(MOSH_WITH_NMOSH_GUI)
     add_executable(${MOSH_GUI_EXECUTABLE_NAME} WIN32
-    ${onig_srcs} 
-    ${gc_srcs} 
-    ${mosh_core_srcs} 
-    ${mosh_core_hdrs}
-    ${mosh_runtime_src}
-    src/main.cpp
-    src/nmosh/win32/winmain.cpp)
-target_link_nmosh_plugin(${MOSH_GUI_EXECUTABLE_NAME})
-target_link_libraries(${MOSH_GUI_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
-
-if(MOSH_PORTABLE)
-    install(TARGETS ${MOSH_GUI_EXECUTABLE_NAME} DESTINATION .)
-else()
-    install(TARGETS ${MOSH_GUI_EXECUTABLE_NAME} DESTINATION bin)
-endif()
-
-endif()
-
-macro(generate_applet_cmd appletname)
-    set(filename "${CMAKE_CURRENT_BINARY_DIR}/nmosh-run-${appletname}.cmd")
-    file(WRITE ${filename} "@echo off\n")
-    file(APPEND ${filename} "%~dp0${MOSH_EXECUTABLE_NAME} -T ${appletname} %*\n")
+        ${onig_srcs} 
+        ${gc_srcs} 
+        ${mosh_core_srcs} 
+        ${mosh_core_hdrs}
+        ${mosh_runtime_src}
+        src/main.cpp
+        src/nmosh/win32/winmain.cpp)
+    target_link_nmosh_plugin(${MOSH_GUI_EXECUTABLE_NAME})
+    target_link_libraries(${MOSH_GUI_EXECUTABLE_NAME} 
+        ${GMP_LIBRARY} ${arch_libs})
     if(MOSH_PORTABLE)
-        install(FILES ${filename} DESTINATION .)
-    else(MOSH_PORTABLE)
-        install(FILES ${filename} DESTINATION bin)
-    endif(MOSH_PORTABLE)
-    unset(filename)
-endmacro(generate_applet_cmd)
+        install(TARGETS ${MOSH_GUI_EXECUTABLE_NAME} DESTINATION .)
+    else()
+        install(TARGETS ${MOSH_GUI_EXECUTABLE_NAME} DESTINATION bin)
+    endif()
+endif()
 
-macro(generate_applet appletname)
-    # FIXME: We don't install appletinvoker at UNIX platforms
-    if(WIN32)
-        generate_applet_cmd(${appletname})
-    endif(WIN32)
-endmacro(generate_applet)
-
-# generate_applet(debug-expand)
+# Generate test script
+if(WIN32)
+    nmosh_config_uninstalled(cmake/testmosh.bat.in 
+        testmosh.bat
+        @ONLY
+        NEWLINE_STYLE DOS)
+    if(EXISTS ${MOSH_GMP_DIR}/mpir.dll)
+        nmosh_dist_uninstalled(${MOSH_GMP_DIR}/mpir.dll)
+    elseif(HAVE_GST_SDK) # GST SDK case
+        set(_nam ${GMP_INCLUDE_DIR}/../bin/libgmp-10.dll)
+        if(EXISTS ${_nam})
+            nmosh_dist_uninstalled(${_nam})
+        endif()
+    endif()
+else()
+    nmosh_config_uninstalled(cmake/testmosh.sh.in 
+        testmosh.sh
+        @ONLY)
+endif()
 
 # tests
-
 add_custom_target(TestTargets) 
 
 add_library(testinggc EXCLUDE_FROM_ALL
@@ -814,23 +804,26 @@ set_target_properties(testingmosh PROPERTIES FOLDER Test)
 
 # GC tests
 macro(add_gcguitest testname)
-if(MSVC)
-add_executable(gctest${testname} EXCLUDE_FROM_ALL WIN32 ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
-else(MSVC)
-add_executable(gctest${testname} EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
-endif(MSVC)
-target_link_libraries(gctest${testname} testinggc ${arch_libs})
-set_target_properties(gctest${testname} PROPERTIES FOLDER Test)
-add_test(gctest-${testname} gctest${testname})
-add_dependencies(TestTargets gctest${testname})
+    if(MSVC)
+        add_executable(gctest${testname} EXCLUDE_FROM_ALL 
+            WIN32 ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
+    else()
+        add_executable(gctest${testname} EXCLUDE_FROM_ALL 
+            ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
+    endif()
+    target_link_libraries(gctest${testname} testinggc ${arch_libs})
+    set_target_properties(gctest${testname} PROPERTIES FOLDER Test)
+    add_test(gctest-${testname} gctest${testname})
+    add_dependencies(TestTargets gctest${testname})
 endmacro(add_gcguitest)
 
 macro(add_gctest testname)
-add_executable(gctest${testname} EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
-target_link_libraries(gctest${testname} testinggc ${arch_libs})
-set_target_properties(gctest${testname} PROPERTIES FOLDER Test)
-add_test(gctest-${testname} gctest${testname})
-add_dependencies(TestTargets gctest${testname})
+    add_executable(gctest${testname} EXCLUDE_FROM_ALL 
+        ${PROJECT_SOURCE_DIR}/extlibs/gc/tests/${testname}.c)
+    target_link_libraries(gctest${testname} testinggc ${arch_libs})
+    set_target_properties(gctest${testname} PROPERTIES FOLDER Test)
+    add_test(gctest-${testname} gctest${testname})
+    add_dependencies(TestTargets gctest${testname})
 endmacro(add_gctest)
 
 add_gcguitest(test) # gctest is GUI app in win32.. some historical reason
@@ -840,45 +833,43 @@ add_gctest(smash_test)
 add_gctest(huge_test)
 #add_gctest(trace_test)
 if(NOT WIN32)
-add_gctest(thread_leak_test)
-endif(NOT WIN32)
+    add_gctest(thread_leak_test)
+endif()
 #add_gctest(test_cpp.cc)
 
 # mosh base tests
 set(gtest_srcs ${PROJECT_SOURCE_DIR}/gtest/gtest/gtest_main.cc)
 
 macro(add_moshcoretest testname)
-if(WIN32)
-set_source_files_properties(src/${testname}
-    PROPERTIES COMPILE_FLAGS "-D_UNICODE -DUNICODE -DWIN32_LEAN_AND_MEAN")
-endif(WIN32)
-add_executable(moshtest${testname} EXCLUDE_FROM_ALL ${gtest_srcs} src/${testname}.cpp)
-target_link_libraries(moshtest${testname} testingmosh testinggc ${GMP_LIBRARY} ${arch_libs})
-set_target_properties(moshtest${testname} PROPERTIES FOLDER Test)
-add_test(mosh-${testname} moshtest${testname})
-add_dependencies(TestTargets moshtest${testname})
+    if(WIN32)
+        set_source_files_properties(src/${testname} PROPERTIES COMPILE_FLAGS 
+            "-D_UNICODE -DUNICODE -DWIN32_LEAN_AND_MEAN")
+    endif()
+    add_executable(moshtest${testname} EXCLUDE_FROM_ALL 
+        ${gtest_srcs} src/${testname}.cpp)
+    target_link_libraries(moshtest${testname} testingmosh testinggc 
+        ${GMP_LIBRARY} ${arch_libs})
+    set_target_properties(moshtest${testname} PROPERTIES FOLDER Test)
+    add_test(mosh-${testname} moshtest${testname})
+    add_dependencies(TestTargets moshtest${testname})
 endmacro(add_moshcoretest)
 
 add_moshcoretest(ObjectTest)
 if(MOSH_WITH_NMOSH)
-message(STATUS "VMTest is not ported to nmosh")
-else(MOSH_WITH_NMOSH)
-add_moshcoretest(VMTest)
-endif(MOSH_WITH_NMOSH)
+    message(STATUS "VMTest is not ported to nmosh")
+else()
+    add_moshcoretest(VMTest)
+endif()
 add_moshcoretest(PortTest)
 add_moshcoretest(FaslTest)
 add_moshcoretest(FFITest)
 add_moshcoretest(OSCompatTest)
 if(MSVC)
-message(STATUS "getoptUTest is not compatible with MSVC(UTF-16) builds")
-else(MSVC)
-add_moshcoretest(getoptUTest)
-endif(MSVC)
+    message(STATUS "getoptUTest is not compatible with MSVC(UTF-16) builds")
+else()
+    add_moshcoretest(getoptUTest)
+endif()
 add_moshcoretest(OSCompatThreadTest)
-
-if(WIN32)
-file(COPY ${PROJECT_SOURCE_DIR}/misc/logo/mosh.ico DESTINATION ${PROJECT_BINARY_DIR}/misc/logo)
-endif(WIN32)
 
 if(MOSH_PORTABLE)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/lib DESTINATION .)
@@ -915,22 +906,3 @@ endif()
 SET(CPACK_PACKAGE_EXECUTABLES ${MOSH_EXECUTABLE_NAME})
 INCLUDE(CPack)
 
-# Generate test script
-if(WIN32)
-    nmosh_config_uninstalled(cmake/testmosh.bat.in 
-        testmosh.bat
-        @ONLY
-        NEWLINE_STYLE DOS)
-    if(EXISTS ${MOSH_GMP_DIR}/mpir.dll)
-        nmosh_dist_uninstalled(${MOSH_GMP_DIR}/mpir.dll)
-    elseif(HAVE_GST_SDK) # GST SDK case
-        set(_nam ${GMP_INCLUDE_DIR}/../bin/libgmp-10.dll)
-        if(EXISTS ${_nam})
-            nmosh_dist_uninstalled(${_nam})
-        endif()
-    endif()
-else()
-    nmosh_config_uninstalled(cmake/testmosh.sh.in 
-        testmosh.sh
-        @ONLY)
-endif()

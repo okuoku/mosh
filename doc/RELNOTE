@@ -28,7 +28,10 @@ Changes:
         BoehmGC was updated to upstream 7.3alpha.
 
     Reader:
-        Mosh reader adopted R7RS bytevector notation(#vu8(...)).
+        Adopted R7RS bytevector notation(#vu8(...)).
+
+        Number reader now reads "1e2" as inexact. To read exact number using
+        exponents, add exactness prefix like "#e1e2".
 
     R6RS:
         utf8->string and string->utf8 no longer converts CRLF into LF.

@@ -1,6 +1,8 @@
 #ifndef __NMOSH__PLUGIN_IF_H
 #define __NMOSH__PLUGIN_IF_H
 
+#include <nmosh/common.h>
+
 /* Definitions */
 
 
@@ -14,14 +16,7 @@
 #define MOSHEXPORT /* non export */
 #endif /* !NMOSHPLUGIN_EMBED */
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if 0
-}
-#endif
+NMOSH_COMMON_BEGIN
 
 typedef void (*nmosh_chime_callback_t)(void* chime_param);
 
@@ -30,15 +25,7 @@ struct {
     void* state;
 }nmosh_chime_call_t;
 
+NMOSH_COMMON_END
 
-
-
-#if 0
-{
-#endif
-
-#ifdef __cplusplus
-} /* Extern "C" */
-#endif 
 
 #endif /* __NMOSH__PLUGIN_IF_H */

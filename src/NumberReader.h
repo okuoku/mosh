@@ -39,6 +39,10 @@ namespace scheme {
     class NumberReaderContext EXTEND_GC
     {
     public:
+        NumberReaderContext()
+        {
+            preferred_exactness_ = 0;
+        }
         Object read(TextualInputPort* port, bool& isErrorOccured);
         Object read(const ucs4string& text, bool& isErrorOccured);
         TextualInputPort* port()
@@ -52,13 +56,29 @@ namespace scheme {
         }
         void setParsed(Object parsed)
         {
+            //FIXME: Reset preferred_exactness here.
+            preferred_exactness_ = 0;
             parsed_ = parsed;
         }
         Object parsed()
         {
             return parsed_;
         }
+        // FIXME: 
+        void preferExact() 
+        {
+            preferred_exactness_ = 1;
+        }
+        bool isExactPreferred()
+        {
+            if(preferred_exactness_ == 1){
+                return true;
+            }else{
+                return false;
+            }
+        }
     private:
+        int preferred_exactness_;
         Object parsed_;
         TextualInputPort* port_;
     };

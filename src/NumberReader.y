@@ -369,7 +369,13 @@ decimal10 : uinteger10String suffix {
               if ($2.empty()) {
                   $$ = Bignum::makeInteger($1);
               } else {
-                  $$ = Arithmetic::mul(Bignum::makeInteger($1), suffixToNumberOld($2));
+                  // FIXME: Split decimal rules.
+                  if(currentVM()->numberReaderContext()->isExactPreferred()){
+                      $$ = Arithmetic::mul(Bignum::makeInteger($1), suffixToNumberOld($2));
+                  } else {
+                      $$ = Arithmetic::inexact(Arithmetic::mul(Bignum::makeInteger($1), suffixToNumberOld($2)));
+                  }
+
 // todo ("#e-1e-1000" (- (expt 10 -1000)))
 //                   int suffixNum = suffix($2);
 //                   Object z0 = Arithmetic::mul(Bignum::makeInteger($1),
@@ -446,7 +452,7 @@ digit10   : digit8
           ;
 
 exactness : /* empty */     { $$ = 0; }
-          | EXACT           { $$ = 1; }
+          | EXACT           { currentVM()->numberReaderContext()->preferExact(); $$ = 1; }
           | INEXACT         { $$ = -1; }
           ;
 

@@ -665,6 +665,7 @@ src/OSCompat.cpp
 src/nmosh/mosh-stubs.cpp
 src/nmosh/generic/boehmgc-stubs/boehmgc-stubs.c
 )
+bless_nmosh_plugin_stub_source(src/nmosh/mosh-stubs.cpp)
 
 # FIXME: Move them to plugin
 set(mosh_posix_srcs

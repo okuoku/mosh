@@ -11,6 +11,20 @@ macro(target_link_nmosh_plugin nam)
     target_link_libraries(${nam} ${ZZNMOSHPLUGIN_ADDLIBS})
 endmacro(target_link_nmosh_plugin)
 
+macro(bless_nmosh_plugin_stub_source1 pth nam)
+    set_property(SOURCE ${pth}
+        APPEND
+        PROPERTY COMPILE_DEFINITIONS
+        "NMOSHPLUGIN_${nam}_EMBED")
+endmacro(bless_nmosh_plugin_stub_source1)
+
+macro(bless_nmosh_plugin_stub_source pth)
+    # FIXME: It is not precise...
+    foreach(e ${ZZNMOSHPLUGIN_ADDLIBS})
+        bless_nmosh_plugin_stub_source1(${pth} ${e})
+    endforeach()
+endmacro(bless_nmosh_plugin_stub_source)
+
 macro(add_nmosh_plugin_directory0 default_p prefer_embded_p 
         nam dir)
     if(ANDROID)

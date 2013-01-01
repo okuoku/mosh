@@ -434,6 +434,7 @@ stub_get_pffi_feature_set(VM* theVM, int argc, const Object* argv){
 #ifdef LIBDATA_CALL_STUBS
     tmp = Object::cons(LIBDATA_CALL_STUBS,tmp);
 #endif
+#include "embed-libs.inc.c"
     return tmp;
 }
 

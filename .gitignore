@@ -95,6 +95,7 @@ src/match.h
 src/nmosh_image.cpp
 src/psyntax_mosh_image.cpp
 src/call-stubs.inc.c
+src/embed-libs.inc.c
 test/test.txt.temp
 test/utf16.txt.temp
 test_compat

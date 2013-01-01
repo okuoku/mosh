@@ -8,10 +8,16 @@
         (mosh pp) 
         (shorten))
 
-(define targets '("src/nmosh/ext" "src/nmosh/posix" "src/nmosh/win32" "src/nmosh/generic"
-                  "src/nmosh/bsd"))
+(define targets '("src/nmosh"))
 (define callstub "src/call-stubs.inc.c")
+(define embed-libs "src/embed-libs.inc.c")
 
+(define funcnames (make-eq-hashtable))
+(define (register-funcname plugin-name libname sym)
+  (let ((e (hashtable-ref funcnames libname #f)))
+    (if e
+      (hashtable-set! funcnames libname (cons sym e))
+      (hashtable-set! funcnames libname (cons sym (list plugin-name))))))
 (define signatures '())
 (define (register-call-signature l)
   (define sym (string->symbol (signature*->string l)))
@@ -45,18 +51,61 @@
       (format p "    *(~a*)ret = func(~a);\n}\n\n"
               ret (gen-arg arg* #t))) ))
 
-(define (gen-libdata p sym*)
+(define (gen-libdata p csym libname sym*)
   (define (name rest)
     (if (null? rest)
       (format p "    NIL)")
       (let ((sym (car rest))
             (next (cdr rest)))
-        (format p "CONS(FN(callstub_~a), \\\n" sym)
+        (format p "CONS(FN(~a), \\\n" sym)
         (name next)
         (format p ")"))))
-  (format p "#define LIBDATA_CALL_STUBS CONS(SYM(\"call-stubs\"), \\\n")
+  (format p "#define LIBDATA_~a CONS(SYM(\"~a\"), \\\n" csym libname)
   (name sym*)
   (format p "\n"))
+
+(define (gen-embed-libs)
+  (receive (kv ev) (hashtable-entries funcnames)
+    (define libnames (vector->list kv))
+    (define funcs*+plgname (vector->list ev))
+    (define funcs* (map (^e (cdr (reverse e))) funcs*+plgname))
+    (define plgnames (map (^e (car (reverse e))) funcs*+plgname))
+    (define (with-libname+plgname+functions iter)
+      (for-each 
+        (^[l p f]
+          ;; FIXME: Do something for force-embedded?
+          ;; Do not execute this if force-embedded plugin
+          (when p
+            (iter l p f)))
+        libnames plgnames funcs*))
+    (when (file-exists? embed-libs)
+      (delete-file embed-libs))
+    (call-with-output-file
+      embed-libs
+      (^p
+        ;; Emit header
+        (with-libname+plgname+functions
+          (^[l pn f*]
+            (format p "#ifdef NMOSHPLUGIN_~a_EMBED\n"
+                    pn)
+            (for-each (^e (format p "extern void* ~a;\n" e)) f*)
+            (gen-libdata p pn l f*)
+            (format p "#endif\n"))) 
+
+        (format p "\n\n")
+
+        ;; Emit launch
+        (with-libname+plgname+functions
+          (^[l pn bogus]
+            (format p "#ifdef NMOSHPLUGIN_~a_EMBED\n"
+                    pn)
+            (format p "    tmp = Object::cons(LIBDATA_~a,tmp);\n" pn)
+            (format p "#endif\n")
+            ))))))
+
+(define (gen-libdata/callstub p sigs)
+  (gen-libdata p 'CALL_STUBS "call-stubs" (map (^e (format "callstub_~a" e))
+                                               sigs)))
 
 (define (gen-call-stubs)
   ;; Reduce dupes
@@ -69,7 +118,7 @@
     callstub
     (^p 
       (for-each (^s (outstub1 p s)) sigs)
-      (gen-libdata p sigs))))
+      (gen-libdata/callstub p sigs))))
 
 (define (locate-Library)
   (define libs '())
@@ -139,6 +188,8 @@
         (if args
           (register-call-signature (append args (list ret)))
           (register-call-signature (list ret)))
+        ;; add function name for embedded plugin
+        (register-funcname plugin-name myname name)
         ;; emit function definition
         (pp `(define ,name (pffi-c-function 
                              %library
@@ -235,3 +286,4 @@
 
 (for-each gen-lib libs)
 (gen-call-stubs)
+(gen-embed-libs)

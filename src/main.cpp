@@ -177,7 +177,11 @@ void signal_handler(int signo)
 #include <sys/wait.h>
 #endif
 
+#ifndef WITH_MOSH_ALTMAIN
 int main(int argc, char *argv[])
+#else
+extern "C" int mosh_main(int argc, char *argv[])
+#endif
 {
     // call this before any allocation.
     mosh_init();

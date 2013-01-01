@@ -57,6 +57,10 @@ src/nmosh_image.cpp)
 set(psyntax_mosh_runtime_src
 src/psyntax_mosh_image.cpp)
 
+if(WIN32 OR ANDROID)
+    add_definitions(-DWITH_MOSH_ALTMAIN)
+endif()
+
 if(MOSH_WITH_NMOSH)
     set(TARGET_FLAVOR nmosh)
     add_definitions(-DWITH_NMOSH_DEFAULTS)
@@ -716,14 +720,23 @@ set_source_files_properties(src/main.cpp src/TestingSignalHandler.cpp
 endif(WIN32)
 source_group(gc FILES ${gc_srcs})
 source_group(oniguruma FILES ${onig_srcs})
-if(NOT ANDROID)
-add_executable(${MOSH_EXECUTABLE_NAME}
-    ${onig_srcs} 
-    ${gc_srcs} 
-    ${mosh_core_srcs} 
-    ${mosh_core_hdrs}
-    ${mosh_runtime_src}
-    src/main.cpp)
+if(WIN32)
+    add_executable(${MOSH_EXECUTABLE_NAME}
+        ${onig_srcs} 
+        ${gc_srcs} 
+        ${mosh_core_srcs} 
+        ${mosh_core_hdrs}
+        ${mosh_runtime_src}
+        src/nmosh/win32/cuimain.cpp
+        src/main.cpp)
+elseif(NOT ANDROID)
+    add_executable(${MOSH_EXECUTABLE_NAME}
+        ${onig_srcs} 
+        ${gc_srcs} 
+        ${mosh_core_srcs} 
+        ${mosh_core_hdrs}
+        ${mosh_runtime_src}
+        src/main.cpp)
 else() # Android
     add_library(${MOSH_EXECUTABLE_NAME} SHARED
         ${onig_srcs} 
@@ -731,8 +744,7 @@ else() # Android
         ${mosh_core_srcs} 
         ${mosh_core_hdrs}
         ${mosh_runtime_src}
-        # src/main.cpp # FIXME: We need something sensible
-    )
+        src/main.cpp)
 endif()
 target_link_nmosh_plugin(${MOSH_EXECUTABLE_NAME})
 target_link_libraries(${MOSH_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
@@ -750,6 +762,7 @@ if(MOSH_WITH_NMOSH_GUI)
     ${mosh_core_srcs} 
     ${mosh_core_hdrs}
     ${mosh_runtime_src}
+    src/main.cpp
     src/nmosh/win32/winmain.cpp)
 target_link_nmosh_plugin(${MOSH_GUI_EXECUTABLE_NAME})
 target_link_libraries(${MOSH_GUI_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})

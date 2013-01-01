@@ -29,18 +29,13 @@
  *  $Id: main.cpp 2013 2009-08-11 03:46:06Z higepon $
  */
 
-#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 extern "C" int mosh_main(int ac, char** av);
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                   LPSTR lpCmdLine, int nCmdShow){
-    // NB: Win32 version doesn't use argv parameter. So we don't have to 
-    // convert command line here.
-
-    int buffer = 0; 
-    AllocConsole(); // debug
-    mosh_main(buffer,NULL);
+int main(int ac, char** av){
+    mosh_main(ac,av);
     /* NOTREACHED */
     return -1;
 }

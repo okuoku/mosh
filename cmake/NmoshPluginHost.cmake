@@ -2,8 +2,10 @@ include(NmoshPluginUtil)
 macro(nmosh_plugin_reset)
     set(ZZNMOSHPLUGIN_ADDLIBS "" CACHE STRING "nmosh internal" FORCE) 
     set(ZZNMOSHPLUGIN_ADDLIBDIR "" CACHE STRING "nmosh internal" FORCE) 
+    set(ZZNMOSHPLUGIN_EMBED "" CACHE STRING "nmosh internal" FORCE) 
     mark_as_advanced(ZZNMOSHPLUGIN_ADDLIBS)
     mark_as_advanced(ZZNMOSHPLUGIN_ADDLIBDIR)
+    mark_as_advanced(ZZNMOSHPLUGIN_EMBED)
 endmacro(nmosh_plugin_reset)
 macro(target_link_nmosh_plugin nam)
     # FIXME: Edit target properties instead
@@ -19,8 +21,7 @@ macro(bless_nmosh_plugin_stub_source1 pth nam)
 endmacro(bless_nmosh_plugin_stub_source1)
 
 macro(bless_nmosh_plugin_stub_source pth)
-    # FIXME: It is not precise...
-    foreach(e ${ZZNMOSHPLUGIN_ADDLIBS})
+    foreach(e ${ZZNMOSHPLUGIN_EMBED})
         bless_nmosh_plugin_stub_source1(${pth} ${e})
     endforeach()
 endmacro(bless_nmosh_plugin_stub_source)
@@ -28,6 +29,8 @@ endmacro(bless_nmosh_plugin_stub_source)
 macro(add_nmosh_plugin_directory0 default_p prefer_embded_p 
         nam dir)
     if(ANDROID)
+        # Android requires every plugins embedded.
+        # Currently, we do not configure BoehmGC as dl safe.
         option(NMOSHPLUGIN_${nam}_EMBED
             "Embed nmosh plugin ${nam}" ON)
         mark_as_advanced(NMOSHPLUGIN_${nam}_EMBED)

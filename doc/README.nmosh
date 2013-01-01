@@ -15,13 +15,12 @@ Compatibility notes
  - nmosh is based on Andre van Tonder's R6RS macro and runtime implementation
    see http://www.het.brown.edu/people/andre/macros/ for more info.
  - nmosh does not support following features included in psyntax-based mosh:
-   - shared structure notation(SRFI-38)
    - shared namespace between "expand" and "run" phases
    - syntax check with record-type
    - all (psyntax) libraries
    - (and more)
  - nmosh has following extended feature compared to psyntax-based mosh:
-   - ERR5RS load in (rnrs load)
+   - ERR5RS load procedure in (rnrs load)
    - multiple library in one source
    - (and more)
 

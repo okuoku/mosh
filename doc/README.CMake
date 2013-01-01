@@ -10,11 +10,13 @@ LIMITATIONS
 - We recommend standard (autotools) build (ie. ./configure && make) for
   system-installed (ie. /usr/local/bin/mosh) mosh.
 - Scheme code tests and some C++ tests are not covered by CTest.
+- It does not support psyntax-mosh
 
 0. Supported platform
 ---------------------
 
-In short, it's win32 only. Other platforms are may or may not work.
+In short, it's Win32/Win64/MacOS X 10.6 or later only. 
+Other platforms are may or may not work.
 
 We recommend Ninja generator if available.
 
@@ -30,6 +32,8 @@ We recommend Ninja generator if available.
 - (run gen-git-build.sh if you cloned from our git repository.)
 
 setup GMP:
+- (Alternative: Setup GStreamer SDK. It includes prebuilt GMP and the 
+  buildsystem will automatically detect and link against it.)
 - MacOS X: Copy GMP.framework to DYLD default path like ~/Library/Frameworks 
            You can build GMP.framework with misc/dist/mac/build-framework.sh
 -    MSVC: Download MPIR 2.x from http://www.mpir.org and build with MSVC
@@ -56,3 +60,4 @@ TBD.
            assumes target architecture is Little-endian.
 - MacOS X: FFI Callback is not supported.
 -    MSVC: FFI Callback is not supported at Win64.
+

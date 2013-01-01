@@ -1,7 +1,7 @@
 #include <sys/types.h>
 #include <sys/ptrace.h>
 
-#include "posix/ptrace/ptrace_common.h"
+#include "ptrace_common.h"
 
 /* currently, FreeBSD only. */
 

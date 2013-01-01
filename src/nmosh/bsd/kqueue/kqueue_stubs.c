@@ -1,7 +1,7 @@
 #include "config.h"
 #ifdef HAVE_KQUEUE
 
-#include "bsd/kqueue/kqueue_stubs.h"
+#include "kqueue_stubs.h"
 
 #include <stdio.h>
 /* BSD kqueue stubs */

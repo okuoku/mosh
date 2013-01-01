@@ -44,5 +44,11 @@ if(NMOSH_WITH_SDL)
         LINK_DIRECTORIES ${_linkdir}
         LINK_LIBRARIES ${SDL_LIBS}
         C_SOURCES mosh_sdl_core.c)
+    if(ANDROID)
+        add_nmosh_plugin(mosh_sdl_android
+            LINK_DIRECTORIES ${_linkdir}
+            LINK_LIBRARIES ${SDL_LIBS}
+            C_SOURCES android/mosh_sdl_android.c)
+    endif()
     include_directories(AFTER ${SDL_INCLUDE_DIR})
 endif()

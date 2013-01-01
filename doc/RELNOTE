@@ -28,7 +28,12 @@ Changes:
         BoehmGC was updated to upstream 7.3alpha.
 
     Reader:
-        Adopted R7RS bytevector notation(#vu8(...)).
+        Reader now accepts following R7RS syntaxes:
+         - #u8(...) (was #vu8(...))
+         - #\null   (was #\nul)
+         - #\escape (was #\esc)
+         - #true    (was #t)
+         - #false   (was #f)
 
         Number reader now reads "1e2" as inexact. To read exact number using
         exponents, add exactness prefix like "#e1e2".

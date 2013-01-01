@@ -249,6 +249,12 @@ int Scanner::scan(YYSTYPE* yylval)
             YYTOKEN = YYCURSOR;
             return SCHEME_BOOLEAN;
         }
+       "#true" DELMITER {
+            yylval->boolValue = true;
+            YYCURSOR--;
+            YYTOKEN = YYCURSOR;
+            return SCHEME_BOOLEAN;
+        }
         DEFINING_SHARED {
             ucs4string n =  ucs4string(YYTOKEN + 1, (YYCURSOR - YYTOKEN - 1));
             yylval->intValue = atoi(n.ascii_c_str());
@@ -267,6 +273,12 @@ int Scanner::scan(YYSTYPE* yylval)
             YYTOKEN = YYCURSOR;
             return SCHEME_BOOLEAN;
         }
+        "#false" DELMITER {
+            yylval->boolValue = false;
+            YYCURSOR--;
+            YYTOKEN = YYCURSOR;
+            return SCHEME_BOOLEAN;
+        }
         "#\\space" DELMITER {
             yylval->charValue = ' ';
             YYCURSOR--;
@@ -280,6 +292,12 @@ int Scanner::scan(YYSTYPE* yylval)
             return CHARACTER;
         }
         "#\\nul" DELMITER {
+            yylval->charValue = 0x00;
+            YYCURSOR--;
+            YYTOKEN = YYCURSOR;
+            return CHARACTER;
+        }
+        "#\\null" DELMITER {
             yylval->charValue = 0x00;
             YYCURSOR--;
             YYTOKEN = YYCURSOR;
@@ -329,6 +347,12 @@ int Scanner::scan(YYSTYPE* yylval)
         }
         "#\\delete" DELMITER {
             yylval->charValue = 0x7F;
+            YYCURSOR--;
+            YYTOKEN = YYCURSOR;
+            return CHARACTER;
+        }
+        "#\\escape" DELMITER {
+            yylval->charValue = 0x1B;
             YYCURSOR--;
             YYTOKEN = YYCURSOR;
             return CHARACTER;

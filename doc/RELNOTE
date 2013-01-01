@@ -27,6 +27,9 @@ Changes:
     VM:
         BoehmGC was updated to upstream 7.3alpha.
 
+    Reader:
+        Mosh reader adopted R7RS bytevector notation(#vu8(...)).
+
     R6RS:
         utf8->string and string->utf8 no longer converts CRLF into LF.
 

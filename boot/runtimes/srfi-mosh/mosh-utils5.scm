@@ -16,6 +16,22 @@
   (set! DEBUGGING #t))
 
 ;;------------------------------------------------
+;; Cross bootstrap support
+;;------------------------------------------------
+#|
+(define target-os
+  (let ((current-targetos 
+          (if (string? %disable-acc)
+            %disable-acc
+            (host-os))))
+    (lambda () current-targetos)))
+|#
+(define (target-os) 
+  (if (string? %disable-acc)
+    %disable-acc
+    (host-os)))
+
+;;------------------------------------------------
 ;; library aliasing
 ;;------------------------------------------------
 (define library-rename-table '())

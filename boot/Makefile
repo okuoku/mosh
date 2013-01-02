@@ -29,6 +29,7 @@ $(SRC_DIR)/psyntax_mosh_image.cpp: psyntax_mosh_image.cpp
 	cp $< $@
 
 $(SRC_DIR)/nmosh_image.cpp: runtimes/srfi-mosh/nmosh_image.cpp
+	cp runtimes/srfi-mosh/nmosh_boot.fasl $(SRC_DIR)
 	cp $< $@
 
 runtimes/srfi-mosh/nmosh_image.cpp: always

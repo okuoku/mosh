@@ -27,16 +27,19 @@
 	(reverse cur)))
     (apply append (itr '() layout))))
 
-(define (output p)
+(define (output p p2)
   (display "load & expanding runtime..")(newline)
   (let ((outfile (layout-build layout)))
     ;(dumpdbg)
     ;(dumpsrc outfile)
     (display "compile...")(newline)
-    (let ((vec (compile-to-codevector-native/toplevel outfile)))
+    (let* ((vec (compile-to-codevector-native/toplevel outfile))
+           (obj (obj->fasl vec)))
       ;(dumpvec vec)
-      (display "writing boot image...")(newline)
-      (write-cobj 'nmosh p (obj->fasl vec))
+      (display "writing boot image(FASL binary)...")(newline)
+      (put-bytevector p2 obj)
+      (display "writing boot image(c-array)...")(newline)
+      (write-cobj 'nmosh p obj)
       (display "done.")(newline)
       #|
       (display "writing boot image(debug symbol)...")(newline)
@@ -45,9 +48,9 @@
       |#
       )))
 
-(define (build p)
+(define (build p p2)
   (display "#define uint8_t unsigned char\n" p)
-  (output p)
+  (output p p2)
   (display "extern \"C\" " p)
   (display "const unsigned char* nmosh_image_ptr;\n" p)
   (display "extern \"C\" " p)
@@ -100,4 +103,11 @@
 
 (when (file-exists? "nmosh_image.cpp")
   (delete-file "nmosh_image.cpp"))
-(call-with-output-file "nmosh_image.cpp" build)
+(when (file-exists? "nmosh_boot.fasl")
+  (delete-file "nmosh_boot.fasl"))
+(call-with-output-file 
+  "nmosh_image.cpp" 
+  (lambda (p)
+    (let ((p2 (open-file-output-port "nmosh_boot.fasl")))
+      (build p p2)
+      (close-port p2))))

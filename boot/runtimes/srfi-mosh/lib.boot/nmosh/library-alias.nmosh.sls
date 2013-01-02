@@ -3,7 +3,7 @@
          (export init-library-alias-table)
          (import (rnrs)
                  (primitives
-                   host-os
+                   target-os
                    set-library-rename-table!))
 (define library-alias-table
   '(
@@ -46,7 +46,7 @@
       (nmosh ffi pffi-plugin platform null) ])))
 
 (define (calc-table)
-  (define os (host-os))
+  (define os (target-os))
   (define (itr cur rest)
     (if (pair? rest)
       (let ((platforms (caar rest))

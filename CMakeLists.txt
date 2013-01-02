@@ -788,6 +788,15 @@ else()
         @ONLY)
 endif()
 
+# Generate turbocharge
+add_custom_target(turbocharge
+    COMMAND ${CMAKE_COMMAND} 
+    -DLOADPATH="${CMAKE_CURRENT_SOURCE_DIR}" 
+    -DSRCPATH="${CMAKE_CURRENT_SOURCE_DIR}"
+    -DTARGET=android # FIXME: Only for Android for now
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/NmoshCompileBytecode.cmake
+    )
+
 # tests
 add_custom_target(TestTargets) 
 

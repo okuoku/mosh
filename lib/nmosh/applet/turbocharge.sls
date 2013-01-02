@@ -1,5 +1,6 @@
 (library (nmosh applet turbocharge)
-         (export turbocharge)
+         (export turbocharge
+                 turbocharge/alt)
          (import (rnrs)
                  (only (srfi :1) lset-intersection)
                  (srfi :48)
@@ -111,6 +112,15 @@
         (fasl-write idx p)
         (put-bytevector p bv)
         (close-port p))))) 
+
+(define (turbocharge/alt)
+  ;; Alternative version(always generate FASL on current directory)
+  (define path (string-append "nmosh-preload-core-" build-id ".fasl"))
+
+  (ca-preload-disable)
+  ;; FIXME: Disable library execution here..
+  (phase1 (list library-core library-user))
+  (phase2/ht path library-ht/core #f (list library-core library-user)))
 
 (define (turbocharge)
   (ca-preload-disable)

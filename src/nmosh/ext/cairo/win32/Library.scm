@@ -1,7 +1,7 @@
 (mosh-cairo-win32
   c-function-table
   *internal*
-  (plugin: mosh_cairo)
+  (plugin: mosh_cairo_win32)
   (libname: mosh-cairo-win32)
   #(ret name args)
   (void* mc_win32_create (void*))

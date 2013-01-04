@@ -1,4 +1,5 @@
 #include <nmosh/plugin-if.h>
+#include <android/log.h>
 #include "SDL.h"
 
 /* Asset wrappers
@@ -7,7 +8,7 @@
  *  because Android is (likely) the only platform that uses ROM FS. */
 MOSHEXPORT
 int /* 0 = success, err */
-msdl_andorid_asset_open(const char* path, SDL_RWops** out_handle){
+msdl_android_asset_open(const char* path, SDL_RWops** out_handle){
     SDL_RWops* r;
     r = SDL_RWFromFile(path, "r");
     if(r){
@@ -62,4 +63,13 @@ msdl_android_asset_read(SDL_RWops* handle, void* buf, int size){
     int r;
     r = SDL_RWread(handle, buf, 1, size);
     return r;
+}
+
+MOSHEXPORT
+int
+SDL_main(int ac, char** av){
+    __android_log_print(ANDROID_LOG_DEBUG,"Nmosh","Launch mosh_main");
+    mosh_main(0,NULL);
+    __android_log_print(ANDROID_LOG_DEBUG,"Nmosh","Exit...");
+    return 0;
 }

@@ -56,6 +56,9 @@
 #include <dlfcn.h>
 #include <sys/sysctl.h>
 #endif /* __FreeBSD__ */
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
 #include "scheme.h"
 #include "Object.h"
 #include "Object-inl.h"
@@ -437,6 +440,50 @@ int64_t File::write(uint8_t* buf, int64_t _size)
             return 0;
         }
         return sizeWritten;
+    }
+#elif defined(__ANDROID__)
+    // Redirect stdout(1)/stderr(2) to android logger
+#define LOGOUTBUF_LEN 1023
+    static char logoutbuf[LOGOUTBUF_LEN+1];
+    static int logoutp = 0;
+    int pushsize = 0;
+    switch(desc_){
+        case 1:
+        case 2:
+            for(int xp = 0;xp != size;xp++){
+                if(buf[xp] == 0){
+                    break;
+                }
+                if((buf[xp] < 0x20) || (logoutp == LOGOUTBUF_LEN)){
+                    // Flush the buffer
+                    logoutbuf[xp] = 0;
+                    __android_log_write(ANDROID_LOG_DEBUG,
+                                        (desc_ == 1)? "nmosh_stdout" 
+                                        : "nmosh_stderr",
+                                        logoutbuf);
+                    if(buf[xp] < 0x20){
+                        pushsize++;
+                    }
+                    logoutp = 0;
+                }else{
+                    pushsize++;
+                    logoutbuf[logoutp] = buf[xp];
+                    logoutp++;
+                }
+            }
+            return pushsize;
+        default:
+            // Standard output routine
+            MOSH_ASSERT(isOpen());
+            int64_t result;
+            do {
+                result = ::write(desc_, buf, size);
+            } while (result < 0 && errno == EINTR);
+            setLastError();
+            if (result < 0) {
+                throwIOError2(IOError::WRITE, getLastErrorMessage());
+            }
+            return result;
     }
 #else
     MOSH_ASSERT(isOpen());

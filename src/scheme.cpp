@@ -41,6 +41,7 @@
 #include "Ratnum.h"
 #include "Flonum.h"
 #include "OSCompat.h"
+#include "UtilityProcedures.h" // for VM-shared nongenerativeRtds
 extern "C" {
 #include <gmp.h>
 }
@@ -165,6 +166,7 @@ void mosh_init()
     Flonum::initialize();
     Thread::initialize();
     Symbol::initBuitinSymbols();
+    createNonGenerativeRtdHt();
 
 
 #ifdef _WIN32

@@ -102,6 +102,7 @@ namespace scheme {
     Object internalsetIntersectEx(VM* theVM, int argc, const Object* argv);
     Object hostOsEx(VM* theVM, int argc, const Object* argv);
     Object currentDynamicWindersEx(VM* theVM, int argc, const Object* argv);
+    void createNonGenerativeRtdHt(void);
     Object nongenerativeRtdSetDEx(VM* theVM, int argc, const Object* argv);
     Object lookupNongenerativeRtdEx(VM* theVM, int argc, const Object* argv);
 

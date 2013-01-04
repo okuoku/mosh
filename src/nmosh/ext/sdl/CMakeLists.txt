@@ -45,9 +45,10 @@ if(NMOSH_WITH_SDL)
         LINK_LIBRARIES ${SDL_LIBS}
         C_SOURCES mosh_sdl_core.c)
     if(ANDROID)
+        set(NMOSHPLUGIN_mosh_sdl_android_EMBED ON)
         add_nmosh_plugin(mosh_sdl_android
             LINK_DIRECTORIES ${_linkdir}
-            LINK_LIBRARIES ${SDL_LIBS}
+            # LINK_LIBRARIES ${SDL_LIBS} #FIXME: Add only once
             C_SOURCES android/mosh_sdl_android.c)
     endif()
     include_directories(AFTER ${SDL_INCLUDE_DIR})

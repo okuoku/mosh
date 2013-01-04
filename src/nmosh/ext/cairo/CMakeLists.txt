@@ -57,6 +57,19 @@ if(PKG_CAIRO_FOUND OR CAIRO_INCLUDE_DIR)
 endif()
 
 if(_build)
+    if(ANDROID) # FIXME..
+        find_library(_pixman pixman-1)
+        find_library(_freetype freetype)
+        find_library(_fontconfig fontconfig)
+        find_library(_png png15)
+        find_library(_z z)
+        find_library(_xml2 xml2)
+        find_library(_expat expat)
+        find_library(_iconv iconv)
+        set(CAIRO_LIBS ${_pixman} ${_freetype} ${_fontconfig} ${_png}
+            ${_z} ${_xml2} ${_expat} ${_iconv}
+            )
+    endif()
     add_nmosh_plugin(mosh_cairo 
         LINK_LIBRARIES ${CAIRO_LIBS} ${CAIRO_LIBRARY}
         C_SOURCES moshcairo.c)

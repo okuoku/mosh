@@ -10,7 +10,18 @@ endmacro(nmosh_plugin_reset)
 macro(target_link_nmosh_plugin nam)
     # FIXME: Edit target properties instead
     link_directories(${ZZNMOSHPLUGIN_ADDLIBDIR})
-    target_link_libraries(${nam} ${ZZNMOSHPLUGIN_ADDLIBS})
+    if(NOT WIN32 AND NOT APPLE) # GNU ld / GNU gold
+        # Whole archive is required..
+        set(_start_group -Wl,--whole-archive -Wl,--start-group)
+        set(_end_group -Wl,--end-group -Wl,--no-whole-archive)
+    else()
+        set(_start_group "")
+        set(_end_group "")
+    endif()
+    target_link_libraries(${nam} 
+        ${_start_group} 
+        ${ZZNMOSHPLUGIN_ADDLIBS}
+        ${_end_group})
 endmacro(target_link_nmosh_plugin)
 
 macro(bless_nmosh_plugin_stub_source1 pth nam)

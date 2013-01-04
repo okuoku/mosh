@@ -46,6 +46,9 @@ add_plugin(mosh_groonga src/nmosh/ext/groonga)
 if(WIN32)
     add_plugin(mosh_winmm src/nmosh/win32/plugins/mm)
 endif()
+if(ANDROID)
+    add_plugin(android_stubs src/nmosh/android)
+endif()
 
 # MOSH Core
 
@@ -131,8 +134,16 @@ add_definitions(-DHAVE_CONFIG_H
     -DDONT_ADD_BYTE_AT_END=1
     )
 
-if(NOT WIN32)
+if(NOT WIN32 AND NOT ANDROID)
     add_definitions(-DHANDLE_FORK=1)
+endif()
+if(ANDROID)
+    add_definitions(-DGC_ASSERTIONS)
+    add_definitions(-DPLATFORM_ANDROID)
+    add_definitions(-DGC_PRINT_VERBOSE_STATS)
+    add_definitions(-DGC_ANDROID_LOG)
+    add_definitions(-DUSE_GET_STACKBASE_FOR_MAIN)
+    add_definitions(-DGC_DONT_REGISTER_MAIN_STATIC_DATA)
 endif()
 
 # OS Settings

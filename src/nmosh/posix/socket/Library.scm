@@ -18,5 +18,6 @@
   (void socket_addrinfo_read (void* void* void* void* void*))
   (void socket_setnodelay (int))
   (void socket_setreuseaddr (int))
-  (int socket_recvfrom (int void* int void* void*))
-  (int socket_sendto (int void* int void* int)))
+  ;(int socket_recvfrom (int void* int void* void*))
+  ;(int socket_sendto (int void* int void* int))
+  )

@@ -3,12 +3,14 @@
                  plugin-load
                  plugin-lookup)
          (import (rnrs)
+                 (only (nmosh ffi pffi-lookup)
+                       set-pffi-plugin-loader!)
                  (mosh ffi))
          
          
 ;; 
 (define (plugin-init . args)
-  'ok)
+  (set-pffi-plugin-loader! plugin-load plugin-lookup))
 
 ;; Use mosh variant for now
 (define (plugin-load name)

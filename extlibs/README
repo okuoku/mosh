@@ -9,6 +9,8 @@ This directory includes some library distribution for convenience.
          misc.c => gc_misc.c renamed.
          gc_priv.h workarounded with HAVE_CONFIG_H and GC_INLINE definition
          Cygwin workaround at gc_cpp.h was commented out.
+         Do not register main static root on Android platform. It caused invalid
+         mark stack entry.
 
  - onig-5.9.2 - oniguruma
       For: CMake, MonaOS

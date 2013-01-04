@@ -650,6 +650,14 @@ GC_FirstDLOpenedLinkMap(void)
         struct link_map *lm = NULL;
         if (!dlinfo(RTLD_SELF, RTLD_DI_LINKMAP, &lm))
             cachedResult = lm;
+#     elif defined(PLATFORM_ANDROID)
+        static struct link_map lm;
+        static soinfo* si;
+        si = dlopen("libnmosh.so", /* FIXME: Use proper soname here.. */
+                    RTLD_NOW);
+        lm.l_addr = si->base;
+        lm.l_next = NULL;
+        cachedResult = &lm;
 #     else
         int tag;
         for( dp = _DYNAMIC; (tag = dp->d_tag) != 0; dp++ ) {

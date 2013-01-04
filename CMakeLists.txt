@@ -137,12 +137,21 @@ if(NOT WIN32 AND NOT ANDROID)
     add_definitions(-DHANDLE_FORK=1)
 endif()
 if(ANDROID)
-    add_definitions(-DGC_ASSERTIONS)
+    # add_definitions(-DGC_ASSERTIONS)
+    # add_definitions(-DGC_PRINT_VERBOSE_STATS)
+    add_definitions(-DUSE_MMAP)
+    add_definitions(-DUSE_MUNMAP)
+    add_definitions(-DGC_FORCE_UNMAP_ON_GCOLLECT)
     add_definitions(-DPLATFORM_ANDROID)
-    add_definitions(-DGC_PRINT_VERBOSE_STATS)
     add_definitions(-DGC_ANDROID_LOG)
-    add_definitions(-DUSE_GET_STACKBASE_FOR_MAIN)
+
+    # To prevent adding main static data
+    add_definitions(-DGC_NOT_DLL) 
+    add_definitions(-DUSE_GET_STACKBASE_FOR_MAIN) # FIXME: Why ??
     add_definitions(-DGC_DONT_REGISTER_MAIN_STATIC_DATA)
+
+    # for linker.h
+    include_directories(src/nmosh/android/include)
 endif()
 
 # OS Settings
@@ -370,12 +379,6 @@ elseif(APPLE)
         ${gc_dyn_srcs}
         ${gc_pthread_srcs}
         ${gc_darwin_srcs})
-elseif(ANDROID)
-    # Dynamic loading is not needed in Android platform...
-    add_definitions(-DIGNORE_DYNAMIC_LOADING)
-    set(gc_srcs
-        ${gc_core_srcs}
-        ${gc_pthread_srcs})
 else() 
     # pthreads
     set(gc_srcs

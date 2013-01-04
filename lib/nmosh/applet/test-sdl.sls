@@ -1,0 +1,95 @@
+(library (nmosh applet test-sdl)
+         (export test-sdl)
+         (import (rnrs) (yuni async)
+                 (only (mosh concurrent) sleep)
+                 (srfi :8)
+                 (nmosh pffi interface)
+                 (nmosh pffi util)
+                 (nmosh io core)
+                 (nmosh graphics ext cairo core0)
+                 (nmosh graphics ext cairo text0)
+                 (nmosh stubs mosh-sdl)
+                 (nmosh io ext sdl0))
+
+;;
+
+(define main-win #f)
+(define main-surface/sdl #f)
+(define draw-surface/sdl #f)
+
+(define (dump . e)
+  (write (list 'dump: e))(newline))
+
+(define ev-size (msdl-event-size))
+(define (poll-event)
+  (define bv (make-bytevector ev-size))
+  (if (= 0 (msdl-event-poll bv))
+    #f
+    bv))
+
+(define (draw x y)
+  (define p (msdl_surface_lock draw-surface/sdl))
+  (define s (surface-new/pointer p 500 500 (msdl_surface_pitch draw-surface/sdl)))
+  (define ctx (context-new s))
+  (define c (inexact (- 1.0 (* y 1/500))))
+  (define black (pattern-rgba c c c 1.0))
+  (define col (pattern-rgba 0.0 0.0 0.0 1.0))
+  (define bv (string->utf8/null "hogehoge"))
+  (define text (bytevector-pointer bv))
+  (define (gen)
+    `((select ,ctx)
+      ;; Clear
+      (source ,black)
+      (paint)
+      (source ,col)
+      (width 3.0)
+      (move-to 0.0 0.0)
+      (text ,text)
+      ;; V
+      (move-to ,(inexact x) 0.0)
+      (line-to ,(inexact x) 500.0)
+      (stroke)
+      ;; H
+      (move-to 0.0 ,y)
+      (line-to 500.0 ,y)
+      (stroke)))
+  (context-draw ctx (gen) #f)
+  (pattern-destroy black)
+  (pattern-destroy col)
+  (context-destroy ctx)
+  (surface-destroy s)
+  (msdl_surface_unlock draw-surface/sdl))
+
+(define (proc-pointer-event ev)
+  (receive (class window-id id action x y dx dy) (msdl-event-read-pointing ev)
+    (write (list 'class: class 'action: action 'window-id: window-id 'x: x 'y: y 'dx: dx 'dy: dy))(newline)
+    (when (= action 3)
+      (draw x y)
+      (msdl_window_update main-win draw-surface/sdl main-surface/sdl 0 0 500 500 0 0)
+      )))
+
+(define (proc-event ev)
+  (define id (msdl_event_read_type ev))
+  (case id
+    ((1) ;; quit
+     (exit 0))
+    ((2) (proc-pointer-event ev))))
+
+(define (sdl-event)
+  (let ((ev (poll-event)))
+    (when ev (proc-event ev))))
+
+(define (eventloop)
+  (sdl-event)
+  (eventloop))
+
+(define (test-sdl)
+  (msdl-init)
+  (let ((win (msdl-window-create "hoge" #f #f 500 500)))
+    (msdl-window-show win)
+    (set! main-win win)
+    (set! main-surface/sdl (msdl_window_surface_get win))
+    (set! draw-surface/sdl (msdl_surface_create 500 500)))
+
+  (io-dispatch-loop/idle sdl-event))
+)

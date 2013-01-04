@@ -67,7 +67,8 @@
     (if (not (member (cons name (cons phase run-or-expand)) ex:imported))
         (let ((clibrary (ex:lookup-library name #f))) ;MOSH: pass recompile flag
 	  (let ((library (if (and build (not (eq? build (ex:library-build clibrary))))
-			   (assertion-violation 'import "Client was expanded against a different build of this library" name)
+			   (assertion-violation 'import "Client was expanded against a different build of this library" name (list 'expected: build 'actual: 
+                                                                                                                                   (ex:library-build clibrary)))
 			   clibrary)) )
 	    (import-libraries (ex:library-imports library) 
 			      (ex:library-builds library)
@@ -91,7 +92,8 @@
 
 (define ex:register-library! #f)
 (define ex:lookup-library    #f)
-(define ex:unload-libraries! #f)
+;; (define ex:query-library-state #f) ;; In mosh-utils5.scm
+;; (define ex:unload-libraries! #f) ;; In mosh-utils5.scm
 (let ((table '()))
   (set! ex:register-library! 
         (lambda (library)
@@ -115,7 +117,10 @@
                             (ex:lookup-library name #f))
                         (else (assertion-violation 
                                 'lookup-library "Library not found" name))))))))))
-  (set! ex:unload-libraries! (lambda () (set! table '()))))
+  (set! ex:query-library-state (lambda () table))
+  (set! ex:unload-libraries! (lambda (state save) 
+                               (set! ex:imported save)
+                               (set! table state))))
 
 ;; Only instantiate part of the bootstrap library 
 ;; that would be needed for invocation at runtime.

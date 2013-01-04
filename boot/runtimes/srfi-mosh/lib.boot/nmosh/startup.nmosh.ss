@@ -9,6 +9,8 @@
                  (nmosh library-alias)
                  (primitives ca-load ca-preload-enable
                              ca-preload-core
+                             ca-archive-enable
+                             ca-archive-boot
                              DEBUGMODE-ON set-symbol-value!)
                  (for 
                    (primitives ex:unique-token)
@@ -26,7 +28,13 @@
 (define (startup)
   (set-symbol-value! '%nmosh-failproc enter-debugger)
   (set-symbol-value! 'show-profile show-profile)
+  (ca-archive-boot) ;; Set ca-base-libraries
   (init-library-alias-table)
+  ;; Enable archive first. archive loader uses preload-core feature
+  (let ((p (get-global-flag '%nmosh-archive-pointer))
+        (s (get-global-flag '%nmosh-archive-size)))
+    (when (and p s)
+      (ca-archive-enable p s)))
   (when (get-global-flag '%nmosh-preload-core)
     (ca-preload-core build-id))
   (when (get-global-flag '%nmosh-preload-mode)

@@ -27,6 +27,7 @@
 (define %nmosh-portable-mode #f)
 (define %nmosh-prefixless-mode #t)
 (define %loadpath #f)
+(define %disable-acc #t)
 
 (define (raise-syntax-violation . e)
   (display 'SYNTAX-ERR!!)(newline)

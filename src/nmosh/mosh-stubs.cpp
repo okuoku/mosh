@@ -443,8 +443,18 @@ stub_get_pffi_feature_set(VM* theVM, int argc, const Object* argv){
 #undef SYM
 #undef PTR
 
+void* nmosh_archive_ptr = NULL;
+uintptr_t nmosh_archive_size = 0;
+
 void
 register_stubs(VM* theVM){
-    theVM->setValueString(UC("%get-pffi-feature-set"),Object::makeCProcedure(stub_get_pffi_feature_set));
-    theVM->setValueString(UC("%nmosh-pffi-call"),Object::makeCProcedure(stub_pffi_call));
+    // Standard pffi interface 
+    theVM->setValueString(UC("%get-pffi-feature-set"),
+                          Object::makeCProcedure(stub_get_pffi_feature_set));
+    theVM->setValueString(UC("%nmosh-pffi-call"),
+                          Object::makeCProcedure(stub_pffi_call));
+    theVM->setValueString(UC("%nmosh-archive-pointer"),
+                          Object::makePointer(nmosh_archive_ptr));
+    theVM->setValueString(UC("%nmosh-archive-size"),
+                          Object::makePointer(reinterpret_cast<void*>(nmosh_archive_size)));
 }

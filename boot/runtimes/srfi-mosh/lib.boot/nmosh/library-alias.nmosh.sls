@@ -10,25 +10,25 @@
     (("win32")
      .
      [ (nmosh zrepl platform) . (nmosh zrepl platform win32) ])
-    (("cygwin" "linux" "bsd" "darwin")
+    (("cygwin" "linux" "bsd" "darwin" "android")
      .
      [ (nmosh zrepl platform) . (nmosh zrepl platform posix) ])
     (("win32")
      .
      [ (nmosh ui deco platform) . (nmosh ui deco platform win32) ])
-    (("cygwin" "linux" "bsd" "darwin")
+    (("cygwin" "linux" "bsd" "darwin" "android")
      .
      [ (nmosh ui deco platform) . (nmosh ui deco platform posix) ])
     (("win32")
      .
      [ (nmosh pffi locale) . (nmosh pffi win32 locale) ])
-    (("cygwin" "linux" "bsd" "darwin")
+    (("cygwin" "linux" "bsd" "darwin" "android")
      .
      [ (nmosh pffi locale) . (nmosh pffi posix locale) ])
     (("win32") ;; IOCP + Win32 GUI
      .
      [ (nmosh aio platform) . (nmosh aio platform win32) ])
-    (("bsd" "darwin" "linux") ;; Posix for now.
+    (("bsd" "darwin" "linux" "android") ;; Posix for now.
      .
      [ (nmosh aio platform) . (nmosh aio platform posix) ])
     (("cygwin") ;; Cygwin has no Posix-spawn. Uses vfork().

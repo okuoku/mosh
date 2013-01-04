@@ -21,6 +21,7 @@
                    ca-preload-path
                    ca-preload-core-path
                    ca-filename->cachename
+                   ca-archive-begin
                    cachename-shorten
                    fasl-read
                    fasl-write
@@ -113,11 +114,11 @@
         (put-bytevector p bv)
         (close-port p))))) 
 
-(define (turbocharge/alt)
-  ;; Alternative version(always generate FASL on current directory)
-  (define path (string-append "nmosh-preload-core-" build-id ".fasl"))
+(define (turbocharge/alt path)
+  ;; Alternative version(always generate FASL on path argument)
 
   (ca-preload-disable)
+  (ca-archive-begin "turbocharge") ;; FIXME: use unique token
   ;; FIXME: Disable library execution here..
   (phase1 (list library-core library-user))
   (phase2/ht path library-ht/core #f (list library-core library-user)))

@@ -13,7 +13,6 @@ ENABLE_TESTING()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# mosh/nmosh select
 set(MOSH_WITH_NMOSH ON) # Psyntax support was dropped
 option(MOSH_PORTABLE "build portable version of mosh interpreter" OFF)
 option(MOSH_PREFIXLESS "build prefix-less version of mosh interpreter" ON)
@@ -800,13 +799,23 @@ else()
 endif()
 
 # Generate turbocharge
-add_custom_target(turbocharge
-    COMMAND ${CMAKE_COMMAND} 
-    -DLOADPATH="${CMAKE_CURRENT_SOURCE_DIR}" 
-    -DSRCPATH="${CMAKE_CURRENT_SOURCE_DIR}"
-    -DTARGET=android # FIXME: Only for Android for now
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/NmoshCompileBytecode.cmake
-    )
+set(_turbocharge_output "output.fasl") # dummy name
+if(NOT CMAKE_CROSSCOMPILING)
+    set(_turbocharge_host "HOST")
+elseif(ANDROID)
+    set(_turbocharge_host "android")
+    set(_turbocharge_output "${LIBRARY_OUTPUT_PATH_ROOT}/assets/archive.fasl")
+endif()
+if(_turbocharge_host)
+    add_custom_target(turbocharge
+        COMMAND ${CMAKE_COMMAND} 
+        -DLOADPATH="${CMAKE_CURRENT_SOURCE_DIR}" 
+        -DSRCPATH="${CMAKE_CURRENT_SOURCE_DIR}"
+        -DTARGET=${_turbocharge_host}
+        -DOUTPUT="${_turbocharge_output}"
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/NmoshCompileBytecode.cmake
+        )
+endif()
 
 # tests
 add_custom_target(TestTargets) 

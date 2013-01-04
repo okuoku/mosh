@@ -65,11 +65,45 @@ msdl_android_asset_read(SDL_RWops* handle, void* buf, int size){
     return r;
 }
 
+extern void* nmosh_archive_ptr;
+extern uintptr_t nmosh_archive_size;
+
+static void
+msdl_android_mosh_init(void){
+    int r;
+    int size;
+    SDL_RWops* f;
+    __android_log_print(ANDROID_LOG_DEBUG,"Nmosh","Loading library archive...");
+    /* Open and calc size */
+    f = SDL_RWFromFile("archive.fasl", "r");
+    if(!f){
+        __android_log_print(ANDROID_LOG_DEBUG,"Nmosh",
+                            "Archive open failed(%s)...",SDL_GetError());
+        return;
+    }
+    r = SDL_RWseek(f, 0, RW_SEEK_END);
+    size = SDL_RWtell(f);
+    r = SDL_RWseek(f, 0, RW_SEEK_SET);
+    /* FIXME: Free it later */
+    nmosh_archive_ptr = malloc(size);
+    __android_log_print(ANDROID_LOG_DEBUG,"Nmosh","Reading library archive...");
+    r = SDL_RWread(f, nmosh_archive_ptr, 1, size);
+    nmosh_archive_size = size;
+    __android_log_print(ANDROID_LOG_DEBUG,"Nmosh","Library loaded (size = %d, r = %d)",size,r);
+}
+
 MOSHEXPORT
 int
 SDL_main(int ac, char** av){
+    int argc;
+    const char* argv[5];
+    argv[0] = "bogus";
+    argv[1] = "--verbose";
+    argv[2] = NULL;
+    argc = 2;
+    msdl_android_mosh_init();
     __android_log_print(ANDROID_LOG_DEBUG,"Nmosh","Launch mosh_main");
-    mosh_main(0,NULL);
+    mosh_main(argc,argv);
     __android_log_print(ANDROID_LOG_DEBUG,"Nmosh","Exit...");
     return 0;
 }

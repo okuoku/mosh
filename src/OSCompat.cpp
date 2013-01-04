@@ -444,31 +444,33 @@ int64_t File::write(uint8_t* buf, int64_t _size)
 #elif defined(__ANDROID__)
     // Redirect stdout(1)/stderr(2) to android logger
 #define LOGOUTBUF_LEN 1023
-    static char logoutbuf[LOGOUTBUF_LEN+1];
-    static int logoutp = 0;
+    static char logoutbuf[2][LOGOUTBUF_LEN+1];
+    static int logoutp[2] = {0, 0};
     int pushsize = 0;
+    int sel;
     switch(desc_){
         case 1:
         case 2:
+            sel = desc_ - 1;
             for(int xp = 0;xp != size;xp++){
                 if(buf[xp] == 0){
                     break;
                 }
-                if((buf[xp] < 0x20) || (logoutp == LOGOUTBUF_LEN)){
+                if((buf[xp] < 0x20) || (logoutp[sel] == LOGOUTBUF_LEN)){
                     // Flush the buffer
-                    logoutbuf[xp] = 0;
+                    logoutbuf[sel][logoutp[sel]] = 0;
                     __android_log_write(ANDROID_LOG_DEBUG,
                                         (desc_ == 1)? "nmosh_stdout" 
                                         : "nmosh_stderr",
-                                        logoutbuf);
+                                        logoutbuf[sel]);
                     if(buf[xp] < 0x20){
                         pushsize++;
                     }
-                    logoutp = 0;
+                    logoutp[sel] = 0;
                 }else{
                     pushsize++;
-                    logoutbuf[logoutp] = buf[xp];
-                    logoutp++;
+                    logoutbuf[sel][logoutp[sel]] = buf[xp];
+                    logoutp[sel]++;
                 }
             }
             return pushsize;

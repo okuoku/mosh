@@ -18,14 +18,6 @@
 ;;------------------------------------------------
 ;; Cross bootstrap support
 ;;------------------------------------------------
-#|
-(define target-os
-  (let ((current-targetos 
-          (if (string? %disable-acc)
-            %disable-acc
-            (host-os))))
-    (lambda () current-targetos)))
-|#
 (define (target-os) 
   (if (string? %disable-acc)
     %disable-acc
@@ -248,6 +240,19 @@
                    "\\"
                    "/")))
 (define CACHEDIR (nmosh-cache-dir))
+(define CACHESUFFIX ".nmosh-cache") ;; override with turbocharge
+(define ex:unload-libraries! #f)
+(define ex:query-library-state #f)
+(define ca-base-libraries '()) ;; set with (startup) library
+(define ca-base-library-state '())
+(define ca-acc-disable? %disable-acc)
+(define (ca-archive-boot)
+  (set! ca-base-library-state (ex:query-library-state))
+  (set! ca-base-libraries ex:imported))
+(define (ca-archive-begin name)
+  (set! CACHESUFFIX (string-append ".nmosh-archive-" name))
+  (set! ca-acc-disable? #f) ;; Enable ACC to save FASL binaries
+  (ex:unload-libraries! ca-base-library-state ca-base-libraries))
 
 (define has-cachepath? (and CACHEPATH CACHEDIR))
 ; FIXME: handle exceptions
@@ -298,7 +303,7 @@
                                      ((char=? e #\~) #\@)
                                      (else e)))
                        (string->list str))))
-  (string-append (escape (pathchop fn)) ".nmosh-cache"))
+  (string-append (escape (pathchop fn)) CACHESUFFIX))
 
 (define dbg-files '())
 (define (dbg-addfile fn cdn dfn)
@@ -524,7 +529,7 @@
 
 (define (ca-load fn recompile? name)
   (cond
-    ((or (not has-cachepath?) %disable-acc)
+    ((or (not has-cachepath?) ca-acc-disable?)
      (ca-load/disable-cache fn))
     (else (ca-load/cache fn recompile? name))))
 
@@ -599,6 +604,20 @@
     (set! preload-core-list (fasl-read p/core))
     (set! preload-core-offset (port-position p/core))
     (set! preload-core-port p/core)))
+
+(define (ca-archive-enable ptr siz)
+  ;; Sanity check
+  (when (and (pointer? ptr) (pointer? siz)
+           (not (= 0 (pointer->integer ptr)))
+           (not (= 0 (pointer->integer siz))))
+    (let* ((size (pointer->integer siz))
+           (bv (make-bytevector size)))
+      (pointer-copy! ptr (bytevector-pointer bv) size) 
+      (PCK 'ENABLE-ARCHIVE ptr size) 
+      (let ((p (open-bytevector-input-port bv)))
+        (set! preload-core-list (fasl-read p))
+        (set! preload-core-offset (port-position p))
+        (set! preload-core-port p)))))
 
 (define (ca-preload-core build-id)
   (or preload-core-port

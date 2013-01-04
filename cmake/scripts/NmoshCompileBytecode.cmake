@@ -4,6 +4,7 @@
 # NMOSH    = path to nmosh interpreter (guessed)
 # LOADPATH = path to nmosh libraries(list)
 # SRCPATH  = path to nmosh source
+# OUTPUT   = path to FASL output
 
 if(NOT NMOSH)
     find_program(NMOSH nmosh)
@@ -34,6 +35,7 @@ set(fasl ${SRCPATH}/src/nmosh_boot.fasl)
 gen_loadpath(lpath ${LOADPATH})
 
 execute_process(
-    COMMAND ${NMOSH} -5 ${runner} ${fasl} ${lpath} ${TARGET} ${script}
+    COMMAND ${NMOSH} -5 ${runner} ${fasl} ${lpath} ${TARGET} ${script} 
+    "${OUTPUT}"
     )
 

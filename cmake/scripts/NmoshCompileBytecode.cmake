@@ -32,6 +32,7 @@ endmacro(gen_loadpath)
 set(runner ${SRCPATH}/boot/runtimes/srfi-mosh/run-fasl.scm)
 set(script ${SRCPATH}/boot/runtimes/srfi-mosh/run-turbocharge.sps)
 set(fasl ${SRCPATH}/src/nmosh_boot.fasl)
+separate_arguments(LOADPATH) # FIXME: It does not allow spaces in build path
 gen_loadpath(lpath ${LOADPATH})
 
 execute_process(

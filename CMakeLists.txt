@@ -806,10 +806,16 @@ elseif(ANDROID)
     set(_turbocharge_host "android")
     set(_turbocharge_output "${LIBRARY_OUTPUT_PATH_ROOT}/assets/archive.fasl")
 endif()
+set(_loadpath "")
+set(NMOSH_PACKAGE_LIBPATH CACHE PATH "Path to additional library directory for packaging")
+if(NMOSH_PACKAGE_LIBPATH)
+    list(APPEND _loadpath ${NMOSH_PACKAGE_LIBPATH})
+endif()
+list(APPEND _loadpath ${CMAKE_CURRENT_SOURCE_DIR})
 if(_turbocharge_host)
     add_custom_target(turbocharge
         COMMAND ${CMAKE_COMMAND} 
-        -DLOADPATH="${CMAKE_CURRENT_SOURCE_DIR}" 
+        -DLOADPATH="${_loadpath}"
         -DSRCPATH="${CMAKE_CURRENT_SOURCE_DIR}"
         -DTARGET=${_turbocharge_host}
         -DOUTPUT="${_turbocharge_output}"

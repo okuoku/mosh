@@ -26,6 +26,8 @@
 #include "Closure.h"
 #include "VM-inl.h"
 
+#include "embed-libs.inc.h"
+
 #if !defined(_WIN32) && !defined(MONA)
 #define HAVE_TERMINAL // FIXME: this should be done in configure..
 #endif

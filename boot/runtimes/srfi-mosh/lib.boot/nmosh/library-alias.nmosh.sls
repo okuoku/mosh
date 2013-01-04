@@ -39,11 +39,16 @@
      [ (nmosh ffi pffi-plugin platform)
       . 
       (nmosh ffi pffi-plugin platform win32) ])
+    (("android")
+     .
+     [ (nmosh ffi pffi-plugin platform)
+      . 
+      (nmosh ffi pffi-plugin platform null) ])
     (#t ;; rest
      .
      [ (nmosh ffi pffi-plugin platform)
       . 
-      (nmosh ffi pffi-plugin platform null) ])))
+      (nmosh ffi pffi-plugin platform posix) ])))
 
 (define (calc-table)
   (define os (target-os))

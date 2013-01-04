@@ -99,8 +99,10 @@ SDL_main(int ac, char** av){
     const char* argv[5];
     argv[0] = "bogus";
     argv[1] = "--verbose";
-    argv[2] = NULL;
-    argc = 2;
+    argv[2] = "-T";
+    argv[3] = "test-sdl";
+    argv[4] = NULL;
+    argc = 4;
     msdl_android_mosh_init();
     __android_log_print(ANDROID_LOG_DEBUG,"Nmosh","Launch mosh_main");
     mosh_main(argc,argv);

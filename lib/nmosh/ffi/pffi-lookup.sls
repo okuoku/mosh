@@ -4,14 +4,12 @@
                  set-pffi-plugin-loader!
                  plugin-load)
          (import (rnrs)
-                 (nmosh global-flags)
-                 (primitives %ffi-lookup))
+                 (nmosh ffi pffi-ref)
+                 (nmosh global-flags))
 ;;
 
-(define pffi-mark '*pffi-reference*)
-
 (define (plugin-load name)
-  ;(display (list 'plugin-load name))(newline)
+  ;(write (list 'plugin-load name))(newline)
   (proc-plugin-load name))
 (define proc-plugin-load #f)
 (define plugin-lookup #f)
@@ -19,14 +17,8 @@
   (set! proc-plugin-load loader)
   (set! plugin-lookup lookup))
  
-(define (make-pffi-ref slot)
-  `(,pffi-mark ,slot))
- 
 (define (pffi-slot obj)
   (and (pffi? obj) (cadr obj)))
- 
-(define (pffi? x)
-  (and (pair? x) (eq? pffi-mark (car x))))
 
 (define (pffi-lookup/external lib func)
   (let ((r (plugin-lookup lib func)))

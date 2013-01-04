@@ -10,6 +10,7 @@
 
 (define targets '("src/nmosh"))
 (define callstub "src/call-stubs.inc.c")
+(define embed-libs/hdr "src/embed-libs.inc.h")
 (define embed-libs "src/embed-libs.inc.c")
 
 (define funcnames (make-eq-hashtable))
@@ -78,30 +79,31 @@
           (when p
             (iter l p f)))
         libnames plgnames funcs*))
+    (when (file-exists? embed-libs/hdr)
+      (delete-file embed-libs/hdr))
     (when (file-exists? embed-libs)
       (delete-file embed-libs))
     (call-with-output-file
-      embed-libs
+      embed-libs/hdr
       (^p
         ;; Emit header
         (with-libname+plgname+functions
           (^[l pn f*]
             (format p "#ifdef NMOSHPLUGIN_~a_EMBED\n"
                     pn)
-            (for-each (^e (format p "extern void* ~a;\n" e)) f*)
-            (gen-libdata p pn l f*)
-            (format p "#endif\n"))) 
-
-        (format p "\n\n")
-
+            (for-each (^e (format p "extern \"C\" void* ~a(void);\n" e)) f*)
+            (gen-libdata p pn pn f*)
+            (format p "#endif\n")))))
+    (call-with-output-file
+      embed-libs
+      (^p
         ;; Emit launch
         (with-libname+plgname+functions
           (^[l pn bogus]
             (format p "#ifdef NMOSHPLUGIN_~a_EMBED\n"
                     pn)
             (format p "    tmp = Object::cons(LIBDATA_~a,tmp);\n" pn)
-            (format p "#endif\n")
-            ))))))
+            (format p "#endif\n")))))))
 
 (define (gen-libdata/callstub p sigs)
   (gen-libdata p 'CALL_STUBS "call-stubs" (map (^e (format "callstub_~a" e))

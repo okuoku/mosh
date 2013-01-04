@@ -14,7 +14,12 @@
 
 ;; Use mosh variant for now
 (define (plugin-load name)
-  (open-shared-library name))
+  (assertion-violation 'plugin-load
+                       "Plugin load is not supported on this arch"
+                       name))
 (define (plugin-lookup lib name)
-  (lookup-shared-library lib name))
+  (assertion-violation 'plugin-lookup
+                       "Plugin lookup is not supported on this arch"
+                       lib
+                       name))
 )

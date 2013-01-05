@@ -4,6 +4,16 @@
 
 # Win32, from environment variable GSTREAMER_SDK_ROOT_X86
 if(WIN32)
+    set(_exists OFF)
+    if(EXISTS "$ENV{GSTREAMER_SDK_ROOT_X86}")
+        set(_exists ON)
+    elseif(EXISTS "$ENV{GSTREAMER_SDK_ROOT_X86_64}")
+        set(_exists ON)
+    endif()
+
+    if(NOT _exists)
+        return()
+    endif()
     if(MOSH32)
         file(TO_CMAKE_PATH $ENV{GSTREAMER_SDK_ROOT_X86} _sdkroot)
     elseif(MOSH64)

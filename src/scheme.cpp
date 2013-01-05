@@ -118,8 +118,6 @@ BOOL WINAPI handler(DWORD ctrlChar)
 #define srandom srand
 #endif
 
-extern void initNonGenerativeRtd();
-
 #ifdef _WIN32
 // nothing to do here..
 void null_gc_warn_proc(char* msg, GC_word arg){

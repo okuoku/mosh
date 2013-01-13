@@ -64,11 +64,7 @@
 bool debug_on;
 using namespace scheme;
 
-#ifdef MONA
 VM* theVM;
-#else
-static VM* theVM;
-#endif
 
 #ifdef WITH_NMOSH_DEFAULTS
 //extern "C" const uint8_t* nmosh_dbg_image_ptr;

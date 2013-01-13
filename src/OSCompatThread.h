@@ -589,6 +589,17 @@ namespace scheme {
     class Thread EXTEND_GC
     {
     public:
+		enum ThreadPriority {
+			// NB: Unfortunately, there is no (good) way to specify
+			// thread prority in consistent and portable manner
+			// I'm going to support them in limited OSes; that is QNX,
+			// Win32 and Darwin but that is not implemented yet either.
+			//
+			// priorityLow,
+			priorityNormal,
+			// priorityHigh,
+			// priorityRealtime
+		};
         struct StubInfo EXTEND_GC
         {
             void* (*func)(void*);
@@ -596,6 +607,8 @@ namespace scheme {
             Thread* thread;
             ThreadSpecificKey* selfKey;
             void* returnValue;
+            enum ThreadPriority priority;
+            const char* name;
         };
 
         static void initialize()
@@ -647,7 +660,9 @@ namespace scheme {
 #endif
         }
 
-        bool create(void* (*start)(void*), void* arg);
+        bool create(void* (*start)(void*), void* arg, 
+                    ThreadPriority prio = priorityNormal,
+                    const char* threadname = NULL);
 
         bool join(void** returnValue)
         {

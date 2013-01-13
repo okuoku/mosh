@@ -49,6 +49,9 @@ if(ANDROID)
     add_plugin(android_stubs src/nmosh/android)
 endif()
 
+# FIXME: Move to NmoshPluginUtil.cmake
+add_definitions(-DNMOSHPLUGIN_moshvm_helper_EMBED)
+
 # MOSH Core
 
 # only ONE runtime source will be allowed.
@@ -676,6 +679,7 @@ src/OSCompatThread.cpp
 src/VMFactory.cpp
 src/OSCompat.cpp
 src/nmosh/mosh-stubs.cpp
+src/nmosh/helper/nmosh-plugin-helper.cpp
 src/nmosh/generic/boehmgc-stubs/boehmgc-stubs.c
 )
 bless_nmosh_plugin_stub_source(src/nmosh/mosh-stubs.cpp)

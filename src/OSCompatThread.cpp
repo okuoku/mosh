@@ -45,6 +45,52 @@ using namespace scheme;
 #ifndef MONA
 ThreadSpecificKey* Thread::selfKey;
 
+#ifdef _WIN32
+// Took from : http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
+
+const DWORD MS_VC_EXCEPTION=0x406D1388;
+
+#ifdef _MSC_VER
+#pragma pack(push,8)
+#endif
+typedef struct tagTHREADNAME_INFO
+{
+   DWORD dwType; // Must be 0x1000.
+   LPCSTR szName; // Pointer to name (in user addr space).
+   DWORD dwThreadID; // Thread ID (-1=caller thread).
+   DWORD dwFlags; // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
+
+static void SetThreadName( DWORD dwThreadID, const char* threadName)
+{
+   THREADNAME_INFO info;
+   info.dwType = 0x1000;
+   info.szName = threadName;
+   info.dwThreadID = dwThreadID;
+   info.dwFlags = 0;
+
+   __try
+   {
+      RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
+   }
+   __except(EXCEPTION_EXECUTE_HANDLER)
+   {
+   }
+}
+#endif
+
+static void
+thread_setmyname(const char* name){
+#if defined(_WIN32)
+    // Defined in above
+    // name will be copied to VC runtime internal
+    SetThreadName(-1 /* Myself */, name);
+#endif
+    // Do nothing on unsupported platform
+}
 
 #ifdef _WIN32
 static unsigned int __stdcall stubFunction(void* param)
@@ -57,6 +103,9 @@ static void* stubFunction(void* param)
         fprintf(stderr, "fatal : Thread store self\n");
         exit(-1);
     }
+    if(info->name){
+        thread_setmyname(info->name);
+    }
     info->returnValue = info->func(info->argument);
 #ifdef _WIN32
 	return (unsigned int)(uintptr_t)info->returnValue;
@@ -65,13 +114,16 @@ static void* stubFunction(void* param)
 #endif
 }
 
-bool Thread::create(void* (*start)(void*), void* arg)
+bool Thread::create(void* (*start)(void*), void* arg, ThreadPriority prio,
+                    const char* threadname)
 {
     stubInfo_ = new StubInfo;
     stubInfo_->func = start;
     stubInfo_->argument = arg;
     stubInfo_->thread = this;
     stubInfo_->selfKey = selfKey;
+    stubInfo_->priority = prio;
+    stubInfo_->name = threadname;
 #ifdef _WIN32
     unsigned int threadId;
     thread_ = (HANDLE)GC_beginthreadex(0, 0, stubFunction,stubInfo_, 0, &threadId);

@@ -149,6 +149,8 @@ typedef int fixedint;
 const ucs4char* UC(const char *str);
 #elif defined(__CYGWIN__) || defined (_WIN32)
 #define UC_(x) L ## x
+// gcc can use utf32 on utf16 platforms but it results '\0' as 16bit zero
+// So we have to additional '\0' at its end
 #define UC(x) reinterpret_cast<const ucs4char*>(UC_(x)L"\0")
 #else
 #define UC_(x) L ## x

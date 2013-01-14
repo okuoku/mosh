@@ -57,6 +57,12 @@ moshvm_set_value_string(void* pvm, const char* symname, const char* value){
 }
 
 void // FIXME: fail?
+moshvm_set_value_pointer(void* pvm, const char* symname, void* value){
+    VM* vm = (VM *)pvm;
+    vm->setValueString(UC(symname), Object::makePointer(value));
+}
+
+void // FIXME: fail?
 moshvm_set_value_boolean(void* pvm, const char* symname, int b){
     VM* vm = (VM *)pvm;
     vm->setValueString(UC(symname), Object::makeBool(b?true:false));

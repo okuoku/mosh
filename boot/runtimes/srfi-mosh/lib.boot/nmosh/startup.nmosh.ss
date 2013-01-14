@@ -39,10 +39,15 @@
     (ca-preload-core build-id))
   (when (get-global-flag '%nmosh-preload-mode)
     (ca-preload-enable build-id))
-  (let ((cl (command-line)))
+  (let ((cl (command-line))
+        (applet (get-global-flag '%invoke-applet)))
+    ;(write (list 'nmosh-startup: applet))(newline)
     (cond
+      ((string? applet)
+       (let ((name (string->symbol applet))) 
+         (runlib `((nmosh applet ,name)) name)))
       ((<= 1 (length cl))
-       (if (get-global-flag '%invoke-applet)
+       (if applet
          (let ((name (string->symbol (car cl))))
            (runlib `((nmosh applet ,name)) name))
          (ca-load (car cl) #f '(nmosh PROGRAM-FROM-NMOSH-STARTUP))))

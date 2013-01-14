@@ -47,13 +47,19 @@ moshvm_alloc(void){
     const bool isProfilerOn = false;
     VM* vm = fac.create(INITIAL_STACK_SIZE, isProfilerOn);
     VM::copyOptions(vm, theVM);
-	return reinterpret_cast<void*>(vm);
+    return reinterpret_cast<void*>(vm);
 }
 
 void // FIXME: fail?
 moshvm_set_value_string(void* pvm, const char* symname, const char* value){
     VM* vm = (VM *)pvm;
     vm->setValueString(UC(symname), value);
+}
+
+void // FIXME: fail?
+moshvm_set_value_boolean(void* pvm, const char* symname, int b){
+    VM* vm = (VM *)pvm;
+    vm->setValueString(UC(symname), Object::makeBool(b?true:false));
 }
 
 static void*

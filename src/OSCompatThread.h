@@ -609,6 +609,8 @@ namespace scheme {
             void* returnValue;
             enum ThreadPriority priority;
             const char* name;
+            void* ticketFunction;
+            void* ticketData;
         };
 
         static void initialize()
@@ -662,7 +664,9 @@ namespace scheme {
 
         bool create(void* (*start)(void*), void* arg, 
                     ThreadPriority prio = priorityNormal,
-                    const char* threadname = NULL);
+                    const char* threadname = NULL,
+                    void* ticket_func = NULL,
+                    void* ticket_data = NULL);
 
         bool join(void** returnValue)
         {

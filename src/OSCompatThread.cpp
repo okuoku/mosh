@@ -92,6 +92,8 @@ thread_setmyname(const char* name){
     // Do nothing on unsupported platform
 }
 
+typedef void (*nmosh_ticket_callback_t)(void* ticket, void* arg);
+
 #ifdef _WIN32
 static unsigned int __stdcall stubFunction(void* param)
 #else
@@ -107,15 +109,22 @@ static void* stubFunction(void* param)
         thread_setmyname(info->name);
     }
     info->returnValue = info->func(info->argument);
+    if(info->ticketFunction){
+        // FIXME: Detach the thread??
+        const nmosh_ticket_callback_t stubcallback = 
+            (const nmosh_ticket_callback_t)info->ticketFunction;
+        stubcallback(info->ticketData, info->returnValue);
+    }
 #ifdef _WIN32
-	return (unsigned int)(uintptr_t)info->returnValue;
+    return (unsigned int)(uintptr_t)info->returnValue;
 #else
     return info->returnValue;
 #endif
 }
 
 bool Thread::create(void* (*start)(void*), void* arg, ThreadPriority prio,
-                    const char* threadname)
+                    const char* threadname, void* ticket_func,
+                    void* ticket_data)
 {
     stubInfo_ = new StubInfo;
     stubInfo_->func = start;
@@ -124,6 +133,8 @@ bool Thread::create(void* (*start)(void*), void* arg, ThreadPriority prio,
     stubInfo_->selfKey = selfKey;
     stubInfo_->priority = prio;
     stubInfo_->name = threadname;
+    stubInfo_->ticketFunction = ticket_func;
+    stubInfo_->ticketData = ticket_data;
 #ifdef _WIN32
     unsigned int threadId;
     thread_ = (HANDLE)GC_beginthreadex(0, 0, stubFunction,stubInfo_, 0, &threadId);

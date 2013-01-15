@@ -1,3 +1,6 @@
+// nmosh plugin helper
+//  Plugin interface for mosh VM/heap
+
 #include <nmosh/plugin-if.h>
 
 #include "Object.h"

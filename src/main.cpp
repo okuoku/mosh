@@ -61,6 +61,10 @@
 #include "ProcedureMacro.h"
 #endif
 
+#ifdef WITH_MOSH_ALTMAIN
+#include "nmosh/plugin-if.h"
+#endif
+
 bool debug_on;
 using namespace scheme;
 
@@ -176,7 +180,9 @@ void signal_handler(int signo)
 #ifndef WITH_MOSH_ALTMAIN
 int main(int argc, char *argv[])
 #else
-extern "C" int mosh_main(int argc, char *argv[])
+extern "C" 
+MOSHEXPORT
+int mosh_main(int argc, char *argv[])
 #endif
 {
     // call this before any allocation.

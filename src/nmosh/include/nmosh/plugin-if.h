@@ -20,7 +20,7 @@ NMOSH_COMMON_BEGIN
 
 typedef void (*nmosh_chime_callback_t)(void* chime_param);
 
-struct {
+typedef struct {
     nmosh_chime_callback_t caller;
     void* state;
 }nmosh_chime_call_t;

@@ -24,6 +24,17 @@ if(WIN32)
 endif()
 option(MOSH_DEBUG_VERSION "build Debug version of mosh interpreter" OFF)
 option(MOSH_GC_PARALLEL_MARK "Boehm GC: Turn on parallel-marking" OFF)
+if(NOT ANDROID)
+    if(WIN32) # FIXME: Allow MOSH_BUILD_MODULE on other platform
+        option(MOSH_BUILD_MODULE 
+            "build module(.so/.dll) version of mosh interpreter" OFF)
+    else()
+        set(MOSH_BUILD_MODULE OFF)
+    endif()
+else()
+    set(MOSH_BUILD_MODULE ON)
+endif()
+
 set(MOSH_EXECUTABLE_NAME "nmosh" CACHE STRING "Interpreter executable name")
 
 # Configuration
@@ -157,11 +168,19 @@ if(ANDROID)
     include_directories(src/nmosh/android/include)
 endif()
 
+if(MOSH_BUILD_MODULE AND NOT ANDROID)
+    # add_definitions(-DGC_DLL)
+endif()
+
+if(MOSH_BUILD_MODULE OR WIN32)
+    add_definitions(-DWITH_MOSH_ALTMAIN)
+endif()
+
 # OS Settings
 if(WIN32)
     add_definitions(
-        -DWINVER=0x501
         -DGC_NOT_DLL
+        -DWINVER=0x501
         -DONIG_EXTERN=extern
         )
     set(ARCH_INCLUDE "${PROJECT_SOURCE_DIR}/src/win/include"
@@ -213,7 +232,6 @@ else()
         add_definitions(-DGTEST_HAS_PTHREAD=0) # for GC
         if(ANDROID)
             add_definitions(-DMOSH_HOST_OS=\"android\")
-            add_definitions(-DWITH_MOSH_ALTMAIN)
             set(arch_libs ${arch_libs} dl)
         else()
             add_definitions(-DMOSH_HOST_OS=\"linux\")
@@ -712,7 +730,7 @@ if(WIN32)
         ${mosh_core_srcs}
         ${mosh_win32_srcs}
         src/win/win.cpp
-        src/win/mosh.rc)
+        )
     # FIXME: Exclude tests?
     set_source_files_properties(${mosh_core_cxxsrcs} src/main.cpp 
         src/TestingSignalHandler.cpp src/TestingVM.cpp
@@ -732,15 +750,32 @@ if(WIN32)
         file(COPY ${PROJECT_SOURCE_DIR}/misc/logo/mosh.ico DESTINATION 
             ${PROJECT_BINARY_DIR}/misc/logo)
     endif()
-    add_executable(${MOSH_EXECUTABLE_NAME}
-        ${onig_srcs} 
-        ${gc_srcs} 
-        ${mosh_core_srcs} 
-        ${mosh_core_hdrs}
-        ${mosh_runtime_src}
-        src/nmosh/win32/cuimain.cpp
-        src/main.cpp)
+    if(MOSH_BUILD_MODULE)
+        add_library(${MOSH_EXECUTABLE_NAME} SHARED
+            ${onig_srcs} 
+            ${gc_srcs} 
+            ${mosh_core_srcs} 
+            ${mosh_core_hdrs}
+            ${mosh_runtime_src}
+            src/main.cpp)
+        add_executable(${MOSH_EXECUTABLE_NAME}-run
+            src/win/mosh.rc
+            src/nmosh/win32/cuimain.cpp)
+        target_link_libraries(${MOSH_EXECUTABLE_NAME}-run
+            ${MOSH_EXECUTABLE_NAME})
+    else()
+        add_executable(${MOSH_EXECUTABLE_NAME}
+            ${onig_srcs} 
+            ${gc_srcs} 
+            ${mosh_core_srcs} 
+            ${mosh_core_hdrs}
+            ${mosh_runtime_src}
+            src/win/mosh.rc
+            src/nmosh/win32/cuimain.cpp
+            src/main.cpp)
+    endif()
 elseif(NOT ANDROID)
+    # FIXME: Implement MOSH_BUILD_MODULE
     add_executable(${MOSH_EXECUTABLE_NAME}
         ${onig_srcs} 
         ${gc_srcs} 
@@ -767,6 +802,7 @@ else()
 endif()
 
 if(MOSH_WITH_NMOSH_GUI)
+    # FIXME: Implement MOSH_BUILD_MODULE
     add_executable(${MOSH_GUI_EXECUTABLE_NAME} WIN32
         ${onig_srcs} 
         ${gc_srcs} 
@@ -815,19 +851,29 @@ elseif(ANDROID)
 endif()
 set(_loadpath "")
 set(NMOSH_PACKAGE_LIBPATH CACHE PATH "Path to additional library directory for packaging")
+set(NMOSH_PACKAGE_HOSTNMOSH CACHE PATH "Path to host nmosh")
+if(EXISTS "${NMOSH_PACKAGE_HOSTNMOSH}")
+    set(_host_nmosh ${NMOSH_PACKAGE_HOSTNMOSH})
+    set(_use_host_nmosh "")
+else()
+    set(_use_host_nmosh "nonono")
+endif()
 if(NMOSH_PACKAGE_LIBPATH)
     list(APPEND _loadpath ${NMOSH_PACKAGE_LIBPATH})
 endif()
 list(APPEND _loadpath ${CMAKE_CURRENT_SOURCE_DIR})
 if(_turbocharge_host)
-    add_custom_target(turbocharge
+    add_custom_command(OUTPUT ${_turbocharge_output}
         COMMAND ${CMAKE_COMMAND} 
+        -DNMOSH${_use_host_nmosh}="${_host_nmosh}"
         -DLOADPATH="${_loadpath}"
         -DSRCPATH="${CMAKE_CURRENT_SOURCE_DIR}"
         -DTARGET=${_turbocharge_host}
         -DOUTPUT="${_turbocharge_output}"
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/NmoshCompileBytecode.cmake
         )
+    add_custom_target(turbocharge
+        DEPENDS ${_turbocharge_output})
 endif()
 
 # tests

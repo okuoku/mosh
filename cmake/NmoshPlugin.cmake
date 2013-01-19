@@ -51,14 +51,35 @@ macro(do_add_nmosh_plugin nam)
             set(ZZNMOSHPLUGIN_EMBED ${_plgs}
                 CACHE STRING "nmosh internal" FORCE)
         else()
-            set(_or ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-            set(_ol ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${NMOSH_UNINSTALLED_PATH}/plugins)
-            set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${NMOSH_UNINSTALLED_PATH}/plugins)
-            add_library(${nam} ${_disposition} 
-                ${NMOSH_PLUGIN_C_SOURCES})
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_or})
-            set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${_ol})
+            if(CMAKE_CONFIGURATION_TYPES)
+                foreach(e ${CMAKE_CONFIGURATION_TYPES})
+                    string(TOUPPER ${e} _n)
+                    set(_or_${_n} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_${_n}})
+                    set(_ol_${_n} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY_${_n}})
+                    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${_n}
+                        ${NMOSH_UNINSTALLED_PATH}/${e}/plugins)
+                    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${_n}
+                        ${NMOSH_UNINSTALLED_PATH}/${e}/plugins)
+                endforeach()
+                add_library(${nam} ${_disposition} 
+                    ${NMOSH_PLUGIN_C_SOURCES})
+                foreach(e ${CMAKE_CONFIGURATION_TYPES})
+                    string(TOUPPER ${e} _n)
+                    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${_n} ${_or_${_n}})
+                    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${_n} ${_ol_${_n}})
+                endforeach()
+            else()
+                set(_or ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+                set(_ol ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+                set(CMAKE_RUNTIME_OUTPUT_DIRECTORY 
+                    ${NMOSH_UNINSTALLED_PATH}/plugins)
+                set(CMAKE_LIBRARY_OUTPUT_DIRECTORY 
+                    ${NMOSH_UNINSTALLED_PATH}/plugins)
+                add_library(${nam} ${_disposition} 
+                    ${NMOSH_PLUGIN_C_SOURCES})
+                set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_or})
+                set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${_ol})
+            endif()
             set_target_properties(${nam} PROPERTIES
                 FOLDER ${_folder}
                 PREFIX ""

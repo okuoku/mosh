@@ -12,7 +12,6 @@
 (define (plugin-init . args)
   (set-pffi-plugin-loader! plugin-load plugin-lookup))
 
-;; Use mosh variant for now
 (define (plugin-load name)
   (assertion-violation 'plugin-load
                        "Plugin load is not supported on this arch"

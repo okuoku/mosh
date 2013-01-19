@@ -1,22 +1,95 @@
 #ifndef __NMOSH__PLUGIN_IF_H
 #define __NMOSH__PLUGIN_IF_H
 
+#include <stdint.h>
 #include <nmosh/common.h>
 
+NMOSH_COMMON_BEGIN
+
 /* Definitions */
-
-
 #if !defined(NMOSHPLUGIN_EMBED)
 #if defined(_WIN32)
 #define MOSHEXPORT __declspec(dllexport)
 #else
+/* FIXME: Say something about visibility */
 #define MOSHEXPORT
 #endif
 #else
 #define MOSHEXPORT /* non export */
 #endif /* !NMOSHPLUGIN_EMBED */
 
-NMOSH_COMMON_BEGIN
+/*   Plugin globals */
+/* nmosh_export_entry_t: Packet format for object export */
+typedef struct {
+    int type;
+    const char* name;
+    uintptr_t arg0;
+    uintptr_t arg1;
+}nmosh_export_entry_t;
+typedef void* (*nmosh_export_callback_t)(nmosh_export_entry_t* obj);
+typedef uintptr_t (*nmosh_callback_call_t)(void*,void*);
+extern nmosh_export_callback_t nmosh_export_callback;
+extern nmosh_callback_call_t nmosh_callback_call;
+
+#ifdef NMOSHPLUGIN_EMBED
+#define nmosh_callback_call stub_pffi_callback_call
+#define nmosh_export_callback moshvm_export_object
+#define NMOSH_PLUGIN_DEFINE(name) /* Nothing to do */
+#else
+#define NMOSH_PLUGIN_DEFINE(name) \
+    nmosh_callback_call_t nmosh_callback_call; \
+    nmosh_export_callback_t nmosh_export_callback; \
+    MOSHEXPORT void nmosh_plugin_init_##name(void* exp, void* call){ \
+        nmosh_export_callback = (nmosh_export_callback_t)exp; \
+        nmosh_callback_call = (nmosh_callback_call_t)call; \
+    }
+#endif
+
+/*   Export/Import */
+/*    ID code */
+#define NMOSH_EXPORT_TYPE_TERM    0
+#define NMOSH_EXPORT_TYPE_INT     1 /* arg0 = Value */
+#define NMOSH_EXPORT_TYPE_DOUBLE  2 /* arg0 = Ptr, arg1 = 0(double) */
+#define NMOSH_EXPORT_TYPE_CSTRING 3 /* arg0 = Ptr */
+#define NMOSH_EXPORT_TYPE_BUFFER  4 /* arg0 = Ptr, arg1 = length */
+#define NMOSH_EXPORT_TYPE_STRUCT  5 /* arg0 = Entry */
+
+#define NMOSH_EXPORT_BEGIN(name) \
+    const nmosh_export_entry_t name[] = {
+
+#define NMOSH_EXPORT_END() \
+        { NMOSH_EXPORT_TYPE_TERM, 0, 0, 0 } \
+    };
+
+#define NMOSH_EXPORT_INT(name, val) \
+    { NMOSH_EXPORT_TYPE_INT, \
+      name, \
+      val, \
+      0 } ,
+
+#define NMOSH_EXPORT_FLOAT(name, val) \
+    { NMOSH_EXPORT_TYPE_FLOAT, \
+      name, \
+      (uintptr_t)&val, \
+      0 } ,
+
+#define NMOSH_EXPORT_CSTRING(name, val) \
+    { NMOSH_EXPORT_TYPE_CSTRING, \
+      name, \
+      (uintptr_t)val, \
+      0 } ,
+
+#define NMOSH_EXPORT_BUFFER(name, val, size) \
+    { NMOSH_EXPORT_TYPE_BUFFER, \
+      name, \
+      (uintptr_t)val, \
+      0 } ,
+
+#define NMOSH_EXPORT(name) \
+    nmosh_export_callback(name)
+
+#define NMOSH_APPLY(closure, data) \
+    nmosh_callback_call(closure, data)
 
 typedef void (*nmosh_chime_callback_t)(void* chime_param);
 
@@ -25,7 +98,11 @@ typedef struct {
     void* state;
 }nmosh_chime_call_t;
 
-NMOSH_COMMON_END
+typedef struct {
+    void* vm;
+    void* closure;
+}nmosh_vm_callback_t;
 
+NMOSH_COMMON_END
 
 #endif /* __NMOSH__PLUGIN_IF_H */

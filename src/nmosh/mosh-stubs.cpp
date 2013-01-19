@@ -1,3 +1,5 @@
+#include "nmosh/plugin-if.h"
+
 #include "Object.h"
 #include "Object-inl.h"
 #include "Pair.h"
@@ -370,12 +372,12 @@ pffi_caller(uintptr_t in0, uintptr_t in1, uintptr_t* out0, uintptr_t* out1){
     call(d->func,d->args,d->ret);
 }
 
-void*
+static void*
 get_pffi_caller(void){
     return (void*)&pffi_caller;
 }
 
-Object
+static Object
 stub_pffi_call(VM* theVM, int argc, const Object* argv){
     pffi_caller_t call;
     DeclareProcedureName("%nmosh-pffi-call");
@@ -389,7 +391,7 @@ stub_pffi_call(VM* theVM, int argc, const Object* argv){
     return Object::True;
 }
 
-Object
+static Object
 stub_get_pffi_feature_set(VM* theVM, int argc, const Object* argv){
     //DeclareProcedureName("%get-pffi-feature-set");
     Object tmp;
@@ -397,23 +399,23 @@ stub_get_pffi_feature_set(VM* theVM, int argc, const Object* argv){
     tmp = Object::Nil;
     tmp = Object::cons(LIBDATA_PFFI_STUBS,tmp);
 #ifdef HAVE_PTRACE_COMMON
-	tmp = Object::cons(LIBDATA_PTRACE_COMMON,tmp);
+    tmp = Object::cons(LIBDATA_PTRACE_COMMON,tmp);
 #endif
 #ifdef HAVE_KQUEUE
-	tmp = Object::cons(LIBDATA_KQUEUE,tmp);
+    tmp = Object::cons(LIBDATA_KQUEUE,tmp);
 #endif
 #ifdef HAVE_FCNTL
-	tmp = Object::cons(LIBDATA_POSIX_FD,tmp);
+    tmp = Object::cons(LIBDATA_POSIX_FD,tmp);
 #endif
 #ifdef HAVE_BDWGC_STUBS
-	tmp = Object::cons(LIBDATA_BOEHMGC_STUBS,tmp);
+    tmp = Object::cons(LIBDATA_BOEHMGC_STUBS,tmp);
 #endif
 #ifdef HAVE_TERMINAL
     tmp = Object::cons(LIBDATA_TERMINAL,tmp);
 #endif
 #ifdef HAVE_AIO_WIN32
-	tmp = Object::cons(LIBDATA_AIO_WIN32,tmp);
-	tmp = Object::cons(LIBDATA_WIN32_GUI,tmp);
+    tmp = Object::cons(LIBDATA_AIO_WIN32,tmp);
+    tmp = Object::cons(LIBDATA_WIN32_GUI,tmp);
     tmp = Object::cons(LIBDATA_WIN32_MISC,tmp);
 #endif
 #ifdef HAVE_POSIX_SPAWN
@@ -445,6 +447,14 @@ stub_get_pffi_feature_set(VM* theVM, int argc, const Object* argv){
 #undef SYM
 #undef PTR
 
+static Object
+stub_pffi_callback_create(VM* theVM, int argc, const Object* argv){
+    DeclareProcedureName("%nmosh-create-callback");
+    argumentAsClosure(0, clo);
+    return Object::cons(Object::makeVM(theVM), 
+                        Object::makeClosure(clo));
+}
+
 void* nmosh_archive_ptr = NULL;
 uintptr_t nmosh_archive_size = 0;
 
@@ -455,6 +465,8 @@ register_stubs(VM* theVM){
                           Object::makeCProcedure(stub_get_pffi_feature_set));
     theVM->setValueString(UC("%nmosh-pffi-call"),
                           Object::makeCProcedure(stub_pffi_call));
+    theVM->setValueString(UC("%nmosh-pffi-callback-create"),
+                          Object::makeCProcedure(stub_pffi_callback_create));
     theVM->setValueString(UC("%nmosh-archive-pointer"),
                           Object::makePointer(nmosh_archive_ptr));
     theVM->setValueString(UC("%nmosh-archive-size"),

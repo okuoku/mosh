@@ -100,4 +100,56 @@ moshvm_join(void* pvm){
     return p;
 }
 
+uintptr_t // Called from embedded plugins
+moshvm_callback_call(void* p, void* l){
+    Object& obj = Object::makeRaw(p);
+    Object& lis = Object::makeRaw(l);
+    VM* theVM = obj.toPair()->car.toVM();
+    Object& ret = theVM->apply(obj.toPair()->cdr, lis);
+    return (uintptr_t)ret.toPointer()->pointer();
+}
+
+void*
+moshvm_export_object(const nmosh_export_entry_t en[]){
+    Object tmp;
+    // For debug
+    void* p;
+    double d;
+    tmp = Object::Nil;
+    for(int i = 0; en[i].type != NMOSH_EXPORT_TYPE_TERM ; i++){
+        Object me;
+        switch(en[i].type){
+            case NMOSH_EXPORT_TYPE_INT:
+                me = Object::cons(Object::makeString(en[i].name),
+                                  Object::makeBignum(en[i].arg0));
+                break;
+            case NMOSH_EXPORT_TYPE_DOUBLE:
+                d = *(double *)en[i].arg0;
+                me = Object::cons(Object::makeString(en[i].name),
+                                  Object::makeFlonum(d));
+                break;
+            case NMOSH_EXPORT_TYPE_CSTRING:
+                me = Object::cons(Object::makeString(en[i].name),
+                                  Object::makeString((const char *)en[i].arg0));
+                break;
+            case NMOSH_EXPORT_TYPE_BUFFER:
+                me = Object::cons(Object::makeString(en[i].name),
+                                  Object::makeByteVector((const char*)en[i].arg0 ,
+                                                         en[i].arg1));
+                break;
+            case NMOSH_EXPORT_TYPE_STRUCT:
+                p = moshvm_export_object((const nmosh_export_entry_t*)
+                                         en[i].arg0);
+                me = Object::cons(Object::makeString(en[i].name),
+                                  Object::makeRaw(p));
+                break;
+            default:
+                me = Object::Nil;
+                break;
+        }
+        tmp = Object::cons(me, tmp);
+    }
+    return (void*)tmp.val;
+}
+
 } /* Extern C */

@@ -1,6 +1,7 @@
 (library (nmosh ffi pffi)
          (export make-pffi-ref 
                  pffi-c-function
+                 pffi-c-function/init
                  pffi-call/proxy)
          (import (rnrs)
                  (yuni util files)
@@ -143,4 +144,15 @@
                   (string-append "callstub_"
                                  (signature*->string '(arg ... ret))))))
        (make-caller 'func sig ptr '(arg ...) 'ret)))))
+
+;; FIXME: Merge with pffi-c-function (without quote of funcname)
+(define-syntax pffi-c-function/init
+  (syntax-rules ()
+    ((_ lib func)
+     (let ((ptr (pffi-lookup lib func))
+           (sig (string->symbol
+                  (string-append "callstub_"
+                                 (signature*->string '(void* void* void))))))
+       (make-caller func sig ptr '(void* void*) 'void)))))
+
 )

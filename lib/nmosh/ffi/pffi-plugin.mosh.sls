@@ -1,11 +1,15 @@
 (library (nmosh ffi pffi-plugin)
          (export plugin-path
                  make-pffi-ref/plugin
-                 pffi-c-function)
+                 pffi-c-function
+                 plugin-initialize)
          (import (rnrs)
                  (mosh)
                  (mosh ffi)
                  (nmosh ffi pffi)
+                 (only (nmosh ffi pffi-lookup)
+                       ;; FIXME: Why do we have plugin-load on both?
+                       pffi-lookup)
                  (nmosh ffi pffi-plugin platform)
                  (nmosh ffi pffi-ref)
                  (nmosh global-flags)
@@ -13,6 +17,15 @@
 
 
 (define plugin-initialized? #f)
+
+(define moshvm_callback_call
+  (pffi-lookup
+    (make-pffi-ref 'moshvm_helper)
+    'moshvm_callback_call))
+(define moshvm_export_object
+  (pffi-lookup
+    (make-pffi-ref 'moshvm_helper)
+    'moshvm_export_object))
 
 (define pffi-feature-set              
   (let ((f (get-global-flag '%get-pffi-feature-set)))
@@ -37,5 +50,17 @@
       (let ((basepath (path-dirname (mosh-executable-path))))
         (path-append basepath "plugins"))
       (path-append (standard-library-path) "plugins"))))
+
+(define (plugin-initialize library initname)
+  (let ((initfunc (pffi-lookup library initname)))
+    (cond
+      (initfunc
+        (let ((init (pffi-c-function/init library initname)))
+          (display (list 'Initializing: initname))(newline)
+          (init moshvm_export_object moshvm_callback_call)))
+      (else
+        ;; Without init function. Ignore here.
+        'ignore)))
+  'ok)
 
 )

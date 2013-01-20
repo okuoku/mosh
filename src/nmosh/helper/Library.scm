@@ -1,6 +1,7 @@
 (moshvm-helper
   c-function-table
   *internal*
+  ;; moshvm_helper cannot be a plugin for now.
   (plugin: moshvm_helper)
   (libname: moshvm-helper)
   #(ret name args)

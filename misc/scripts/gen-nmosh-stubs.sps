@@ -233,6 +233,11 @@
 
     ;; collect and emit functions
     (for-each-tablesym 'c-function-table emit-function)
+    (when plugin-name
+      ;; Plugin init call
+      ;; FIXME: Call only on expand phase
+      (format p "\n(plugin-initialize %library 'nmosh_plugin_init_~a)\n\n" 
+              plugin-name)) 
     ;; emit footer
     (display ")\n" p))
 

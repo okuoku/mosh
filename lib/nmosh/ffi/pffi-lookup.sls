@@ -30,16 +30,16 @@
     (if f (f) '())))
 
 (define (pffi-lookup/internal lib func)
-  (define (complain)
+  (define (complain) ;; FIXME: Should we complain here..?
     (assertion-violation 'pffi-lookup
                          "PFFI function not avaliable"
                          func
                          (pffi-slot lib)))
   (let ((plib (assoc (pffi-slot lib) pffi-feature-set)))
-    (unless plib (complain))
-    (let ((pfn (assoc func (cdr plib))))
-      (unless pfn (complain))
-      (cdr pfn))))
+    (and plib
+         (let ((pfn (assoc func (cdr plib))))
+           (and pfn
+                (cdr pfn))))))
 
 (define (pffi-lookup lib func)
   ;(write (list 'pffi-lookup: lib func))(newline)

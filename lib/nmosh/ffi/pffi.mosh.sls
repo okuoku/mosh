@@ -1,5 +1,6 @@
 (library (nmosh ffi pffi)
          (export make-pffi-ref 
+                 make-callback
                  pffi-c-function
                  pffi-c-function/init
                  pffi-call/proxy)
@@ -21,6 +22,31 @@
   (let ((f (get-global-flag '%nmosh-pffi-call)))
     (if f f (lambda e (assertion-violation 'pffi-call
                                            "interpreter too old")))))
+
+(define nmosh-pffi-callback-create
+  (let ((f (get-global-flag '%nmosh-pffi-callback-create)))
+    (or f
+        (lambda e (assertion-violation 'nmosh-pffi-callback-create
+                                       "Interpreter too old")))))
+
+(define (make-callback closure)
+  (object->pointer
+    (nmosh-pffi-callback-create
+      (lambda e
+        (let ((r (apply closure e)))
+          (cond 
+            ((boolean? r)
+             (integer->pointer (if r 1 0)))
+            ((integer? r)
+             (integer->pointer r))
+            ((pointer? r) r)
+            ((or (string? r)
+                 (bytevector? r))
+             ;; FIXME: We reject them for now. These are not GC safe.
+             (assertion-violation 'callback
+                                  "Invalid return value"
+                                  r))
+            (else (integer->pointer 0))))))))
 
 (define pffi-call-proxy #f)
 

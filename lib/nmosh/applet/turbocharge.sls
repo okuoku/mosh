@@ -114,14 +114,52 @@
         (put-bytevector p bv)
         (close-port p))))) 
 
+;; Copied from (nmosh bootstrap util) 
+
+
+; from binary2c.scm
+(define (do-write-cobj name p bv)
+  (define (itr cur term)
+    (unless (= term cur)
+      (when (zero? (mod cur 15)) (newline p)) 
+      (when (zero? (mod cur 10000))
+        (display (list 'write: cur term))(newline)
+        )
+      (put-string p (string-append "0x" 
+                                   (number->string 
+                                     (bytevector-u8-ref bv cur) 16)
+                                   ", "))
+      (itr (+ cur 1) term)))
+  (format p "static const uint8_t ~a_image[] = {" name)
+  (itr 0 (bytevector-length bv))
+  (display "\n};\n" p))
+
+(define (write-cobj name p bv)
+  (receive (port proc) (open-string-output-port)
+    (do-write-cobj name port bv)
+    (put-string p (proc))
+    ))
+
+(define (obj->csrc path csrc)
+  (define (body p)
+    (do-write-cobj 'turbocharge p (file->bytevector path)))
+  (when (file-exists? csrc)
+    (delete-file csrc))
+  (call-with-output-file
+    csrc
+    body))
+
 (define (turbocharge/alt path)
   ;; Alternative version(always generate FASL on path argument)
+  (define csrc (string-append path ".inc.c"))
 
   (ca-preload-disable)
   (ca-archive-begin "turbocharge") ;; FIXME: use unique token
   ;; FIXME: Disable library execution here..
   (phase1 (list library-core library-user))
-  (phase2/ht path library-ht/core #f (list library-core library-user)))
+  (phase2/ht path library-ht/core #f (list library-core library-user))
+  (obj->csrc path csrc)
+  )
 
 (define (turbocharge)
   (ca-preload-disable)

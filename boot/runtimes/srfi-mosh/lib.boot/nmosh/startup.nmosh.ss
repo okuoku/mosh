@@ -11,6 +11,7 @@
                              ca-preload-core
                              ca-archive-enable
                              ca-archive-boot
+                             %disable-acc
                              DEBUGMODE-ON set-symbol-value!)
                  (for 
                    (primitives ex:unique-token)
@@ -31,9 +32,11 @@
   (ca-archive-boot) ;; Set ca-base-libraries
   (init-library-alias-table)
   ;; Enable archive first. archive loader uses preload-core feature
+  ;; When we are using run-fasl.scm, do not enable it.
+  ;;  (using (eq? %disable-acc #f) to detect it)
   (let ((p (get-global-flag '%nmosh-archive-pointer))
         (s (get-global-flag '%nmosh-archive-size)))
-    (when (and p s)
+    (when (and (not %disable-acc) p s)
       (ca-archive-enable p s)))
   (when (get-global-flag '%nmosh-preload-core)
     (ca-preload-core build-id))

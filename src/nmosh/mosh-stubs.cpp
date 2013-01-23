@@ -455,8 +455,14 @@ stub_pffi_callback_create(VM* theVM, int argc, const Object* argv){
                         Object::makeClosure(clo));
 }
 
+#ifdef NMOSH_PRELOAD_EMBED
+#include "output.fasl.inc.c" // FIXME: rename it
+void* nmosh_archive_ptr = (void*)turbocharge_image;
+uintptr_t nmosh_archive_size = sizeof(turbocharge_image);
+#else
 void* nmosh_archive_ptr = NULL;
 uintptr_t nmosh_archive_size = 0;
+#endif
 
 void
 register_stubs(VM* theVM){

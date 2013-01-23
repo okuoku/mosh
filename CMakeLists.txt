@@ -17,6 +17,7 @@ set(MOSH_WITH_NMOSH ON) # Psyntax support was dropped
 option(MOSH_PORTABLE "build portable version of mosh interpreter" OFF)
 option(MOSH_PREFIXLESS "build prefix-less version of mosh interpreter" ON)
 option(MOSH_PRELOAD_CORE "always use precompiled base library" OFF)
+option(NMOSH_PRELOAD_EMBED "Embed preload image to interpreter" OFF)
 if(WIN32)
     option(MOSH_WITH_NMOSH_GUI "build GUI version of mosh interpreter" OFF)
     set(MOSH_GUI_EXECUTABLE_NAME "nmoshw" 
@@ -41,6 +42,11 @@ set(MOSH_EXECUTABLE_NAME "nmosh" CACHE STRING "Interpreter executable name")
 # Configuration
 
 # Plugins
+if(NMOSH_PRELOAD_EMBED)
+    add_definitions(-DNMOSH_PRELOAD_EMBED)
+    include_directories(${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
 nmosh_plugin_reset()
 include_directories(src/nmosh/include)
 macro(add_plugin nam dir)
@@ -848,6 +854,12 @@ endif()
 
 # Generate turbocharge
 set(_turbocharge_output "output.fasl") # dummy name
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${_turbocharge_output})
+    # Create dummy data
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${_turbocharge_output}.inc.c
+        "")
+endif()
+
 if(NOT CMAKE_CROSSCOMPILING)
     set(_turbocharge_host "HOST")
 elseif(ANDROID)

@@ -30,7 +30,7 @@
      (queue-read0 nmosh-io-master-queue s read-callback)
      #t)
     (else 
-      (display (list 'FAIL: device))(newline)
+      ;(display (list 'FAIL: device))(newline)
       #f)))
 
 )

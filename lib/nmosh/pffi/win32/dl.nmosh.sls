@@ -7,8 +7,9 @@
                  (prefix (nmosh stubs win32-misc) stub:))
 
 (define (win32_dl_lookup h name)
-  (let ((outname (string->utf8/null name)))
-    (null-filter (stub:win32_dl_lookup h name))))
+  (and h
+       (let ((outname (string->utf8/null name)))
+         (null-filter (stub:win32_dl_lookup h name)))))
 
 (define (win32_dl_open name)
   (let ((outname (string->utf16-bv name)))

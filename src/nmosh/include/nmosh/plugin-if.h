@@ -32,7 +32,8 @@ extern nmosh_export_callback_t nmosh_export_callback;
 extern nmosh_callback_call_t nmosh_callback_call;
 
 #ifdef NMOSHPLUGIN_EMBED
-#define nmosh_callback_call stub_pffi_callback_call
+/* FIXME: Use declspec(dllimport) ?? */
+#define nmosh_callback_call moshvm_callback_call
 #define nmosh_export_callback moshvm_export_object
 #define NMOSH_PLUGIN_DEFINE(name) /* Nothing to do */
 #else

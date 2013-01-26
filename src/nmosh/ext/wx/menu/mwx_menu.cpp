@@ -39,7 +39,10 @@ static void*
 do_create_menu(int id, const char* text, const char* helpstring,
                int type, void* submenu){
     wxMenuItem* me;
-    me = new wxMenuItem(NULL, id, text, helpstring, (wxItemKind)type, (wxMenu*)submenu);
+    me = new wxMenuItem(NULL, id, 
+                        wxString::FromUTF8(text), 
+                        wxString::FromUTF8(helpstring), 
+                        (wxItemKind)type, (wxMenu*)submenu);
 	return me;
 }
 

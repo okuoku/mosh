@@ -37,7 +37,7 @@ mwx_trayicon_seticon(void* me, void* icon, const char* tooltip){
     if(icon){
 		// Create a copy for Icon.
         const wxIcon i = *reinterpret_cast<wxIcon *>(icon);
-        const wxString tip = wxString(tooltip);
+        const wxString tip = wxString::FromUTF8(tooltip);
         ti->SetIcon(i, tip);
     }else{
         ti->RemoveIcon();

@@ -16,7 +16,8 @@ mwx_icon_create_stock(void* id, int size){
         siz = wxSize(size,size);
     }
     const wxIcon* ico = // FIXME: Assume const char* for asset ID...
-        new wxIcon(wxArtProvider::GetIcon(reinterpret_cast<const char *>(id), 
+        new wxIcon(wxArtProvider::GetIcon(wxString::FromAscii
+                                          (reinterpret_cast<const char *>(id)), 
                                wxART_BUTTON, siz));
     return (void*)ico;
 }

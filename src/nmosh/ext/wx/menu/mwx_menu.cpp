@@ -34,6 +34,51 @@ END_EVENT_TABLE()
 extern "C" {
 // }
 
+
+static void*
+do_create_menu(int id, const char* text, const char* helpstring,
+               int type, void* submenu){
+    wxMenuItem* me;
+    me = new wxMenuItem(NULL, id, text, helpstring, (wxItemKind)type, (wxMenu*)submenu);
+	return me;
+}
+
+MOSHEXPORT
+void*
+mwx_menuitem_create_submenu(int id, const char* text, const char* helpstring,
+                            void* menu){
+    return do_create_menu(id,text,helpstring,wxITEM_NORMAL,menu);
+}
+
+MOSHEXPORT
+void*
+mwx_menuitem_create(int id, const char* text, const char* helpstring,
+                    int type){
+    return do_create_menu(id,text,helpstring,type,NULL);
+}
+
+MOSHEXPORT
+void
+mwx_menu_item_append(void* menu, void* item){
+    wxMenu* me = reinterpret_cast<wxMenu *>(menu);
+    wxMenuItem* i = reinterpret_cast<wxMenuItem*>(item);
+    me->Append(i);
+}
+
+MOSHEXPORT
+void
+mwx_menu_item_append_separator(void* menu){
+    wxMenu* me = reinterpret_cast<wxMenu *>(menu);
+    me->AppendSeparator();
+}
+
+MOSHEXPORT
+void
+mwx_menu_item_delete(void* menu, int id){
+    wxMenu* me = reinterpret_cast<wxMenu *>(menu);
+    me->Delete(id);
+}
+
 MOSHEXPORT
 void*
 mwx_menu_create(void* handler){

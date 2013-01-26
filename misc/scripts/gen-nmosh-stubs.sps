@@ -201,7 +201,14 @@
     ;; emit header
     (format p ";; generated from ~a DO NOT EDIT!!\n" pth)
     (format p "(library (nmosh stubs ~a)\n" myname)
-    (pp `(export ,@exports) p)
+    (pp `(export ,@(if plugin-name
+                     (list
+                       (string->symbol
+                         (string-append
+                           "%plugin-exports-"
+                           (symbol->string myname))))
+                     '()) 
+                 ,@exports) p)
     (pp `(import (mosh ffi) (rnrs) 
                  ,(if plugin-name
                     '(nmosh ffi pffi-plugin)
@@ -236,7 +243,8 @@
     (when plugin-name
       ;; Plugin init call
       ;; FIXME: Call only on expand phase
-      (format p "\n(plugin-initialize %library 'nmosh_plugin_init_~a)\n\n" 
+      (format p "\n(define %plugin-exports-~a (plugin-initialize %library 'nmosh_plugin_init_~a))\n\n" 
+              myname
               plugin-name)) 
     ;; emit footer
     (display ")\n" p))

@@ -1,9 +1,13 @@
 project(wx-plugin)
 
-find_package(wxWidgets COMPONENTS gl core base)
+find_package(wxWidgets COMPONENTS gl adv core base)
 
 set(srcs 
+    icon/mwx_icon.cpp
+    taskbar/mwx_taskbar.cpp
+    menu/mwx_menu.cpp
     mosh_wx.cpp)
+
 if(wxWidgets_FOUND)
     include(${wxWidgets_USE_FILE})
     # include_directories(${wxWidgets_INCLUDE_DIRS})

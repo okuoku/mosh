@@ -178,7 +178,8 @@
      (let ((ptr (pffi-lookup lib func))
            (sig (string->symbol
                   (string-append "callstub_"
-                                 (signature*->string '(void* void* void))))))
-       (make-caller func sig ptr '(void* void*) 'void)))))
+                                 (signature*->string '(void* void* void* 
+                                                             void))))))
+       (make-caller func sig ptr '(void* void* void*) 'void)))))
 
 )

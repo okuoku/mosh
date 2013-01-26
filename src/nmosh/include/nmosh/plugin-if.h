@@ -19,6 +19,7 @@ NMOSH_COMMON_BEGIN
 #endif /* !NMOSHPLUGIN_EMBED */
 
 /*   Plugin globals */
+
 /* nmosh_export_entry_t: Packet format for object export */
 typedef struct {
     int type;
@@ -26,25 +27,42 @@ typedef struct {
     uintptr_t arg0;
     uintptr_t arg1;
 }nmosh_export_entry_t;
-typedef void* (*nmosh_export_callback_t)(nmosh_export_entry_t* obj);
+typedef void* (*nmosh_export_callback_t)(const nmosh_export_entry_t* obj);
 typedef uintptr_t (*nmosh_callback_call_t)(void*,void*);
-extern nmosh_export_callback_t nmosh_export_callback;
-extern nmosh_callback_call_t nmosh_callback_call;
 
 #ifdef NMOSHPLUGIN_EMBED
 /* FIXME: Use declspec(dllimport) ?? */
 #define nmosh_callback_call moshvm_callback_call
 #define nmosh_export_callback moshvm_export_object
+/* FIXME: Say something */
+#define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) "Unsupported" 
 #define NMOSH_PLUGIN_DEFINE(name) /* Nothing to do */
 #else
 #define NMOSH_PLUGIN_DEFINE(name) \
+    NMOSH_CONSTANT_BEGIN(name) \
+    NMOSH_CONSTANT_END() \
+    NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
+
+#define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
     nmosh_callback_call_t nmosh_callback_call; \
     nmosh_export_callback_t nmosh_export_callback; \
-    MOSHEXPORT void nmosh_plugin_init_##name(void* exp, void* call){ \
+    MOSHEXPORT void nmosh_plugin_init_##name(void* exp, void* call, \
+                                             void** objout){ \
         nmosh_export_callback = (nmosh_export_callback_t)exp; \
         nmosh_callback_call = (nmosh_callback_call_t)call; \
-    }
+        if(NMOSH_CONSTANT_NAME(name)){\
+            *objout = NMOSH_EXPORT(NMOSH_CONSTANT_NAME(name)); \
+        }else{ \
+            *objout = NULL; \
+        }}
+
+extern nmosh_export_callback_t nmosh_export_callback;
+extern nmosh_callback_call_t nmosh_callback_call;
 #endif
+
+#define NMOSH_CONSTANT_NAME(name) nmosh_constant_##name
+#define NMOSH_PLUGIN_DECLARE(name) \
+    extern nmosh_export_entry_t NMOSH_CONSTANT_NAME(name)[]
 
 /*   Export/Import */
 /*    ID code */
@@ -54,6 +72,7 @@ extern nmosh_callback_call_t nmosh_callback_call;
 #define NMOSH_EXPORT_TYPE_CSTRING 3 /* arg0 = Ptr */
 #define NMOSH_EXPORT_TYPE_BUFFER  4 /* arg0 = Ptr, arg1 = length */
 #define NMOSH_EXPORT_TYPE_STRUCT  5 /* arg0 = Entry */
+#define NMOSH_EXPORT_TYPE_POINTER 6 /* arg0 = Ptr */
 
 #define NMOSH_EXPORT_BEGIN(name) \
     const nmosh_export_entry_t name[] = {
@@ -62,10 +81,22 @@ extern nmosh_callback_call_t nmosh_callback_call;
         { NMOSH_EXPORT_TYPE_TERM, 0, 0, 0 } \
     };
 
+/* FIXME: WHY can't we use 'const' here in Win32?? */
+#define NMOSH_CONSTANT_BEGIN(name) \
+    nmosh_export_entry_t NMOSH_CONSTANT_NAME(name)[] = {
+
+#define NMOSH_CONSTANT_END() NMOSH_EXPORT_END()
+
 #define NMOSH_EXPORT_INT(name, val) \
     { NMOSH_EXPORT_TYPE_INT, \
       name, \
       val, \
+      0 } ,
+
+#define NMOSH_EXPORT_SYMBOL_INT(name) \
+    { NMOSH_EXPORT_TYPE_INT, \
+      #name, \
+      (uintptr_t)name, \
       0 } ,
 
 #define NMOSH_EXPORT_FLOAT(name, val) \
@@ -84,6 +115,18 @@ extern nmosh_callback_call_t nmosh_callback_call;
     { NMOSH_EXPORT_TYPE_BUFFER, \
       name, \
       (uintptr_t)val, \
+      0 } ,
+
+#define NMOSH_EXPORT_SYMBOL_POINTER(name) \
+    { NMOSH_EXPORT_TYPE_POINTER , \
+      #name, \
+      (uintptr_t)&name, \
+      0 } ,
+
+#define NMOSH_EXPORT_SYMBOL_PLUGIN(name) \
+    { NMOSH_EXPORT_TYPE_STRUCT , \
+      #name, \
+      (uintptr_t)&NMOSH_CONSTANT_NAME(name), \
       0 } ,
 
 #define NMOSH_EXPORT(name) \

@@ -457,8 +457,13 @@ stub_pffi_callback_create(VM* theVM, int argc, const Object* argv){
 
 #ifdef NMOSH_PRELOAD_EMBED
 #include "output.fasl.inc.c" // FIXME: rename it
+#ifdef HAVE_NMOSH_PRELOAD_IMAGE
 void* nmosh_archive_ptr = (void*)turbocharge_image;
 uintptr_t nmosh_archive_size = sizeof(turbocharge_image);
+#else
+void* nmosh_archive_ptr = NULL;
+uintptr_t nmosh_archive_size = 0;
+#endif
 #else
 void* nmosh_archive_ptr = NULL;
 uintptr_t nmosh_archive_size = 0;

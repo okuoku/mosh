@@ -1,6 +1,7 @@
 #include <nmosh/plugin-if.h>
 #include <wx/wx.h>
 #include <wx/app.h>
+#include <wx/frame.h>
 
 class nmoshApp : public wxApp {
     public:
@@ -21,12 +22,14 @@ nmoshApp::OnInit(){
     uintptr_t c;
     c = NMOSH_APPLY(init_callback, init_data);
     if(c){
+        /* Clear init data to make consevertive GC happy */
+        init_callback = NULL;
+        init_data = NULL;
         return true; /* Continue execution */
     }else{
         return false; /* Exit immediately */
     }
 }
-
 
 IMPLEMENT_APP_NO_MAIN(nmoshApp)
 
@@ -61,7 +64,13 @@ mwx_base_init(void){
     return (b)?0:-1;
 }
 
+NMOSH_PLUGIN_DECLARE(mwx_icon);
 
-NMOSH_PLUGIN_DEFINE(mosh_wx);
+NMOSH_CONSTANT_BEGIN(mosh_wx)
+NMOSH_EXPORT_SYMBOL_PLUGIN(mwx_icon)
+NMOSH_CONSTANT_END()
+
+NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(mosh_wx);
+
 // {
 }

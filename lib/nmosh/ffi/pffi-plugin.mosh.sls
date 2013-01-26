@@ -2,7 +2,9 @@
          (export plugin-path
                  make-pffi-ref/plugin
                  pffi-c-function
-                 plugin-initialize)
+                 plugin-initialize
+                 pickup-export
+                 )
          (import (rnrs)
                  (mosh)
                  (mosh ffi)
@@ -12,6 +14,8 @@
                        pffi-lookup)
                  (nmosh ffi pffi-plugin platform)
                  (nmosh ffi pffi-ref)
+                 (nmosh ffi box)
+                 (nmosh pffi interface)
                  (nmosh global-flags)
                  (yuni util files))
 
@@ -55,12 +59,23 @@
   (let ((initfunc (pffi-lookup library initname)))
     (cond
       (initfunc
-        (let ((init (pffi-c-function/init library initname)))
+        (let ((init (pffi-c-function/init library initname))
+              (objbox (make-ptr-box)))
           (display (list 'Initializing: initname))(newline)
-          (init moshvm_export_object moshvm_callback_call)))
+          (init moshvm_export_object moshvm_callback_call objbox)
+          (let ((p (ptr-box-ref objbox)))
+            (if (= 0 (pointer->integer p))
+              '() ;; No constants
+              (let ((objs (pointer->object p)))
+                (write (list 'Constants: objs))(newline)
+                objs)))))
       (else
         ;; Without init function. Ignore here.
-        'ignore)))
-  'ok)
+        '()))))
+
+(define (pickup-export name lis)
+  (let* ((str (symbol->string name))
+         (m (assoc str lis)))
+    (and m (cdr m))))
 
 )

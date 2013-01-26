@@ -1,6 +1,7 @@
 // nmosh plugin helper
 //  Plugin interface for mosh VM/heap
 
+#undef NMOSHPLUGIN_EMBED // FIXME: Too hacky
 #include <nmosh/plugin-if.h>
 
 #include "Object.h"
@@ -38,6 +39,17 @@ using namespace scheme;
 extern VM* theVM; // Global root VM
 extern Object activateR6RSMode(VM* theVM, bool isDebugExpand);
 
+
+static Object
+objcons(const char* name, Object o){
+    if(!name){
+        return o;
+    }else{
+        return Object::cons(Object::makeString(name),
+                            o);
+    }
+}
+
 // Exported functions
 extern "C" {
 
@@ -56,19 +68,21 @@ moshvm_alloc(void){
 void // FIXME: fail?
 moshvm_set_value_string(void* pvm, const char* symname, const char* value){
     VM* vm = (VM *)pvm;
-    vm->setValueString(UC(symname), value);
+    vm->setValueString(ucs4string::from_c_str(symname).strdup(), value);
 }
 
 void // FIXME: fail?
 moshvm_set_value_pointer(void* pvm, const char* symname, void* value){
     VM* vm = (VM *)pvm;
-    vm->setValueString(UC(symname), Object::makePointer(value));
+    vm->setValueString(ucs4string::from_c_str(symname).strdup(), 
+                       Object::makePointer(value));
 }
 
 void // FIXME: fail?
 moshvm_set_value_boolean(void* pvm, const char* symname, int b){
     VM* vm = (VM *)pvm;
-    vm->setValueString(UC(symname), Object::makeBool(b?true:false));
+    vm->setValueString(ucs4string::from_c_str(symname).strdup(), 
+                       Object::makeBool(b?true:false));
 }
 
 static void*
@@ -102,10 +116,10 @@ moshvm_join(void* pvm){
 
 uintptr_t // Called from embedded plugins
 moshvm_callback_call(void* p, void* l){
-    Object& obj = Object::makeRaw(p);
-    Object& lis = Object::makeRaw(l);
+    const Object& obj = Object::makeRaw(p);
+    const Object& lis = Object::makeRaw(l);
     VM* theVM = obj.toPair()->car.toVM();
-    Object& ret = theVM->apply(obj.toPair()->cdr, lis);
+    const Object& ret = theVM->apply(obj.toPair()->cdr, lis);
     return (uintptr_t)ret.toPointer()->pointer();
 }
 
@@ -120,28 +134,31 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
         Object me;
         switch(en[i].type){
             case NMOSH_EXPORT_TYPE_INT:
-                me = Object::cons(Object::makeString(en[i].name),
-                                  Object::makeBignum(en[i].arg0));
+                me = objcons(en[i].name, Object::makeBignum(en[i].arg0));
                 break;
             case NMOSH_EXPORT_TYPE_DOUBLE:
                 d = *(double *)en[i].arg0;
-                me = Object::cons(Object::makeString(en[i].name),
-                                  Object::makeFlonum(d));
+                me = objcons(en[i].name, Object::makeFlonum(d));
                 break;
             case NMOSH_EXPORT_TYPE_CSTRING:
-                me = Object::cons(Object::makeString(en[i].name),
-                                  Object::makeString((const char *)en[i].arg0));
+                me = objcons(en[i].name, 
+                             Object::makeString((const char*)en[i].arg0));
                 break;
             case NMOSH_EXPORT_TYPE_BUFFER:
-                me = Object::cons(Object::makeString(en[i].name),
-                                  Object::makeByteVector((const char*)en[i].arg0 ,
-                                                         en[i].arg1));
+                me = objcons(en[i].name,
+                             Object::makeByteVector((const char*)en[i].arg0,
+                                                    en[i].arg1));
+
                 break;
             case NMOSH_EXPORT_TYPE_STRUCT:
                 p = moshvm_export_object((const nmosh_export_entry_t*)
                                          en[i].arg0);
-                me = Object::cons(Object::makeString(en[i].name),
-                                  Object::makeRaw(p));
+                me = objcons(en[i].name,
+                             Object::makeRaw(p));
+                break;
+            case NMOSH_EXPORT_TYPE_POINTER:
+                me = objcons(en[i].name,
+                             Object::makePointer((void*)en[i].arg0));
                 break;
             default:
                 me = Object::Nil;

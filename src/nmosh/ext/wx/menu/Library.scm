@@ -11,4 +11,7 @@
   (void mwx_menu_item_append_separator (void*))
   (void mwx_menu_item_delete (void* int))
   (void* mwx_menu_create (void*))
+  ;; Menubar
+  (void* mwx_menubar_create)
+  (void mwx_menubar_menu_append (void* void* void*))
   )

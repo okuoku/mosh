@@ -88,5 +88,21 @@ mwx_menu_create(void* handler){
     return new nmoshMenu(handler);
 }
 
+// Menubar (it has no dedicated class for nmosh)
+
+MOSHEXPORT
+void*
+mwx_menubar_create(void){
+    return new wxMenuBar();
+}
+
+MOSHEXPORT
+void
+mwx_menubar_menu_append(void* menubar, void* menu, const char* title){
+    wxMenuBar* mnu = reinterpret_cast<wxMenuBar *>(menubar);
+    nmoshMenu* entry = reinterpret_cast<nmoshMenu *>(menu);
+    mnu->Append(entry, wxString::FromUTF8(title));
+}
+
 // {
 };

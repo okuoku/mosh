@@ -3,6 +3,8 @@ project(wx-plugin)
 find_package(wxWidgets COMPONENTS gl adv core base)
 
 set(srcs 
+    window/mwx_window.cpp
+    frame/mwx_frame.cpp
     icon/mwx_icon.cpp
     taskbar/mwx_taskbar.cpp
     menu/mwx_menu.cpp

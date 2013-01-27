@@ -2,7 +2,8 @@
   c-function-table
   *internal*
   (plugin: mosh_wx)
-  (libname: mosh-wx)
+  (libname: mosh_wx)
+  (c-import: "mosh_wx.cpp")
   #(ret name args)
   (void mwx_startapp (void* void*))
   )

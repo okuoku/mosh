@@ -139,13 +139,53 @@
 
 (define (proc pth table*)
   (define filename)
+  (define libname)
   (define internal? #f)
   (define myname #f)
   (define plugin-name #f)
-  (define libname)
+  (define my-exports-name #f)
+  (define plugin-export-name #f)
+  (define parent-libname #f)
+  (define parent-import-name #f)
   (define constants '())
   (define exports '())
   (define objects '())
+  (define c-imports '())
+  (define (calc-library-name libname)
+    (if (pair? libname)
+      `(nmosh stubs . ,libname)
+      `(nmosh stubs ,libname)))
+  (define (calc-1-name libname)
+    (let ((c (if (pair? libname)
+                (fold-left (^[cur e]
+                             (string-append cur "-" (symbol->string e)))
+                           (symbol->string (car libname))
+                           (cdr libname))
+                (symbol->string libname))))
+      c))
+  (define (calc-export-library-name libname)
+    (format "%plugin-library-~a" (calc-1-name libname)))
+  (define (calc-export-exports-name libname)
+    (format "%plugin-exports-~a" (calc-1-name libname)))
+  (define (calc-filename libname)
+    (format "lib/nmosh/stubs/~a.mosh.sls"
+            (if (pair? libname)
+              (fold-left (^[cur e]
+                           ;; FIXME: Use path-append here.
+                           (string-append cur "/" (symbol->string e))) 
+                         (symbol->string (car libname)) 
+                         (cdr libname))
+              libname)))
+
+  (define (prepare-dirs libname)
+    (define dir (path-dirname libname))
+    (unless (file-exists? dir)
+      (let ((p (path-dirname dir)))
+        (unless (file-exists? p)
+          ;; Create parent directory first.
+          (prepare-dirs dir))
+        (create-directory dir))))
+
   (define (add-constant! name value type)
     (add-export! name)
     (set! constants
@@ -200,24 +240,29 @@
       (table-for-each tbl '(ret name args) emit))
     ;; emit header
     (format p ";; generated from ~a DO NOT EDIT!!\n" pth)
-    (format p "(library (nmosh stubs ~a)\n" myname)
-    (pp `(export ,@(if plugin-name
-                     (list
-                       (string->symbol
-                         (string-append
-                           "%plugin-exports-"
-                           (symbol->string myname))))
+    (format p "(library ~a\n" (calc-library-name myname))
+    (pp `(export ,@(if (and plugin-name (not parent-libname))
+                     `(,(string->symbol (calc-export-exports-name myname)))
                      '()) 
-                 ,@exports) p)
-    (pp `(import (mosh ffi) (rnrs) 
+                 (rename (%library ,(string->symbol
+                                      (calc-export-library-name myname))))
+                 ,@exports) 
+        p)
+    (pp `(import (mosh ffi) ;; FIXME: Do we really need this?
+                 (rnrs) 
                  ,(if plugin-name
                     '(nmosh ffi pffi-plugin)
                     '(nmosh ffi pffi))
-                 ;(nmosh ffi stublib)
-                 ) p)
+                 ,@(if parent-libname
+                     (list
+                       (calc-library-name parent-libname))
+                     '())) 
+        p)
 
     ;; emit globals (handle for shared-library or pffi)
     (cond
+      (parent-import-name
+        (format p "\n\n(define %library ~a)\n" parent-import-name))
       (plugin-name
         (format p "\n\n(define %library (make-pffi-ref/plugin '~a))\n" 
                 plugin-name))
@@ -240,11 +285,10 @@
 
     ;; collect and emit functions
     (for-each-tablesym 'c-function-table emit-function)
-    (when plugin-name
+    (when (and plugin-name (not parent-libname))
       ;; Plugin init call
-      ;; FIXME: Call only on expand phase
-      (format p "\n(define %plugin-exports-~a (plugin-initialize %library 'nmosh_plugin_init_~a))\n\n" 
-              myname
+      (format p "\n(define ~a (plugin-initialize %library 'nmosh_plugin_init_~a))\n\n" 
+              (calc-export-exports-name myname) 
               plugin-name)) 
     ;; emit footer
     (display ")\n" p))
@@ -266,7 +310,8 @@
     (assertion-violation #f "Please specify library name"
                          pth))
 
-  (set! filename (format "lib/nmosh/stubs/~a.mosh.sls" myname))
+  (set! filename (calc-filename myname))
+  (prepare-dirs filename)
 
   ;; collect libname
   (for-each (^e (let ((name (table-metadata-ref e 'libname:)))
@@ -276,6 +321,13 @@
   (unless libname
     (assertion-violation #f "Please specify soname"
                          pth))
+
+  ;; collect parent-libname
+  (for-each (^e (let ((name (table-metadata-ref e 'parent-libname:)))
+                  (when name (set! parent-libname name))))
+            table*)
+  (when parent-libname
+    (set! parent-import-name (calc-export-library-name parent-libname)))
 
   ;; collect constants
   (for-each-tablesym 'constant-table collect-constants)

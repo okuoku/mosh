@@ -39,6 +39,10 @@ endif()
 
 set(MOSH_EXECUTABLE_NAME "nmosh" CACHE STRING "Interpreter executable name")
 
+if(APPLE)
+    option(MOSH_BUILD_OSX_BUNDLE "Build GUI Version (OSX)" OFF)
+endif()
+
 # Configuration
 
 # Plugins
@@ -785,6 +789,15 @@ if(WIN32)
             src/nmosh/win32/cuimain.cpp
             src/main.cpp)
     endif()
+elseif(MOSH_BUILD_OSX_BUNDLE)
+    # Mac OSX Bundle
+    add_executable(${MOSH_EXECUTABLE_NAME} MACOSX_BUNDLE
+        ${onig_srcs} 
+        ${gc_srcs} 
+        ${mosh_core_srcs} 
+        ${mosh_core_hdrs}
+        ${mosh_runtime_src}
+        src/main.cpp)
 elseif(NOT ANDROID)
     # FIXME: Implement MOSH_BUILD_MODULE
     add_executable(${MOSH_EXECUTABLE_NAME}
@@ -794,6 +807,7 @@ elseif(NOT ANDROID)
         ${mosh_core_hdrs}
         ${mosh_runtime_src}
         src/main.cpp)
+
 else() # Android
     add_library(${MOSH_EXECUTABLE_NAME} SHARED
         ${onig_srcs} 

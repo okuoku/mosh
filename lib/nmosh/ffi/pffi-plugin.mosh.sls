@@ -56,6 +56,21 @@
       (path-append (standard-library-path) "plugins"))))
 
 (define (plugin-initialize library initname)
+  (define (gen-ht objs)
+    (define ht (make-eq-hashtable))
+    (define (enter obj)
+      (let ((name (car obj))
+            (dat (cdr obj)))
+        ;; FIXME: Ignore plugin. This also disables exporting list/structure
+        (cond
+          ((pair? dat)
+           (for-each enter dat))
+          (else
+            (hashtable-set! ht 
+                            (string->symbol name)
+                            dat)))))
+    (for-each enter objs)
+    ht)
   (let ((initfunc (pffi-lookup library initname)))
     (cond
       (initfunc
@@ -68,14 +83,12 @@
               '() ;; No constants
               (let ((objs (pointer->object p)))
                 (write (list 'Constants: objs))(newline)
-                objs)))))
+                (gen-ht objs))))))
       (else
         ;; Without init function. Ignore here.
         '()))))
 
-(define (pickup-export name lis)
-  (let* ((str (symbol->string name))
-         (m (assoc str lis)))
-    (and m (cdr m))))
+(define (pickup-export name ht)
+  (hashtable-ref ht name #f))
 
 )

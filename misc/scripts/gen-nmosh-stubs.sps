@@ -6,7 +6,41 @@
         (srfi :8)
         (srfi :48)
         (mosh pp) 
+        (irregex)
         (shorten))
+
+(define irx-int (irregex 
+                  `(: bos (* space) 
+                           "NMOSH_EXPORT_SYMBOL_INT("
+                           ($ (* (~ #\))))
+                           ")")))
+
+(define irx-plugin (irregex 
+                     `(: bos (* space) 
+                              "NMOSH_EXPORT_SYMBOL_PLUGIN("
+                              ($ (* (~ #\))))
+                              ")")))
+
+(define irx-pointer (irregex 
+                      `(: bos (* space) 
+                               "NMOSH_EXPORT_SYMBOL_POINTER("
+                               ($ (* (~ #\))))
+                               ")")))
+
+(define (extract-c-exports filename) ;; => int pointer plugin
+  (define lines* (file->string-list filename))
+  (define irx* (list irx-int irx-pointer irx-plugin))
+  (define (proc irx)
+    (fold-left
+      (^[cur line]
+        ;; FIXME: Use irregex-match
+        (let ((m (irregex-search irx line)))
+          (if (irregex-match-data? m)
+            (cons (string->symbol (irregex-match-substring m 1)) cur)
+            cur)))
+      '()
+      lines*))
+  (apply values (map proc irx*)))
 
 (define targets '("src/nmosh"))
 (define callstub "src/call-stubs.inc.c")
@@ -151,6 +185,9 @@
   (define exports '())
   (define objects '())
   (define c-imports '())
+  (define c-exports-int* '())
+  (define c-exports-pointer* '())
+  (define c-exports-plugin* '())
   (define (calc-library-name libname)
     (if (pair? libname)
       `(nmosh stubs . ,libname)
@@ -166,7 +203,7 @@
   (define (calc-export-library-name libname)
     (format "%plugin-library-~a" (calc-1-name libname)))
   (define (calc-export-exports-name libname)
-    (format "%plugin-exports-~a" (calc-1-name libname)))
+    (string->symbol (format "%plugin-exports-~a" (calc-1-name libname))))
   (define (calc-filename libname)
     (format "lib/nmosh/stubs/~a.mosh.sls"
             (if (pair? libname)
@@ -242,8 +279,9 @@
     (format p ";; generated from ~a DO NOT EDIT!!\n" pth)
     (format p "(library ~a\n" (calc-library-name myname))
     (pp `(export ,@(if (and plugin-name (not parent-libname))
-                     `(,(string->symbol (calc-export-exports-name myname)))
+                     `(,(calc-export-exports-name myname))
                      '()) 
+                 ,@(append c-exports-int* c-exports-pointer*)
                  (rename (%library ,(string->symbol
                                       (calc-export-library-name myname))))
                  ,@exports) 
@@ -289,7 +327,19 @@
       ;; Plugin init call
       (format p "\n(define ~a (plugin-initialize %library 'nmosh_plugin_init_~a))\n\n" 
               (calc-export-exports-name myname) 
-              plugin-name)) 
+              plugin-name))
+    ;; Emit int/pointer export
+    (let ((x (if parent-libname
+               (calc-export-exports-name parent-libname)
+               (calc-export-exports-name myname))))
+      (for-each (^[name]
+                  (pp `(define ,name (pickup-export ',name ,x))
+                      p))
+                (append c-exports-int*
+                        ;; FIXME: Ignore plugin export for now
+                        ;; c-exports-plugin*
+                        c-exports-pointer*)))
+
     ;; emit footer
     (display ")\n" p))
 
@@ -328,6 +378,25 @@
             table*)
   (when parent-libname
     (set! parent-import-name (calc-export-library-name parent-libname)))
+
+  ;; collect c-imports
+  (for-each (^e (let ((name (table-metadata-ref e 'c-import:)))
+                  (when name (set! c-imports (if (pair? name)
+                                               name
+                                               (list name))))))
+            table*)
+
+  ;; Emit c-exports
+  (when (pair? c-imports)
+    (for-each
+      (^[f]
+        (define c-file (path-append (path-dirname pth) f))
+        (receive (int* pointer* plugin*) (extract-c-exports c-file)
+          (pp (list 'int: int* 'pointer: pointer* 'plugin: plugin*))
+          (set! c-exports-int* int*)
+          (set! c-exports-pointer* pointer*)
+          (set! c-exports-plugin* plugin*)))
+      c-imports))
 
   ;; collect constants
   (for-each-tablesym 'constant-table collect-constants)

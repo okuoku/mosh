@@ -775,6 +775,7 @@ if(WIN32)
             src/nmosh/win32/cuimain.cpp)
         set_target_properties(${MOSH_EXECUTABLE_NAME}-run
             PROPERTIES
+            IMPORT_SUFFIX ${MOSH_EXECUTABLE_NAME}-run
             OUTPUT_NAME ${MOSH_EXECUTABLE_NAME})
         target_link_libraries(${MOSH_EXECUTABLE_NAME}-run
             ${MOSH_EXECUTABLE_NAME})

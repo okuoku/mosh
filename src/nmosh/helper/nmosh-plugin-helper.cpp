@@ -166,7 +166,7 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
         }
         tmp = Object::cons(me, tmp);
     }
-    return (void*)tmp.val;
+    return (void*)Pair::reverse(tmp).val;
 }
 
 } /* Extern C */

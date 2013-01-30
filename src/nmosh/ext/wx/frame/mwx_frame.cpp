@@ -1,54 +1,20 @@
 #include <nmosh/plugin-if.h>
 #include <wx/wx.h>
 #include <wx/frame.h>
+#include "mwx_event.h"
 
-class nmoshFrame : public wxFrame {
+class nmoshFrame : public wxFrame, public nmoshEventHandler {
     public:
         nmoshFrame(void* handler,
                    wxWindow* parent, const wxString &title,
                    const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name)
-            : wxFrame(parent,wxID_ANY,title,pos,size,style,name){
-                m_handler = handler;
-            };
+            : wxFrame(parent,wxID_ANY,title,pos,size,style,name) ,
+            nmoshEventHandler(handler) { };
     private:
-        void* m_handler;
         void invokeCloseEvent(wxCloseEvent &e);
         void invokeIconizeEvent(wxIconizeEvent &e);
-        DECLARE_EVENT_TABLE();
 };
-
-void
-nmoshFrame::invokeCloseEvent(wxCloseEvent &e){
-    void* obj;
-    uintptr_t r;
-    NMOSH_EXPORT_BEGIN(param)
-        NMOSH_EXPORT_CSTRING(NULL, "close")
-        NMOSH_EXPORT_INT(NULL, e.CanVeto()?1:0)
-        NMOSH_EXPORT_INT(NULL, e.GetLoggingOff()?1:0)
-    NMOSH_EXPORT_END()
-    obj = NMOSH_EXPORT(param);
-    r = NMOSH_APPLY(m_handler, obj); // 0 = Veto Quit event
-    if(r == 0){
-        e.Veto();
-    }
-}
-
-void
-nmoshFrame::invokeIconizeEvent(wxIconizeEvent &e){
-    void* obj;
-    NMOSH_EXPORT_BEGIN(param)
-        NMOSH_EXPORT_CSTRING(NULL, "iconize")
-        NMOSH_EXPORT_INT(NULL, e.IsIconized()?1:0)
-    NMOSH_EXPORT_END()
-    obj = NMOSH_EXPORT(param);
-    NMOSH_APPLY(m_handler, obj);
-}
-
-BEGIN_EVENT_TABLE(nmoshFrame, wxFrame)
-    EVT_ICONIZE(nmoshFrame::invokeIconizeEvent)
-    EVT_CLOSE(nmoshFrame::invokeCloseEvent)
-END_EVENT_TABLE()
 
 extern "C" {
 // }

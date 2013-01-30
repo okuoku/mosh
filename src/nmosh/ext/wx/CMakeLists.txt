@@ -2,17 +2,19 @@ project(wx-plugin)
 
 find_package(wxWidgets COMPONENTS gl adv core base)
 
+include_directories(.)
+
 set(srcs 
     window/mwx_window.cpp
     frame/mwx_frame.cpp
     icon/mwx_icon.cpp
     taskbar/mwx_taskbar.cpp
     menu/mwx_menu.cpp
+    mwx_event.cpp
     mosh_wx.cpp)
 
 if(wxWidgets_FOUND)
     include(${wxWidgets_USE_FILE})
-    # include_directories(${wxWidgets_INCLUDE_DIRS})
     if(MSVC)
         add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     endif()

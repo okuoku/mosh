@@ -58,6 +58,8 @@
                            record-type?
                            record-type-rtd
                            record-type-rcd
+                           display
+                           newline
                            ) run expand)
 	  )
 
@@ -112,15 +114,15 @@
       ; returning the entire clause (as a syntax object) if found
       ; or #f if no such clause is found.
 
-      (define (clauses-assq sym clauses)
+      (define (clauses-assq syn clauses)
         (syntax-case clauses ()
          (((x1 x2 ...) y ...)
           (if (and (identifier? #'x1)
-                   (eq? sym (syntax->datum #'x1)))
+                   (free-identifier=? syn #'x1))
               #'(x1 x2 ...)
-              (clauses-assq sym #'(y ...))))
+              (clauses-assq syn #'(y ...))))
          ((y0 y1 y2 ...)
-          (clauses-assq sym #'(y1 y2 ...)))
+          (clauses-assq syn #'(y1 y2 ...)))
          (x
           #f)))
 
@@ -143,6 +145,10 @@
 
       (define (complain)
         (syntax-violation 'define-record-type "illegal syntax" x))
+      (define (syn-mutable? syn)
+        (and (identifier? syn) (free-identifier=? syn #'mutable)))
+      (define (syn-immutable? syn)
+        (and (identifier? syn) (free-identifier=? syn #'immutable)))
 
       (syntax-case x ()
        ((_ explicit? rt-name constructor-name predicate-name clause ...)
@@ -151,18 +157,18 @@
 ;              (ignored (begin (display "got to here okay") (newline)))
 
                (clauses #'(clause ...))
-               (fields-clause (clauses-assq 'fields clauses))
-               (parent-clause (clauses-assq 'parent clauses))
-               (protocol-clause (clauses-assq 'protocol clauses))
-               (sealed-clause (clauses-assq 'sealed clauses))
-               (opaque-clause (clauses-assq 'opaque clauses))
-               (nongenerative-clause (clauses-assq 'nongenerative clauses))
-               (parent-rtd-clause (clauses-assq 'parent-rtd clauses))
+               (fields-clause (clauses-assq #'fields clauses))
+               (parent-clause (clauses-assq #'parent clauses))
+               (protocol-clause (clauses-assq #'protocol clauses))
+               (sealed-clause (clauses-assq #'sealed clauses))
+               (opaque-clause (clauses-assq #'opaque clauses))
+               (nongenerative-clause (clauses-assq #'nongenerative clauses))
+               (parent-rtd-clause (clauses-assq #'parent-rtd clauses))
 
                (okay?
                 (let (
                       (clauses (syntax->datum clauses))
-                      (fields-clause (syntax->datum fields-clause))
+                      ;(fields-clause (syntax->datum fields-clause))
                       (parent-clause (syntax->datum parent-clause))
                       (protocol-clause (syntax->datum protocol-clause))
                       (sealed-clause (syntax->datum sealed-clause))
@@ -181,24 +187,22 @@
                            (and
                             (list? fields-clause)
                             (for-all (lambda (fspec)
-                                       (or (symbol? fspec)
+                                       (or (identifier? fspec)
                                            (and (list? fspec)
                                                 (>= (length fspec) 2)
-                                                (memq (car fspec)
-                                                      '(immutable mutable))
-                                                (symbol? (cadr fspec))
+                                                (or (syn-mutable? (car fspec))
+                                                    (syn-immutable? (car fspec)))
+                                                (identifier? (cadr fspec))
                                                 (case (length fspec)
                                                  ((2) #t)
                                                  ((3)
-                                                  (and (eq? (car fspec)
-                                                            'immutable)
-                                                       (symbol?
+                                                  (and (syn-immutable? (car fspec))
+                                                       (identifier?
                                                         (caddr fspec))))
                                                  ((4)
-                                                  (and (eq? (car fspec)
-                                                            'mutable)
-                                                       (symbol? (caddr fspec))
-                                                       (symbol?
+                                                  (and (syn-mutable? (car fspec))
+                                                       (identifier? (caddr fspec))
+                                                       (identifier?
                                                         (cadddr fspec))))
                                                  (else #f)))))
                                      (cdr fields-clause))))
@@ -259,24 +263,22 @@
 				    (let ((fspec (if (identifier? fspec)
 						   #`(immutable #,fspec)
 						   fspec)))
-				      (cond ((= (length fspec) 2)
-					     (let ((accessor-name
-						     (make-accessor-name
-						       (syntax->datum (cadr fspec)))))
-					       (case (syntax->datum (car fspec))
-						 ((immutable)
-						  #`(immutable
-						      #,(cadr fspec)
-						      #,accessor-name
-						      #f
-						      ))
-						 ((mutable)
-						  #`(mutable
-						      #,(cadr fspec)
-						      #,accessor-name
-						      #,(make-mutator-name
-							  (syntax->datum (cadr fspec)))
-						      )))))
+                                      (cond ((= (length fspec) 2)
+                                             (let ((accessor-name
+                                                     (make-accessor-name
+                                                       (syntax->datum (cadr fspec)))))
+                                               (cond
+                                                 ((syn-immutable? (car fspec))
+                                                  #`(immutable
+                                                      #,(cadr fspec)
+                                                      #,accessor-name
+                                                      #f))
+                                                 ((syn-mutable? (car fspec))
+                                                  #`(mutable
+                                                      #,(cadr fspec)
+                                                      #,accessor-name
+                                                      #,(make-mutator-name
+                                                          (syntax->datum (cadr fspec))))))))
 					    ((= (length fspec) 3)
 					     #`(#,(car fspec)
 						#,(cadr fspec)

@@ -66,6 +66,7 @@
           ((pair? dat)
            (for-each enter dat))
           (else
+            ;(display (list 'enter name dat))(newline)
             (hashtable-set! ht 
                             (string->symbol name)
                             dat)))))
@@ -89,6 +90,7 @@
         '()))))
 
 (define (pickup-export name ht)
+  ;(display (list 'pickup name))(newline)
   (hashtable-ref ht name #f))
 
 )

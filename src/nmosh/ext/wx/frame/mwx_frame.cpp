@@ -3,14 +3,12 @@
 #include <wx/frame.h>
 #include "mwx_event.h"
 
-class nmoshFrame : public wxFrame, public nmoshEventHandler {
+class nmoshFrame : public wxFrame {
     public:
-        nmoshFrame(void* handler,
-                   wxWindow* parent, const wxString &title,
+        nmoshFrame(wxWindow* parent, const wxString &title,
                    const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name)
-            : wxFrame(parent,wxID_ANY,title,pos,size,style,name) ,
-            nmoshEventHandler(handler) { };
+            : wxFrame(parent,wxID_ANY,title,pos,size,style,name){};
     private:
         void invokeCloseEvent(wxCloseEvent &e);
         void invokeIconizeEvent(wxIconizeEvent &e);
@@ -42,6 +40,7 @@ mwx_frame_create(void* handler,
                  int xwidth, int ywidth,
                  const char* name, void* parent, int style){
     nmoshFrame* me;
+    nmoshEventHandler* eh;
     wxPoint pos;
     wxSize siz;
     if(!xoff && !yoff){
@@ -54,11 +53,13 @@ mwx_frame_create(void* handler,
     }else{
         siz = wxSize(xwidth, ywidth);
     }
-    me = new nmoshFrame(handler,
-                        (wxWindow *)parent,
+    me = new nmoshFrame((wxWindow *)parent,
                         wxString::FromUTF8(title),
                         pos, siz, style, 
                         wxString::FromUTF8(name));
+    eh = new nmoshEventHandler(handler);
+    eh->SetNextHandler(me->GetEventHandler());
+    me->SetEventHandler(eh);
     return me;
 }
 

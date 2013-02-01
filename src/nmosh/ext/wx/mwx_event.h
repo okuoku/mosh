@@ -4,6 +4,7 @@
 class nmoshEventHandler : public wxEvtHandler {
     public:
         nmoshEventHandler(void* handler);
+        void Attach(wxWindow* wnd);
     private:
         void* m_handler;
         void invokeCloseEvent(wxCloseEvent &e);

@@ -58,8 +58,7 @@ mwx_frame_create(void* handler,
                         pos, siz, style, 
                         wxString::FromUTF8(name));
     eh = new nmoshEventHandler(handler);
-    eh->SetNextHandler(me->GetEventHandler());
-    me->SetEventHandler(eh);
+    eh->Attach(me);
     return me;
 }
 

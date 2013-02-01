@@ -49,3 +49,8 @@ nmoshEventHandler::invokeIconizeEvent(wxIconizeEvent &e){
     NMOSH_APPLY(m_handler, obj);
 }
 
+void
+nmoshEventHandler::Attach(wxWindow* wnd){
+    this->SetNextHandler(wnd->GetEventHandler());
+    wnd->SetEventHandler(this);
+}

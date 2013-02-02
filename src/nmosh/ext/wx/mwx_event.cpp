@@ -64,3 +64,25 @@ nmoshEventHandler::Attach(wxWindow* wnd){
     this->SetNextHandler(wnd->GetEventHandler());
     wnd->SetEventHandler(this);
 }
+
+extern "C" {
+// }
+
+MOSHEXPORT
+void
+mwx_event_skip(wxEvent* e){
+    e->Skip();
+}
+
+MOSHEXPORT
+int
+mwx_event_type(wxEvent* e){
+    return e->GetEventType();
+}
+
+NMOSH_CONSTANT_BEGIN(mwx_event)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_COMMAND_TEXT_ENTER)
+NMOSH_CONSTANT_END()
+
+// {
+}

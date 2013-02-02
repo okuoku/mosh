@@ -12,6 +12,7 @@ set(srcs
     icon/mwx_icon.cpp
     taskbar/mwx_taskbar.cpp
     menu/mwx_menu.cpp
+    notification/mwx_notification.cpp
     mwx_event.cpp
     mosh_wx.cpp)
 

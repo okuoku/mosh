@@ -26,5 +26,11 @@ mwx_window_destroy(wxWindow* window){
     window->Destroy();
 }
 
+NMOSH_CONSTANT_BEGIN(mwx_window)
+    NMOSH_EXPORT_SYMBOL_INT(wxICON_INFORMATION)
+    NMOSH_EXPORT_SYMBOL_INT(wxICON_WARNING)
+    NMOSH_EXPORT_SYMBOL_INT(wxICON_ERROR)
+NMOSH_CONSTANT_END()
+
 // {
 };

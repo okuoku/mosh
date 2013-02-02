@@ -17,4 +17,5 @@
   (void mwx_sizer_add_sizer (void* void* int int))
   ;; in mwx_event
   (void mwx_event_skip (void*))
+  (int mwx_event_type (void*))
   )

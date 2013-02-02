@@ -393,9 +393,9 @@
         (define c-file (path-append (path-dirname pth) f))
         (receive (int* pointer* plugin*) (extract-c-exports c-file)
           (pp (list 'int: int* 'pointer: pointer* 'plugin: plugin*))
-          (set! c-exports-int* int*)
-          (set! c-exports-pointer* pointer*)
-          (set! c-exports-plugin* plugin*)))
+          (set! c-exports-int* (append c-exports-int* int*))
+          (set! c-exports-pointer* (append c-exports-pointer* pointer*))
+          (set! c-exports-plugin* (append c-exports-plugin* plugin*))))
       c-imports))
 
   ;; collect constants

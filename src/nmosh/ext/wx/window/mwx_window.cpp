@@ -20,5 +20,11 @@ mwx_window_show(void* window, int b){
     wnd->Show(b);
 }
 
+MOSHEXPORT
+void
+mwx_window_destroy(wxWindow* window){
+    window->Destroy();
+}
+
 // {
 };

@@ -9,6 +9,7 @@
   #(ret name args)
   (void mwx_window_setsizer (void* void*))
   (void mwx_window_show (void* int))
+  (void mwx_window_destroy (void*))
   (void* mwx_boxsizer_create (int))
   (void* mwx_staticboxsizer_create (void* int void*))
   (void* mwx_staticboxsizer_staticbox (void*))

@@ -47,6 +47,12 @@ mwx_startapp(void* callback, void* data){
     wxEntry(zero, &bogus);
 }
 
+MOSHEXPORT
+void
+mwx_app_exit(void){
+    wxGetApp().ExitMainLoop();
+}
+
 /* Exported functions */
 MOSHEXPORT
 void

@@ -10,5 +10,6 @@ class nmoshEventHandler : public wxEvtHandler {
         void invokeCloseEvent(wxCloseEvent &e);
         void invokeIconizeEvent(wxIconizeEvent &e);
         void invokeCommandEvent(wxCommandEvent &e);
+        void invokeDestroyEvent(wxWindowDestroyEvent &e);
         DECLARE_EVENT_TABLE();
 };

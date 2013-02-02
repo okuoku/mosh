@@ -7,6 +7,7 @@ BEGIN_EVENT_TABLE(nmoshEventHandler, wxEvtHandler)
     EVT_ICONIZE(nmoshEventHandler::invokeIconizeEvent)
     EVT_CLOSE(nmoshEventHandler::invokeCloseEvent)
     EVT_MENU(wxID_ANY, nmoshEventHandler::invokeCommandEvent)
+    EVT_WINDOW_DESTROY(nmoshEventHandler::invokeDestroyEvent)
 END_EVENT_TABLE()
 
 // Constructor
@@ -32,7 +33,7 @@ nmoshEventHandler::invokeCloseEvent(wxCloseEvent &e){
     NMOSH_EXPORT_BEGIN(param)
         NMOSH_EXPORT_CSTRING(NULL, "close")
         NMOSH_EXPORT_INT(NULL, e.CanVeto()?1:0)
-        NMOSH_EXPORT_INT(NULL, e.GetLoggingOff()?1:0)
+        //NMOSH_EXPORT_INT(NULL, e.GetLoggingOff()?1:0)
     NMOSH_EXPORT_END()
     obj = NMOSH_EXPORT(param);
     r = NMOSH_APPLY(m_handler, obj); // 0 = Veto Quit event
@@ -50,6 +51,12 @@ nmoshEventHandler::invokeIconizeEvent(wxIconizeEvent &e){
     NMOSH_EXPORT_END()
     obj = NMOSH_EXPORT(param);
     NMOSH_APPLY(m_handler, obj);
+}
+
+void
+nmoshEventHandler::invokeDestroyEvent(wxWindowDestroyEvent &e){
+    // FIXME: Free scheme closure here
+    e.GetWindow()->SetEventHandler(e.GetWindow());
 }
 
 void

@@ -6,4 +6,5 @@
   (c-import: "mosh_wx.cpp")
   #(ret name args)
   (void mwx_startapp (void* void*))
+  (void mwx_app_exit ())
   )

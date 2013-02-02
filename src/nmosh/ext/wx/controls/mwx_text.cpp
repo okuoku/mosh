@@ -40,6 +40,24 @@ mwx_textctrl_setvalue(wxTextCtrl* ctl, const char* text){
 
 MOSHEXPORT
 void
+mwx_textctrl_appendtext(wxTextCtrl* ctl, const char* text){
+    ctl->AppendText(wxString::FromUTF8(text));
+}
+
+MOSHEXPORT
+void
+mwx_textctrl_showposition(wxTextCtrl* ctl, int pos){
+    ctl->ShowPosition(pos);
+}
+
+MOSHEXPORT
+int
+mwx_textctrl_getlastposition(wxTextCtrl* ctl){
+    return ctl->GetLastPosition();
+}
+
+MOSHEXPORT
+void
 mwx_textctrl_sethint(wxTextCtrl* ctl, const char* text){
 #if wxCHECK_VERSION(2,9,0)
     ctl->SetHint(wxString::FromUTF8(text));

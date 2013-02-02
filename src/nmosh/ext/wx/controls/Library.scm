@@ -10,4 +10,7 @@
   (void* mwx_textctrl_getvalue (void*))
   (void mwx_textctrl_setvalue (void* void*))
   (void mwx_textctrl_sethint (void* void*))
+  (void mwx_textctrl_appendtext (void* void*))
+  (void mwx_textctrl_showposition (void* int))
+  (int mwx_textctrl_getlastposition (void*))
   )

@@ -93,6 +93,12 @@ extern nmosh_callback_call_t nmosh_callback_call;
       val, \
       0 } ,
 
+#define NMOSH_EXPORT_POINTER(name, val) \
+    { NMOSH_EXPORT_TYPE_POINTER, \
+      name, \
+      (uintptr_t)val, \
+      0 } ,
+
 #define NMOSH_EXPORT_SYMBOL_INT(name) \
     { NMOSH_EXPORT_TYPE_INT, \
       #name, \

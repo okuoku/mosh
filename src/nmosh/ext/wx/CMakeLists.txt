@@ -5,7 +5,9 @@ find_package(wxWidgets COMPONENTS gl adv core base)
 include_directories(.)
 
 set(srcs 
+    controls/mwx_text.cpp
     window/mwx_window.cpp
+    window/mwx_sizer.cpp
     frame/mwx_frame.cpp
     icon/mwx_icon.cpp
     taskbar/mwx_taskbar.cpp
@@ -37,5 +39,4 @@ if(wxWidgets_FOUND)
         PROPERTY COMPILE_DEFINITIONS_DEBUG
         ${wxWidgets_DEFINITIONS_DEBUG})
     endif()
-
 endif()

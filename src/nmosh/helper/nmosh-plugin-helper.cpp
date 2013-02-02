@@ -147,7 +147,7 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
             case NMOSH_EXPORT_TYPE_BUFFER:
                 me = objcons(en[i].name,
                              Object::makeByteVector((const char*)en[i].arg0,
-                                                    en[i].arg1));
+                                                    (size_t)en[i].arg1));
 
                 break;
             case NMOSH_EXPORT_TYPE_STRUCT:

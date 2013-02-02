@@ -24,9 +24,10 @@ mwx_textctrl_create(wxWindow* parent, void* handler, int id, int style){
 MOSHEXPORT
 void* /* Scheme object */
 mwx_textctrl_getvalue(wxTextCtrl* ctl){
-    wxString& text = ctl->GetValue();
+    const wxString& text = ctl->GetValue();
+    const wxCharBuffer t = text.utf8_str();
     NMOSH_EXPORT_BEGIN(ret)
-        NMOSH_EXPORT_CSTRING(NULL, text.utf8_str().data())
+        NMOSH_EXPORT_BUFFER(NULL, t.data(), strlen(t.data()))
     NMOSH_EXPORT_END()
     return NMOSH_EXPORT(ret);
 }
@@ -40,7 +41,9 @@ mwx_textctrl_setvalue(wxTextCtrl* ctl, const char* text){
 MOSHEXPORT
 void
 mwx_textctrl_sethint(wxTextCtrl* ctl, const char* text){
+#if wxCHECK_VERSION(2,9,0)
     ctl->SetHint(wxString::FromUTF8(text));
+#endif
 }
 
 

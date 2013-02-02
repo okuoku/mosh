@@ -121,7 +121,7 @@ extern nmosh_callback_call_t nmosh_callback_call;
     { NMOSH_EXPORT_TYPE_BUFFER, \
       name, \
       (uintptr_t)val, \
-      0 } ,
+      size } ,
 
 #define NMOSH_EXPORT_SYMBOL_POINTER(name) \
     { NMOSH_EXPORT_TYPE_POINTER , \

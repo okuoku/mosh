@@ -9,4 +9,5 @@
   (void mwx_notification_show (void* int))
   (void mwx_notification_destroy (void*))
   (void* mwx_notification_create (void* void* int))
+  (void mwx_notification_close (void*))
   )

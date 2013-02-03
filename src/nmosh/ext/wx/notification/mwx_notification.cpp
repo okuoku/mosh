@@ -44,5 +44,14 @@ mwx_notification_show(wxNotificationMessage* n,int seconds){
 #endif
 }
 
+MOSHEXPORT
+void
+mwx_notification_close(wxNotificationMessage* n){
+#ifdef HAVE_THIS
+    /* FIXME: Return value(bool) */
+    n->Close();
+#endif
+}
+
 //{
 }

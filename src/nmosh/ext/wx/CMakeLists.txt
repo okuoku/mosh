@@ -6,6 +6,7 @@ include_directories(.)
 
 set(srcs 
     controls/mwx_text.cpp
+    controls/mwx_textattr.cpp
     window/mwx_window.cpp
     window/mwx_sizer.cpp
     frame/mwx_frame.cpp

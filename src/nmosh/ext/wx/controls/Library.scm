@@ -17,7 +17,5 @@
   (void* mwx_textattr_create)
   (void mwx_textattr_destroy (void*))
   (void mwx_textattr_merge (void* void*))
-  (void mwx_textattr_setsize_pixel (void* void*))
-  (void mwx_textattr_setsize_point (void* void*))
-  (void mwx_textattr_setfamily (void* int))
+  (void mwx_textattr_setfont (void* void*))
   )

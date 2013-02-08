@@ -11,7 +11,7 @@ mwx_font_create(int point, int family, int style, int weight,
                 int underline_p, const char* name, int encoding){
     return wxFont::New(point, (wxFontFamily)family, style,
                        (wxFontWeight)weight, (underline_p)?true:false,
-                       name, (wxFontEncoding) encoding);
+                       wxString::FromUTF8(name), (wxFontEncoding) encoding);
 }
 
 void

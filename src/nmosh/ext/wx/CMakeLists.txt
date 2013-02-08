@@ -9,6 +9,7 @@ set(srcs
     controls/mwx_textattr.cpp
     window/mwx_window.cpp
     window/mwx_sizer.cpp
+    font/mwx_font.cpp
     frame/mwx_frame.cpp
     icon/mwx_icon.cpp
     taskbar/mwx_taskbar.cpp

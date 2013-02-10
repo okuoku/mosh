@@ -44,6 +44,11 @@ build_init_param(nmosh_vm_s* par){
     return moshvm_export_object(p);
 }
 
+Object
+objref(nmosh_object_t obj){
+    return Object::makeRaw(*(void **)obj);
+}
+
 extern "C" {
 // }
 
@@ -65,8 +70,13 @@ NMOSHDLL
 int /* NMOSH_SUCCESS for success, otherwise error */
 nmosh_library_lookup(nmosh_vm_t vm, const char* libname,
                      const char* symbol, nmosh_object_t* out_object){
-    return NMOSH_SUCCESS;
-
+    void* in;
+    NMOSH_EXPORT_BEGIN(param)
+        NMOSH_EXPORT_CSTRING(NULL, libname)
+        NMOSH_EXPORT_CSTRING(NULL, symbol)
+    NMOSH_EXPORT_END()
+    in = moshvm_export_object(param);
+    return nmosh_vm_apply(vm, &vm->library_lookup, &in, out_object);
 }
 
 NMOSHDLL
@@ -75,7 +85,42 @@ nmosh_library_load(nmosh_vm_t vm, const char* libname){
     return NMOSH_SUCCESS;
 }
 
+/* OBJECT */
+NMOSHDLL
+int
+nmosh_object_export(nmosh_export_entry_t* e, nmosh_object_t* out){
+    void** v;
+    v = (nmosh_object_t*)GC_MALLOC_UNCOLLECTABLE(sizeof(void*));
+    *v = moshvm_export_object(e);
+    *out = v;
+    return NMOSH_SUCCESS;
+}
+
+NMOSHDLL
+void
+nmosh_object_destroy(nmosh_object_t obj){
+    GC_FREE(obj);
+}
+
 /* VM */
+NMOSHDLL
+int
+nmosh_vm_apply(nmosh_vm_t vm, nmosh_object_t closure, nmosh_object_t arg,
+               nmosh_object_t* out_obj){
+    VM* theVM;
+    theVM = (VM *)vm->vm;
+    const Object& ret = theVM->apply(objref(closure),objref(arg));
+    if(out_obj){
+        void** out;
+        void* obj;
+        obj = (void*)ret.val;
+        out = (void**)GC_MALLOC_UNCOLLECTABLE(sizeof(void*));
+        *out = obj;
+        *out_obj = out;
+    }
+    return NMOSH_SUCCESS;
+}
+
 NMOSHDLL
 void
 nmosh_vm_destroy(nmosh_vm_t vm){

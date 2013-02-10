@@ -21,7 +21,7 @@
   (define obj (eval (string->symbol objname)
                     (environment (string->object libname))))
   (write (list 'library-lookup: libname objname '=> obj))(newline)
-  (object->pointer obj))
+  obj)
 
 (define (dllmain)
   ;; DLL Entry point. Never return.
@@ -37,8 +37,8 @@
               (map cdr out)))
   ;(write (list 'dll-entrypoint: dll-param dll-jmpbuf))(newline)
   (fuse-table dll-param
-              `((library-load . ,(make-callback library-load))
-                (library-lookup . ,(make-callback library-lookup))))
+              `((library-load . ,(object->pointer library-load))
+                (library-lookup . ,(object->pointer library-lookup))))
   ;; Return to caller
   'ok)
 

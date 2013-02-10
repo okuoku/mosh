@@ -46,10 +46,18 @@ typedef void* nmosh_object_t;
 
 /* Exports */
 
+/*   OBJECT  */
+NMOSHDLL void nmosh_object_destroy(nmosh_object_t obj);
+
 /*   LIBRARY */
+NMOSHDLL int nmosh_library_lookup(nmosh_vm_t vm, const char* libname,
+                                  const char* symbol,
+                                  nmosh_object_t* out_object);
 /*   VM */
 NMOSHDLL void nmosh_vm_destroy(nmosh_vm_t vm);
 NMOSHDLL int nmosh_vm_create(nmosh_vmattr_t* attr, nmosh_vm_t* out_vm);
+NMOSHDLL int nmosh_vm_apply(nmosh_vm_t vm, nmosh_object_t closure,
+                            nmosh_object_t arg, nmosh_object_t* out_obj);
 
 /*   Library init */
 NMOSHDLL int nmosh_init(void);

@@ -22,4 +22,6 @@
 #define NMOSH_COMMON_END
 #endif
 
+#define NMOSH_SUCCESS 0
+
 #endif /* __NMOSH_COMMON_H */

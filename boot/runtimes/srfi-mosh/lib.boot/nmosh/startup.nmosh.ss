@@ -43,9 +43,12 @@
   (when (get-global-flag '%nmosh-preload-mode)
     (ca-preload-enable build-id))
   (let ((cl (command-line))
-        (applet (get-global-flag '%invoke-applet)))
+        (applet (get-global-flag '%invoke-applet))
+        (dllparam (get-global-flag '%nmosh-dll-param)))
     ;(write (list 'nmosh-startup: applet))(newline)
     (cond
+      (dllparam
+        (runlib '((nmosh internal dll dllmain)) 'dllmain))
       ((string? applet)
        (let ((name (string->symbol applet))) 
          (runlib `((nmosh applet ,name)) name)))
@@ -54,8 +57,6 @@
          (let ((name (string->symbol (car cl))))
            (runlib `((nmosh applet ,name)) name))
          (ca-load (car cl) #f '(nmosh PROGRAM-FROM-NMOSH-STARTUP))))
-      ((get-global-flag '%nmosh-skymosh)
-       (runlib '((nmosh skymosh)) 'skymosh))
       (else 
 	(runlib '((nrepl simple)) 'nrepl)))))
 

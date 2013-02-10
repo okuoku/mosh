@@ -3,6 +3,8 @@
 
 #undef NMOSHPLUGIN_EMBED // FIXME: Too hacky
 #include <nmosh/plugin-if.h>
+#include "nmosh-c.h"
+#include <setjmp.h>
 
 #include "Object.h"
 #include "Object-inl.h"
@@ -33,6 +35,7 @@
 #include "VM-inl.h"
 #include "VMFactory.h"
 #include "OSCompatThread.h"
+#include "MultiVMProcedures.h"
 
 using namespace scheme;
 
@@ -50,10 +53,61 @@ objcons(const char* name, Object o){
     }
 }
 
+
+// FIXME: Copied from main.cpp
+static Object
+internalGetStackTraceObj(VM* vm, int argc, const Object* argv){
+        //DeclareProcedureName("%get-stack-trace-obj");
+        return vm->getStackTraceObj();
+}
+static Object
+internalGetNmoshDbgImage(VM* vm, int argc, const Object* argv){
+    //DeclareProcedureName("%get-nmosh-dbg-image");
+    return Object::Nil;
+    //return FaslReader(vm, new ByteArrayBinaryInputPort(nmosh_dbg_image_ptr, nmosh_dbg_image_size)).get();
+}
+
+
 // Exported functions
 extern "C" {
 
 // FIXME: Copied from MultiVMProcedures.cpp, integrate them
+
+void
+moshvm_longjmp(jmp_buf* jbp){
+    longjmp(*jbp,1);
+}
+
+int /* 0 for SUCCESS */
+moshvm_launch(void* pvm,void* param){
+    jmp_buf jb;
+    VM* vm = (VM *)pvm;
+    switch(setjmp(jb)){
+        case 0: /* Launch VM */
+            /* FIXME: Magic */
+            vm->setValueString(UC("%get-stack-trace-obj"),Object::makeCProcedure(internalGetStackTraceObj));
+            vm->setValueString(UC("%get-nmosh-dbg-image"),Object::makeCProcedure(internalGetNmoshDbgImage));
+
+            moshvm_set_value_boolean(pvm, "%verbose", 1);
+            moshvm_set_value_boolean(pvm, "*command-line-args*", 0);
+            //moshvm_set_value_boolean(pvm, "%loadpath", 0);
+            moshvm_set_value_string(pvm, "%loadpath", "c:/repos/mosh");
+            moshvm_set_value_boolean(pvm, "%disable-acc", 0);
+            moshvm_set_value_boolean(pvm, "%nmosh-preload-mode", 0);
+            moshvm_set_value_boolean(pvm, "%nmosh-prefixless-mode", 1);
+            moshvm_set_value_boolean(pvm, "%nmosh-portable-mode", 1);
+            moshvm_set_value_pointer(pvm, "%nmosh-dll-param", param);
+            moshvm_set_value_pointer(pvm, "%nmosh-dll-jmpbuf", &jb);
+            setCurrentVM(vm);
+            /* Launch library initialize */
+            /* FIXME: Object ret = */ activateR6RSMode(vm, false);
+            return -2; /* FAIL */
+        case 1:
+            return 0; /* SUCCESS */
+        default:
+            return -1; /* FAIL */
+    }
+}
 
 void*
 moshvm_alloc(void){
@@ -61,7 +115,9 @@ moshvm_alloc(void){
     const int INITIAL_STACK_SIZE = 5000;
     const bool isProfilerOn = false;
     VM* vm = fac.create(INITIAL_STACK_SIZE, isProfilerOn);
-    VM::copyOptions(vm, theVM);
+    if(theVM){
+        VM::copyOptions(vm, theVM);
+    }
     return reinterpret_cast<void*>(vm);
 }
 

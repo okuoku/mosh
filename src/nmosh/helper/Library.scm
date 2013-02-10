@@ -5,6 +5,7 @@
   (plugin: moshvm_helper)
   (libname: moshvm-helper)
   #(ret name args)
+  (void moshvm_longjmp (void*))
   (void* moshvm_alloc)
   (void moshvm_set_value_boolean (void* void* int))
   (void moshvm_set_value_string (void* void* void*))

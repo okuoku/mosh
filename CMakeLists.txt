@@ -769,7 +769,17 @@ if(WIN32)
             ${mosh_core_srcs} 
             ${mosh_core_hdrs}
             ${mosh_runtime_src}
+            src/nmosh/export/nmosh-vmif.cpp
             src/main.cpp)
+        set_property(SOURCE
+            src/nmosh/export/nmosh-vmif.cpp
+            APPEND
+            PROPERTY COMPILE_DEFINITIONS
+            NMOSH_BUILD_MODULE)
+        add_executable(checkmosh
+            tests/nmosh/checkmosh.c)
+        target_link_libraries(checkmosh
+            ${MOSH_EXECUTABLE_NAME})
         add_executable(${MOSH_EXECUTABLE_NAME}-run
             src/win/mosh.rc
             src/nmosh/win32/cuimain.cpp)

@@ -778,6 +778,11 @@ if(WIN32)
             NMOSH_BUILD_MODULE)
         add_executable(checkmosh
             tests/nmosh/checkmosh.c)
+        set_property(SOURCE
+            tests/nmosh/checkmosh.c
+            APPEND
+            PROPERTY COMPILE_DEFINITIONS
+            "CHECKMOSH_LOADPATH=\"${CMAKE_CURRENT_LIST_DIR}\"")
         target_link_libraries(checkmosh
             ${MOSH_EXECUTABLE_NAME})
         add_executable(${MOSH_EXECUTABLE_NAME}-run

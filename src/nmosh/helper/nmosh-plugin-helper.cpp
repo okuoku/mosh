@@ -88,10 +88,7 @@ moshvm_launch(void* pvm,void* param){
             vm->setValueString(UC("%get-stack-trace-obj"),Object::makeCProcedure(internalGetStackTraceObj));
             vm->setValueString(UC("%get-nmosh-dbg-image"),Object::makeCProcedure(internalGetNmoshDbgImage));
 
-            moshvm_set_value_boolean(pvm, "%verbose", 1);
             moshvm_set_value_boolean(pvm, "*command-line-args*", 0);
-            //moshvm_set_value_boolean(pvm, "%loadpath", 0);
-            moshvm_set_value_string(pvm, "%loadpath", "c:/repos/mosh");
             moshvm_set_value_boolean(pvm, "%disable-acc", 0);
             moshvm_set_value_boolean(pvm, "%nmosh-preload-mode", 0);
             moshvm_set_value_boolean(pvm, "%nmosh-prefixless-mode", 1);

@@ -129,12 +129,54 @@ nmosh_vm_destroy(nmosh_vm_t vm){
 
 NMOSHDLL
 int /* NMOSH_SUCCESS for success, otherwise error */
-nmosh_vm_create(nmosh_vmattr_t* attr, nmosh_vm_t* out_vm){
+nmosh_vmattr_setloadpath(nmosh_vmattr_t attr, const char* loadpath){
+    attr->loadpath = GC_STRDUP(loadpath);
+    return NMOSH_SUCCESS;
+}
+
+NMOSHDLL
+int
+nmosh_vmattr_setverbose(nmosh_vmattr_t attr, int verbose){
+    attr->verbose = verbose;
+    return NMOSH_SUCCESS;
+}
+
+NMOSHDLL
+void
+nmosh_vmattr_destroy(nmosh_vmattr_t attr){
+    GC_FREE(attr);
+}
+
+NMOSHDLL
+int
+nmosh_vmattr_init(nmosh_vmattr_t* out_attr){
+    nmosh_vmattr_s* attr;
+    attr = (nmosh_vmattr_s*)GC_MALLOC_UNCOLLECTABLE(sizeof(nmosh_vmattr_s));
+    attr->verbose = 0;
+    attr->loadpath = NULL;
+    *out_attr = (nmosh_vmattr_t)attr;
+    return NMOSH_SUCCESS;
+}
+
+NMOSHDLL
+int /* NMOSH_SUCCESS for success, otherwise error */
+nmosh_vm_create(nmosh_vmattr_t attr, nmosh_vm_t* out_vm){
     void* obj;
     nmosh_vm_s* nvm; /* = nmosh_vm_t */
     nvm = (nmosh_vm_s*)GC_MALLOC_UNCOLLECTABLE(sizeof(nmosh_vm_s));
     obj = build_init_param(nvm);
     nvm->vm = (nmosh_vm_t)moshvm_alloc();
+    /* setup parameters */
+    if(attr && attr->loadpath){
+        moshvm_set_value_string(nvm->vm, "%loadpath", attr->loadpath);
+    }else{
+        moshvm_set_value_boolean(nvm->vm, "%loadpath", 0);
+    }
+    if(attr && attr->verbose){
+        moshvm_set_value_boolean(nvm->vm, "%verbose", 1);
+    }else{
+        moshvm_set_value_boolean(nvm->vm, "%verbose", 0);
+    }
     *out_vm = nvm;
     /* FIXME: Handle error */
     moshvm_launch(nvm->vm, obj);

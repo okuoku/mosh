@@ -29,7 +29,9 @@ typedef struct {
 }nmosh_vm_s;
 
 typedef struct {
-    int __dummy;
+    /* VM params */
+    int verbose;
+    char* loadpath;
     /* Heap */
     /* Scheme frontend */
 }nmosh_vmattr_s;
@@ -55,9 +57,15 @@ NMOSHDLL int nmosh_library_lookup(nmosh_vm_t vm, const char* libname,
                                   nmosh_object_t* out_object);
 /*   VM */
 NMOSHDLL void nmosh_vm_destroy(nmosh_vm_t vm);
-NMOSHDLL int nmosh_vm_create(nmosh_vmattr_t* attr, nmosh_vm_t* out_vm);
+NMOSHDLL int nmosh_vm_create(nmosh_vmattr_t attr, nmosh_vm_t* out_vm);
 NMOSHDLL int nmosh_vm_apply(nmosh_vm_t vm, nmosh_object_t closure,
                             nmosh_object_t arg, nmosh_object_t* out_obj);
+
+/*   VM ATTR */
+NMOSHDLL void nmosh_vmattr_destroy(nmosh_vmattr_t attr);
+NMOSHDLL int nmosh_vmattr_init(nmosh_vmattr_t* out);
+NMOSHDLL int nmosh_vmattr_setverbose(nmosh_vmattr_t attr, int verbose);
+NMOSHDLL int nmosh_vmattr_setloadpath(nmosh_vmattr_t attr, const char* loadpath);
 
 /*   Library init */
 NMOSHDLL int nmosh_init(void);

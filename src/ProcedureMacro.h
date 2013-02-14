@@ -263,7 +263,11 @@ inline const char* nth(int index) {
 #define argumentCheckTranscoderOrFalse(index, variableName) checkTypeOrFalse(index, variableName, isTranscoder, transcoder)
 
 
-#define DeclareProcedureName(name) const ucs4char* procedureName = UC(name); theVM->setNumValues1();
+#ifdef _WIN32
+#define DeclareProcedureName(name) const char* procedureName = name; (void)procedureName; theVM->setNumValues1();
+#else
+#define DeclareProcedureName(name) const ucs4char* procedureName = UC(name); (void)procedureName; theVM->setNumValues1();
+#endif
 
 #define checkArgumentLength(required)   \
     if (argc != required) { \

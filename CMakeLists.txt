@@ -410,6 +410,14 @@ elseif(APPLE)
         ${gc_dyn_srcs}
         ${gc_pthread_srcs}
         ${gc_darwin_srcs})
+elseif(CYGWIN)
+    # pthreads+win32
+    set(gc_srcs
+        ${gc_core_srcs}
+        ${gc_dyn_srcs}
+        ${gc_win32_srcs}
+        ${gc_pthread_srcs})
+    add_definitions(-fwide-exec-charset=ucs-4le)
 else() 
     # pthreads
     set(gc_srcs

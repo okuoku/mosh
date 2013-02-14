@@ -77,13 +77,13 @@
       (initfunc
         (let ((init (pffi-c-function/init library initname))
               (objbox (make-ptr-box)))
-          (display (list 'Initializing: initname))(newline)
+          ;(display (list 'Initializing: initname))(newline)
           (init moshvm_export_object moshvm_callback_call objbox)
           (let ((p (ptr-box-ref objbox)))
             (if (= 0 (pointer->integer p))
               '() ;; No constants
               (let ((objs (pointer->object p)))
-                (write (list 'Constants: objs))(newline)
+                ;(write (list 'Constants: objs))(newline)
                 (gen-ht objs))))))
       (else
         ;; Without init function. Ignore here.

@@ -5,6 +5,7 @@ find_package(wxWidgets COMPONENTS gl adv core base)
 include_directories(.)
 
 set(srcs 
+    graphics/mwx_graphics.cpp
     controls/mwx_text.cpp
     controls/mwx_textattr.cpp
     colour/mwx_colour.cpp

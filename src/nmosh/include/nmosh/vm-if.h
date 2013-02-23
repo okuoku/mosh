@@ -17,6 +17,17 @@ NMOSH_COMMON_BEGIN
 #endif
 #endif
 
+/* Object types */
+typedef enum{
+    NMOSH_OBJECT_INVALID,
+    NMOSH_OBJECT_PAIR,
+    NMOSH_OBJECT_VECTOR, /* FIXME: Implement it */
+    NMOSH_OBJECT_INTEGER,
+    NMOSH_OBJECT_RATNUM, /* FIXME: Implement it */
+    NMOSH_OBJECT_STRING, /* FIXME: Implement it */
+    NMOSH_OBJECT_BYTEVECTOR,
+}nmosh_object_type;
+
 /* Error code */
 #define NMOSH_SUCCESS 0
 

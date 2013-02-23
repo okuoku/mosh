@@ -67,9 +67,11 @@ internalGetNmoshDbgImage(VM* vm, int argc, const Object* argv){
     //return FaslReader(vm, new ByteArrayBinaryInputPort(nmosh_dbg_image_ptr, nmosh_dbg_image_size)).get();
 }
 
+void* shared_hashtable_obj = NULL;
 
 // Exported functions
 extern "C" {
+
 
 // FIXME: Copied from MultiVMProcedures.cpp, integrate them
 
@@ -85,8 +87,10 @@ moshvm_launch(void* pvm,void* param){
     switch(setjmp(jb)){
         case 0: /* Launch VM */
             /* FIXME: Magic */
-            vm->setValueString(UC("%get-stack-trace-obj"),Object::makeCProcedure(internalGetStackTraceObj));
-            vm->setValueString(UC("%get-nmosh-dbg-image"),Object::makeCProcedure(internalGetNmoshDbgImage));
+            vm->setValueString(UC("%get-stack-trace-obj"),
+               Object::makeCProcedure(internalGetStackTraceObj));
+            vm->setValueString(UC("%get-nmosh-dbg-image"),
+               Object::makeCProcedure(internalGetNmoshDbgImage));
 
             moshvm_set_value_boolean(pvm, "*command-line-args*", 0);
             moshvm_set_value_boolean(pvm, "%disable-acc", 0);
@@ -95,6 +99,7 @@ moshvm_launch(void* pvm,void* param){
             moshvm_set_value_boolean(pvm, "%nmosh-portable-mode", 1);
             moshvm_set_value_pointer(pvm, "%nmosh-dll-param", param);
             moshvm_set_value_pointer(pvm, "%nmosh-dll-jmpbuf", &jb);
+            moshvm_set_value_pointer(pvm, "%nmosh-self", pvm);
             setCurrentVM(vm);
             /* Launch library initialize */
             /* FIXME: Object ret = */ activateR6RSMode(vm, false);
@@ -176,6 +181,14 @@ moshvm_callback_call(void* p, void* l){
     return (uintptr_t)ret.toPointer()->pointer();
 }
 
+uintptr_t
+moshvm_apply(VM* pvm, void* p, void* l){
+    const Object& obj = Object::makeRaw(p);
+    const Object& lis = Object::makeRaw(l);
+    const Object& ret = pvm->apply(obj, lis);
+    return (uintptr_t)ret.toPointer()->pointer();
+}
+
 void*
 moshvm_export_object(const nmosh_export_entry_t en[]){
     Object tmp;
@@ -221,5 +234,32 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
     }
     return (void*)Pair::reverse(tmp).val;
 }
+
+// Shared storage
+void
+moshvm_sharedstorage_init(void* p){
+    shared_hashtable_obj = p;
+}
+
+void
+moshvm_sharedstorage_get(void* proc){
+    NMOSH_EXPORT_BEGIN(ret)
+        NMOSH_EXPORT_POINTER(NULL, &shared_hashtable_obj)
+    NMOSH_EXPORT_END()
+    // FIXME: Lock
+    moshvm_callback_call(proc, moshvm_export_object(ret));
+    // FIXME: Unlock
+}
+
+void*
+moshvm_stacktrace_get(VM* pvm){
+    return (void*)(pvm->getStackTraceObj().val);
+}
+
+void*
+moshvm_getmainvm(void){
+    return (void*)theVM;
+}
+
 
 } /* Extern C */

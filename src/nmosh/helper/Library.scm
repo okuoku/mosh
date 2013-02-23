@@ -12,6 +12,10 @@
   (void moshvm_set_value_pointer (void* void* void*))
   (void moshvm_start (void* int void*))
   (void* moshvm_join (void*))
+  (void moshvm_sharedstorage_init (void*))
+  (void moshvm_sharedstorage_get (void* void*))
+  (void* moshvm_stacktrace_get (void*))
+  (void* moshvm_getmainvm)
   ;; Pseudo: Will not be called from any Scheme code
   (void* moshvm_export_object (void*))
   (void* moshvm_callback_call (void* void*))

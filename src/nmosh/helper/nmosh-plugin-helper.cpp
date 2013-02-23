@@ -261,5 +261,11 @@ moshvm_getmainvm(void){
     return (void*)theVM;
 }
 
+typedef void* (*xcallback_t)(void* ctx);
+
+void*
+moshvm_execute_callback(xcallback_t fn, void* param){
+    return fn(param);
+}
 
 } /* Extern C */

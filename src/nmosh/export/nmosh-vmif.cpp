@@ -1,5 +1,6 @@
 // nmosh heap interface
 
+#include <string.h>
 #include <nmosh/vm-if.h>
 #include "nmosh-c.h"
 
@@ -47,6 +48,11 @@ build_init_param(nmosh_vm_s* par){
 Object
 objref(nmosh_object_t obj){
     return Object::makeRaw(*(void **)obj);
+}
+
+Object
+curref(nmosh_object_cursor_t obj){
+    return Object::makeRaw((void *)obj);
 }
 
 extern "C" {
@@ -102,6 +108,123 @@ nmosh_object_destroy(nmosh_object_t obj){
     GC_FREE(obj);
 }
 
+/* CURSOR */
+NMOSHDLL
+int
+nmosh_object_cursor(nmosh_object_t obj, nmosh_object_cursor_t* out){
+    *out = (nmosh_object_cursor_t)(*((void**)obj));
+    return NMOSH_SUCCESS;
+}
+
+NMOSHDLL
+nmosh_object_type
+nmosh_cursor_type(nmosh_object_cursor_t in){
+    const Object& o = curref(in);
+    if(o.isInteger()){
+        return NMOSH_OBJECT_INTEGER;
+    }else if(o.isNil()){
+        return NMOSH_OBJECT_NIL;
+    }else if(o.isTrue()){
+        return NMOSH_OBJECT_TRUE;
+    }else if(o.isFalse()){
+        return NMOSH_OBJECT_FALSE;
+    }else if(o.isPair()){
+        return NMOSH_OBJECT_PAIR;
+    }else if(o.isByteVector()){
+        return NMOSH_OBJECT_BYTEVECTOR;
+    }else if(o.isString()){
+        return NMOSH_OBJECT_STRING;
+    }else if(o.isFlonum()){
+        return NMOSH_OBJECT_FLONUM;
+    }else{
+        return NMOSH_OBJECT_INVALID;
+    }
+}
+
+NMOSHDLL
+int
+nmosh_cursor_car(nmosh_object_cursor_t in,
+                 nmosh_object_cursor_t* out){
+    const Object& o = curref(in);
+    if(o.isPair()){
+        *out = (nmosh_object_cursor_t)(o.toPair()->car.val);
+        return NMOSH_SUCCESS;
+    }else{
+        return NMOSH_TYPE_VIOLATION;
+    }
+}
+
+NMOSHDLL
+int
+nmosh_cursor_cdr(nmosh_object_cursor_t in,
+                 nmosh_object_cursor_t* out){
+    const Object& o = curref(in);
+    if(o.isPair()){
+        *out = (nmosh_object_cursor_t)(o.toPair()->cdr.val);
+        return NMOSH_SUCCESS;
+    }else{
+        return NMOSH_TYPE_VIOLATION;
+    }
+}
+
+NMOSHDLL
+int
+nmosh_cursor_bytevector_size(nmosh_object_cursor_t in, uintptr_t* size){
+    const Object& o = curref(in);
+    if(o.isByteVector()){
+        *size = o.toByteVector()->length();
+        return NMOSH_SUCCESS;
+    }else{
+        return NMOSH_TYPE_VIOLATION;
+    }
+}
+
+NMOSHDLL
+int
+nmosh_cursor_bytevector(nmosh_object_cursor_t in,
+                        uintptr_t offset, uintptr_t count, void* buf){
+    const Object& o = curref(in);
+    if(o.isByteVector()){
+        memcpy(buf, (o.toByteVector()->data()+offset), count);
+        return NMOSH_SUCCESS;
+    }else{
+        return NMOSH_TYPE_VIOLATION;
+    }
+
+}
+
+NMOSHDLL
+int
+nmosh_cursor_integer_unsigned(nmosh_object_cursor_t in,
+                              uint64_t* out){
+    const Object& o = curref(in);
+    if(o.isFixnum()){
+        *out = o.toFixnum();
+        return NMOSH_SUCCESS;
+    }else if(o.isBignum()){
+        *out = o.toBignum()->toU64();
+        return NMOSH_SUCCESS;
+    }else{
+        return NMOSH_TYPE_VIOLATION;
+    }
+}
+
+NMOSHDLL
+int
+nmosh_cursor_integer_signed(nmosh_object_cursor_t in,
+                            int64_t* out){
+    const Object& o = curref(in);
+    if(o.isFixnum()){
+        *out = o.toFixnum();
+        return NMOSH_SUCCESS;
+    }else if(o.isBignum()){
+        *out = o.toBignum()->toS64();
+        return NMOSH_SUCCESS;
+    }else{
+        return NMOSH_TYPE_VIOLATION;
+    }
+}
+
 /* VM */
 NMOSHDLL
 int
@@ -155,6 +278,15 @@ nmosh_vmattr_init(nmosh_vmattr_t* out_attr){
     attr->verbose = 0;
     attr->loadpath = NULL;
     *out_attr = (nmosh_vmattr_t)attr;
+    return NMOSH_SUCCESS;
+}
+
+NMOSHDLL
+int
+nmosh_vm_set(nmosh_vm_t vm, const char* symname, nmosh_object_t obj){
+    VM* pvm = (VM*)(vm->vm);
+    pvm->setValueString(ucs4string::from_c_str(symname).strdup(),
+                        objref(obj));
     return NMOSH_SUCCESS;
 }
 

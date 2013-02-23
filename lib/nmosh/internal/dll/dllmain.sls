@@ -24,7 +24,7 @@
   obj)
 
 (define (dllmain)
-  ;; DLL Entry point. Never return.
+  ;; DLL Entry point.
   (define dll-param (pointer->object (get-global-flag '%nmosh-dll-param)))
   (define dll-jmpbuf (get-global-flag '%nmosh-dll-jmpbuf))
   (define (fuse-table out in)

@@ -46,7 +46,7 @@ message(STATUS "Running: ${NMOSH} -5 ${runner} ${fasl} ${lpath} ${TARGET} ${scri
 
 
 execute_process(
-    COMMAND ${NMOSH} -5 ${runner} ${fasl} ${lpath} ${TARGET} ${script} 
+    COMMAND ${NMOSH} -5 ${runner} ${fasl} "${lpath}" ${TARGET} ${script} 
     "${OUTPUT}"
     RESULT_VARIABLE _res
     )

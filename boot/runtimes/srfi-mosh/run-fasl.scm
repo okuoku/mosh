@@ -4,6 +4,14 @@
 (define input-loadpath (caddr %true-command-line))
 (define input-target (car (cdddr %true-command-line)))
 (define (command-line) (cdr (cdddr %true-command-line)))
+(display "fasl-name: ")
+(write fasl-name)(newline)
+(display "input-loadpath: ")
+(write input-loadpath)(newline)
+(display "input-target: ")
+(write input-target)(newline)
+(display "command-line:")
+(write (command-line))(newline)(newline)
 ;(define %true-host-os (host-os))
 
 ;; Override the VM options

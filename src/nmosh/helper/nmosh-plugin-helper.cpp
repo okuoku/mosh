@@ -120,6 +120,10 @@ moshvm_alloc(void){
     if(theVM){
         VM::copyOptions(vm, theVM);
     }
+    vm->setValueString(UC("%get-stack-trace-obj"),
+            Object::makeCProcedure(internalGetStackTraceObj));
+    vm->setValueString(UC("%get-nmosh-dbg-image"),
+            Object::makeCProcedure(internalGetNmoshDbgImage));
     return reinterpret_cast<void*>(vm);
 }
 

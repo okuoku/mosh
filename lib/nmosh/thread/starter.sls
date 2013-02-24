@@ -35,9 +35,9 @@
   (let ((f (string->symbol (get-global-flag '%nmosh-thread-func-name)))
         (l (pointer->object (get-global-flag '%nmosh-thread-lib)))
         (p (pointer->object (get-global-flag '%nmosh-thread-params))))
-    (write (list 'thread-start: f l p))(newline)
+    ;(write (list 'thread-start: f l p))(newline)
     (let ((func (eval f (environment l))))
-      (write (list 'func: func))
+      ;(write (list 'func: func))
       (apply func p))))
 
 )

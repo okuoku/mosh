@@ -38,6 +38,7 @@
   (int win32_socket_sendto (void* void* int void* int void*))
   (void* win32_finalization_handler_get)
   (void* win32_finalization_handler_create (void* void* void*))
+  (void* win32_ticket_chime (void* void* int))
   (void* win32_ticket_alloc (void*))
   (void* win32_get_ticket_chime)
   )

@@ -165,12 +165,13 @@ CONS(FN(win32_getaddrinfo), \
 CONS(FN(win32_finalization_handler_get), \
 CONS(FN(win32_finalization_handler_create), \
 CONS(FN(win32_ticket_alloc), \
+CONS(FN(win32_ticket_chime), \
 CONS(FN(win32_get_ticket_chime), \
 CONS(FN(win32_timer_create), \
 CONS(FN(win32_timer_set), \
 CONS(FN(win32_timer_cancel), \
 CONS(FN(win32_timer_destroy), \
-	NIL)))))))))))))))))))))))))))))))))))))))))
+	NIL))))))))))))))))))))))))))))))))))))))))))
 
 #define LIBDATA_WIN32_GUI CONS(SYM("win32-gui"), \
 CONS(FN(win32_messagebox) ,\

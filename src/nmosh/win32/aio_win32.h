@@ -23,6 +23,7 @@ int win32_process_wait_async(uintptr_t h,uintptr_t iocp,uintptr_t key,uintptr_t 
 int win32_handle_close(void* h);
 int win32_handle_setbaud(void* h,int b);
 void* win32_ticket_alloc(void* h);
+void win32_ticket_chime(void*, void*, int);
 void* win32_get_ticket_chime(void);
 
 int win32_timer_create(void*);

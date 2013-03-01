@@ -736,7 +736,7 @@ win32_ticket_alloc(void* h){
     return t;
 }
 
-static void
+void
 win32_ticket_chime(ticket* t,uintptr_t out0,int32_t out1){
     //printf("chime_win32: %llx, %x\n",(long long)out0,out1);
     emit_queue_event(t->iocp,out0,out1,(uintptr_t)&t->ovl);

@@ -18,10 +18,15 @@
               device
               baud))
   (define (writer obj callback)
-    (queue-write0 nmosh-io-master-queue
+    (cond
+      (obj
+        (queue-write0 nmosh-io-master-queue
                   s
                   obj
                   callback))
+      (else
+        (queue-close0 nmosh-io-master-queue
+                      s))))
   (define (read-callback fd buf len)
     (talker writer buf len))
   (cond

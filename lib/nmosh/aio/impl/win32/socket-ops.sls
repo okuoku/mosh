@@ -49,7 +49,9 @@
       (cond
         ((= err 0)
          (callback str))
-        (else (callback #f))))
+        (else 
+          (queue-close0 Q str)
+          (callback #f))))
     (win32_overlapped_setmydata my-ovl (object->pointer connected))
     (queue-register-handle Q sock str)
     (let-with name (sockaddr len)

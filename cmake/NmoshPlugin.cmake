@@ -6,6 +6,15 @@ endif()
 
 include(CMakeParseArguments)
 
+macro(bless_nmosh_plugin_dependencies)
+    foreach(e ${ARGN})
+        if(TARGET ${e})
+            set_target_properties(${e} PROPERTIES FOLDER 
+                plugin-deps)
+        endif()
+    endforeach()
+endmacro()
+
 macro(do_add_nmosh_plugin nam)
     set(_nulargs
         NODEFAULT)
@@ -44,6 +53,7 @@ macro(do_add_nmosh_plugin nam)
             set(_folder Plugins)
         endif()
         link_directories(${NMOSH_PLUGIN_LINK_DIRECTORIES})
+        bless_nmosh_plugin_dependencies(${NMOSH_PLUGIN_LINK_LIBRARIES})
         if(NMOSHPLUGIN_${nam}_EMBED)
             set(_plgs ${ZZNMOSHPLUGIN_EMBED})
             add_library(${nam} ${_disposition} ${NMOSH_PLUGIN_C_SOURCES})

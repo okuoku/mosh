@@ -37,6 +37,7 @@ macro(bless_nmosh_plugin_stub_source pth)
     endforeach()
 endmacro(bless_nmosh_plugin_stub_source)
 
+
 macro(add_nmosh_plugin_directory0 default_p prefer_embded_p 
         nam dir)
     if(ANDROID)

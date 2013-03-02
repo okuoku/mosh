@@ -18,6 +18,9 @@ option(MOSH_PORTABLE "build portable version of mosh interpreter" OFF)
 option(MOSH_PREFIXLESS "build prefix-less version of mosh interpreter" ON)
 option(MOSH_PRELOAD_CORE "always use precompiled base library" OFF)
 option(NMOSH_PRELOAD_EMBED "Embed preload image to interpreter" OFF)
+set(NMOSH_PRELOAD_EXCLUDES ""
+    CACHE STRING 
+    "List of excluded libraries from preload")
 if(WIN32)
     option(MOSH_WITH_NMOSH_GUI "build GUI version of mosh interpreter" OFF)
     set(MOSH_GUI_EXECUTABLE_NAME "nmoshw" 
@@ -925,6 +928,7 @@ if(_turbocharge_host)
         -DSRCPATH="${CMAKE_CURRENT_SOURCE_DIR}"
         -DTARGET=${_turbocharge_host}
         -DOUTPUT="${_turbocharge_output}"
+        -DEXCLUDES="${NMOSH_PRELOAD_EXCLUDES}"
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/NmoshCompileBytecode.cmake
         )
     add_custom_target(turbocharge

@@ -2,4 +2,4 @@
   (rnrs)
   (nmosh applet turbocharge))
 
-(turbocharge/alt (cadr (command-line)))
+(turbocharge/alt (cdr (command-line)))

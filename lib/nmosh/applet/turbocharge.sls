@@ -3,6 +3,8 @@
                  turbocharge/alt)
          (import (rnrs)
                  (only (srfi :1) lset-intersection)
+                 (srfi :14)
+                 (only (srfi :13) string-tokenize)
                  (srfi :48)
                  (srfi :26)
                  (srfi :8)
@@ -29,6 +31,7 @@
 
 (define library-core '(nmosh applet turbocharge core))
 (define library-user '(nmosh applet turbocharge list))
+(define excludes #f)
 
 (define (calc-cachepath libname)
   (define fn (library-name->filename libname))
@@ -106,6 +109,21 @@
       (lset-intersection equal?
                          (vector->list (hashtable-keys ht))
                          delset)))
+  ;; Remove excludes
+  (when excludes
+    (let ((ex* (map string->symbol (string-tokenize excludes))))
+      (write (list 'Excludes: ex*))(newline)
+      (receive (key val) (hashtable-entries ht)
+        (for-each
+          (^[key]
+            (for-each
+              (^[name]
+                (when (eq? (and (list? key) (car key))
+                           name)
+                  (display (list 'Exclude: key))(newline)
+                  (hashtable-delete! ht key)))
+              ex*)) 
+          (vector->list key)))))
   (receive (key val) (hashtable-entries ht)
     (receive (idx bv) (gen (vector->list key)
                            (vector->list val))
@@ -150,7 +168,7 @@
     csrc
     body))
 
-(define (turbocharge/alt path)
+(define (do-turbocharge/alt path)
   ;; Alternative version(always generate FASL on path argument)
   (define csrc (string-append path ".inc.c"))
 
@@ -161,6 +179,18 @@
   (phase2/ht path library-ht/core #f (list library-core library-user))
   (obj->csrc path csrc)
   )
+
+(define (turbocharge/alt args)
+  (case (length args)
+    ((1)
+     (do-turbocharge/alt (car args)))
+    ((2)
+     (set! excludes (cadr args))
+     (do-turbocharge/alt (car args)))
+    (else
+      (assertion-violation 'turbocharge/alt
+                           "Invalid argument"
+                           args))))
 
 (define (turbocharge)
   (ca-preload-disable)

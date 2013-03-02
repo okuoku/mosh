@@ -5,6 +5,7 @@
 # LOADPATH = path to nmosh libraries(list)
 # SRCPATH  = path to nmosh source
 # OUTPUT   = path to FASL output
+# EXCLUDES = Excluded library prefixes
 
 if(NOT NMOSH)
     find_program(NMOSH nmosh REQUIRED)
@@ -42,12 +43,14 @@ set(fasl ${SRCPATH}/src/nmosh_boot.fasl)
 separate_arguments(LOADPATH) # FIXME: It does not allow spaces in build path
 gen_loadpath(lpath ${LOADPATH})
 
-message(STATUS "Running: ${NMOSH} -5 ${runner} ${fasl} ${lpath} ${TARGET} ${script} ${OUTPUT}")
+message(STATUS "Running: ${NMOSH} -5 ${runner} ${fasl} ${lpath} ${TARGET} ${script} ${OUTPUT} ${EXCLUDES}")
 
 
 execute_process(
-    COMMAND ${NMOSH} -5 ${runner} ${fasl} "${lpath}" ${TARGET} ${script} 
+    COMMAND ${NMOSH} -5 ${runner} ${fasl} "${lpath}" ${TARGET} 
+    ${script} 
     "${OUTPUT}"
+    "${EXCLUDES}"
     RESULT_VARIABLE _res
     )
 message(STATUS "Result: ${_res}")

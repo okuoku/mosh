@@ -1042,7 +1042,7 @@ if(MOSH_BUILD_MODULE)
         cmake/testrunner-loadpath.in.h
         ${PROJECT_BINARY_DIR}/testrunner-loadpath.h
         @ONLY)
-    macro(add_nmosh_testrunner src)
+    macro(add_nmosh_testrunner add_test_p src)
         get_filename_component(_srcname ${src} NAME)
         set(_testname scheme-${_srcname})
         
@@ -1064,10 +1064,12 @@ if(MOSH_BUILD_MODULE)
             ${CMAKE_CURRENT_BINARY_DIR})
         target_link_libraries(${_testname}
             ${MOSH_EXECUTABLE_NAME})
-        add_test(run-${_testname} ${_testname})
+        if(${add_test_p})
+            add_test(run-${_testname} ${_testname})
+        endif()
     endmacro()
     macro(add_scheme_test nam)
-        add_nmosh_testrunner(${CMAKE_CURRENT_LIST_DIR}/tests/${nam})
+        add_nmosh_testrunner(ON ${CMAKE_CURRENT_LIST_DIR}/tests/${nam})
     endmacro()
     add_scheme_test(misc.scm)
     add_scheme_test(template.scm)
@@ -1102,6 +1104,8 @@ if(MOSH_BUILD_MODULE)
     add_scheme_test(nmosh-test-misc.sps)
     add_scheme_test(nmosh-test-stack-trace.sps)
     add_scheme_test(r6rs-test-suite/tests/r6rs/run.sps)
+    # Benchmark
+    add_nmosh_testrunner(OFF ${CMAKE_CURRENT_LIST_DIR}/tests/nmosh/testturbocharge.sps)
 endif()
 
 if(MOSH_PORTABLE)

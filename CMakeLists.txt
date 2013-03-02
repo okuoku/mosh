@@ -944,11 +944,17 @@ add_library(testingmosh EXCLUDE_FROM_ALL
     ${mosh_core_srcs}
     ${PROJECT_SOURCE_DIR}/gtest/gtest/gtest-all.cc
     ${mosh_runtime_src} ${onig_srcs} 
+    src/nmosh/tests/nmosh-test-stub.cpp
     src/TestingSignalHandler.cpp
-    src/TestingVM.cpp)
+    )
+target_link_nmosh_plugin(testingmosh)
 
 set_target_properties(testinggc PROPERTIES FOLDER Test)
 set_target_properties(testingmosh PROPERTIES FOLDER Test)
+set_property(TARGET testingmosh
+    APPEND
+    PROPERTY INCLUDE_DIRECTORIES
+    ${PROJECT_SOURCE_DIR}/gtest)
 
 # GC tests
 macro(add_gcguitest testname)
@@ -994,9 +1000,13 @@ macro(add_moshcoretest testname)
             "-D_UNICODE -DUNICODE -DWIN32_LEAN_AND_MEAN")
     endif()
     add_executable(moshtest${testname} EXCLUDE_FROM_ALL 
-        ${gtest_srcs} src/${testname}.cpp)
+        ${gtest_srcs} src/${testname}.cpp ${ARGN})
     target_link_libraries(moshtest${testname} testingmosh testinggc 
         ${GMP_LIBRARY} ${arch_libs})
+    set_property(TARGET moshtest${testname}
+        APPEND
+        PROPERTY INCLUDE_DIRECTORIES
+        ${PROJECT_SOURCE_DIR}/gtest)
     set_target_properties(moshtest${testname} PROPERTIES FOLDER Test)
     add_test(mosh-${testname} moshtest${testname})
     add_dependencies(TestTargets moshtest${testname})
@@ -1009,7 +1019,7 @@ else()
     add_moshcoretest(VMTest)
 endif()
 add_moshcoretest(PortTest)
-add_moshcoretest(FaslTest)
+add_moshcoretest(FaslTest src/TestingVM.cpp)
 add_moshcoretest(FFITest)
 add_moshcoretest(OSCompatTest)
 if(MSVC)

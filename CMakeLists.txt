@@ -938,6 +938,8 @@ endif()
 # tests
 add_custom_target(TestTargets) 
 
+make_directory(lib) # Tests assume this
+
 add_library(testinggc EXCLUDE_FROM_ALL
     ${gc_srcs})
 add_library(testingmosh EXCLUDE_FROM_ALL
@@ -1028,6 +1030,79 @@ else()
     add_moshcoretest(getoptUTest)
 endif()
 add_moshcoretest(OSCompatThreadTest)
+
+if(MOSH_BUILD_MODULE)
+    # FIXME: Convert pathsep
+    set(TESTRUNNER_LOADPATH
+        ${PROJECT_SOURCE_DIR}/lib
+        ${PROJECT_SOURCE_DIR}/tests
+        ${PROJECT_SOURCE_DIR}/tests/r6rs-test-suite
+        )
+    configure_file(
+        cmake/testrunner-loadpath.in.h
+        ${PROJECT_BINARY_DIR}/testrunner-loadpath.h
+        @ONLY)
+    macro(add_nmosh_testrunner src)
+        get_filename_component(_srcname ${src} NAME)
+        set(_testname scheme-${_srcname})
+        
+        add_executable(${_testname} EXCLUDE_FROM_ALL
+            tests/nmosh/testrunner.c)
+        add_dependencies(TestTargets ${_testname})
+        set_property(TARGET
+            ${_testname}
+            APPEND
+            PROPERTY COMPILE_DEFINITIONS
+            "TESTRUNNER_DIR=\"${CMAKE_CURRENT_LIST_DIR}\""
+            "TESTRUNNER_ARG=\"${src}\"")
+        set_property(TARGET ${_testname}
+            PROPERTY FOLDER Tests-Scheme)
+        set_property(TARGET ${_testname}
+            APPEND
+            PROPERTY INCLUDE_DIRECTORIES
+            ${CMAKE_CURRENT_LIST_DIR}/src/nmosh/include
+            ${CMAKE_CURRENT_BINARY_DIR})
+        target_link_libraries(${_testname}
+            ${MOSH_EXECUTABLE_NAME})
+        add_test(run-${_testname} ${_testname})
+    endmacro()
+    macro(add_scheme_test nam)
+        add_nmosh_testrunner(${CMAKE_CURRENT_LIST_DIR}/tests/${nam})
+    endmacro()
+    add_scheme_test(misc.scm)
+    add_scheme_test(template.scm)
+    add_scheme_test(testing.scm)
+    add_scheme_test(comment.scm)
+    add_scheme_test(mosh-test.scm)
+    add_scheme_test(io-error.scm)
+    add_scheme_test(input-output-port.scm)
+    add_scheme_test(output-port.scm)
+    add_scheme_test(condition.scm)
+    add_scheme_test(rbtree-test.scm)
+    add_scheme_test(exception.scm)
+    add_scheme_test(srfi8.scm)
+    add_scheme_test(srfi19.scm)
+    add_scheme_test(clos.scm)
+    add_scheme_test(srfi-misc.scm)
+    add_scheme_test(lists.scm)
+    add_scheme_test(match.scm)
+    add_scheme_test(srfi-39.scm)
+    add_scheme_test(concurrent.scm)
+    add_scheme_test(concurrent-crash.scm)
+    add_scheme_test(number.scm)
+    add_scheme_test(cgi.scm)
+    add_scheme_test(shorten.scm)
+    add_scheme_test(process.scm)
+    add_scheme_test(annotated-pair.scm)
+    add_scheme_test(print.scm)
+    add_scheme_test(jsonmsgpack.sps)
+    add_scheme_test(nmosh.scm)
+    add_scheme_test(nrepl.scm)
+    add_scheme_test(nmosh-test-vm-ports.sps)
+    add_scheme_test(nmosh-test-misc.sps)
+    add_scheme_test(nmosh-test-stack-trace.sps)
+    add_scheme_test(r6rs-test-suite/tests/r6rs/run.sps)
+endif()
 
 if(MOSH_PORTABLE)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/lib DESTINATION .)

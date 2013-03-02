@@ -127,6 +127,7 @@ TEST_F(MoshTest, isDirectory2) {
     EXPECT_FALSE(isDirectory(UC("main.cpp")));
 }
 
+#ifndef _WIN32 // Win32 does not have symlinks
 TEST_F(MoshTest, SymbolicLink) {
     const ucs4char* file = UC("hige");
     ASSERT_TRUE(File::createSymbolicLink(UC("."), file));
@@ -134,4 +135,5 @@ TEST_F(MoshTest, SymbolicLink) {
     EXPECT_TRUE(File::isSymbolicLink(file));
     ASSERT_TRUE(File::deleteFileOrDirectory(file));
 }
+#endif
 

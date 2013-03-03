@@ -1,10 +1,12 @@
 project(wx-plugin)
 
-find_package(wxWidgets COMPONENTS gl adv core base)
+find_package(wxWidgets COMPONENTS aui adv core base)
 
 include_directories(.)
 
 set(srcs 
+    aui/mwx_aui.cpp
+    aui/mwx_auinotebook.cpp
     graphics/mwx_graphics.cpp
     controls/mwx_text.cpp
     controls/mwx_textattr.cpp

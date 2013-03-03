@@ -2,6 +2,7 @@
 
 #include <wx/wx.h>
 #include <wx/graphics.h>
+#if wxUSE_GRAPHICS_CONTEXT
 
 typedef enum {
     // Context OPs
@@ -280,3 +281,6 @@ NMOSH_CONSTANT_END()
 
 // {
 };
+#else
+#warning Graphics context feature was not found!
+#endif

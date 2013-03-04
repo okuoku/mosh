@@ -150,7 +150,7 @@ moshvm_set_value_boolean(void* pvm, const char* symname, int b){
 static void*
 entry(void* pvm){
     VM* vm = (VM *)pvm;
-    // setCurrentVM(vm); // FIXME: Implement it
+    setCurrentVM(vm);
     Object ret = activateR6RSMode(vm, false);
     return reinterpret_cast<void*>(new Object(ret));
 }

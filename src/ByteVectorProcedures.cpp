@@ -1158,7 +1158,7 @@ Object scheme::bytevectorIeeeDoubleSetDEx(VM* theVM, int argc, const Object* arg
 
 Object scheme::bytevectorIeeeDoubleNativeSetDEx(VM* theVM, int argc, const Object* argv)
 {
-    DeclareProcedureName("bytevector-ieee-double-native- set!");
+    DeclareProcedureName("bytevector-ieee-double-native-set!");
     checkArgumentLength(3);
     argumentAsByteVector(0, bytevector);
     argumentAsFixnum(1, index);

@@ -456,6 +456,15 @@ stub_pffi_callback_create(VM* theVM, int argc, const Object* argv){
                         Object::makeClosure(clo));
 }
 
+static Object
+stub_alloc_root_set(VM* theVM, int argc, const Object* argv){
+    DeclareProcedureName("%nmosh-alloc-root-set");
+    argumentAsFixnum(0, length);
+    const char* ptr;
+    ptr = (const char*)GC_MALLOC(length);
+    return Object::makeByteVector(ptr, length);
+}
+
 #ifdef NMOSH_PRELOAD_EMBED
 #include "output.fasl.inc.c" // FIXME: rename it
 #ifdef HAVE_NMOSH_PRELOAD_IMAGE
@@ -475,6 +484,8 @@ register_stubs(VM* theVM){
     // Standard pffi interface 
     theVM->setValueString(UC("%get-pffi-feature-set"),
                           Object::makeCProcedure(stub_get_pffi_feature_set));
+    theVM->setValueString(UC("%nmosh-alloc-root-set"),
+                          Object::makeCProcedure(stub_alloc_root_set));
     theVM->setValueString(UC("%nmosh-pffi-call"),
                           Object::makeCProcedure(stub_pffi_call));
     theVM->setValueString(UC("%nmosh-pffi-callback-create"),

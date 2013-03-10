@@ -1,5 +1,6 @@
 (library (nmosh ffi box)
          (export 
+           make-bytevector/ptr
            make-ptr-box
            ptr-box-ref
            ptr-box-ref-unsigned
@@ -14,10 +15,16 @@
            ptr-array-set!-signed
            ptr-array-ref)
          (import (rnrs)
-                 (mosh ffi))
+                 (mosh ffi)
+                 (nmosh global-flags))
 
+(define make-bytevector/ptr
+  (or (get-global-flag '%nmosh-alloc-root-set)
+      make-bytevector ;; Fallback
+      ))
 
-(define (make-box-64) (make-bytevector 8))
+;; FIXME: Conservative. Split atomic/non-atomic allocs.
+(define (make-box-64) (make-bytevector/ptr 8))
 (define (box-64-ref x)
   (bytevector-u64-native-ref x 0))
 (define (box-64-ref-signed x)
@@ -27,7 +34,7 @@
 (define (box-64-set! x v)
   (bytevector-u64-native-set! x 0 v))
 
-(define (make-array-64 n) (make-bytevector (* 8 n)))
+(define (make-array-64 n) (make-bytevector/ptr (* 8 n)))
 (define (array-64-ref x n)
   (bytevector-u64-native-ref x (* 8 n)))
 (define (array-64-set! x n v)
@@ -35,7 +42,7 @@
 (define (array-64-set!-signed x n v)
   (bytevector-s64-set! x (* 8 n) v))
 
-(define (make-array-32 n) (make-bytevector (* 4 n)))
+(define (make-array-32 n) (make-bytevector/ptr (* 4 n)))
 (define (array-32-ref x n)
   (bytevector-u32-native-ref x (* 4 n)))
 (define (array-32-set! x n v)
@@ -43,8 +50,7 @@
 (define (array-32-set!-signed x n v)
   (bytevector-s32-native-set! x (* 4 n) v))
 
-
-(define (make-box-32) (make-bytevector 4))
+(define (make-box-32) (make-bytevector/ptr 4))
 (define (box-32-ref x)
   (bytevector-u32-native-ref x 0))
 (define (box-32-ref-signed x)

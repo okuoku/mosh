@@ -141,8 +141,8 @@
          (fill-argument1 bv off obj type)
          (fill-arguments bv (+ 1 off) (cdr arg) (cdr type*))))))
   (lambda in
-    (define argpacket (make-bytevector (* 8 arg-len)))
-    (define retpacket (if has-ret? (make-bytevector 8) #f))
+    (define argpacket (make-bytevector/ptr (* 8 arg-len)))
+    (define retpacket (if has-ret? (make-bytevector/ptr 8) #f))
     ;; Sanity check
     (unless (= (length in) arg-len)
       (assertion-violation name

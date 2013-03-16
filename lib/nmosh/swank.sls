@@ -89,7 +89,7 @@
 	     (on-error-thunk))))))
 
  ;; Couldn't resist to exploit the prefix feature.
- (define rpc-entries (environment '(prefix (swank rpc) swank:)))
+ (define rpc-entries (environment '(prefix (nmosh swank rpc) swank:)))
  
  (define (emacs-rex conn sldb-state form package thread tag)
    (let ((out (connection-out-port conn)))

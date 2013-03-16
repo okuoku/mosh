@@ -19,7 +19,7 @@
 	    read-event write-event)
     (import (rnrs)
 	    (rnrs mutable-pairs)
-	    (swank format))
+	    (nmosh swank format))
 
  (define-record-type event-queue
    (fields (mutable q) wait-fun)

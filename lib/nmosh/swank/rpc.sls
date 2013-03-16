@@ -62,7 +62,11 @@
 
  (define (listener-eval string)
    (call-with-values (lambda () (eval-region string))
-     (lambda values `(:values ,@(map (lambda (v) (format "~s" v)) values)))))
+     (lambda values 
+       (write (list 'listener-eval: values))(newline)
+       (if (null? values)
+         '(:values "; no value") ;; FIXME: Fake value for slimv
+         `(:values ,@(map (lambda (v) (format "~s" v)) values))))))
 
  (define (eval-region string)
    (let ((sexp (read-from-string string)))

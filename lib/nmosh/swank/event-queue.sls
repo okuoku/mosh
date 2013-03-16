@@ -68,6 +68,7 @@
  (define (write-event event port)
    (let ((payload (call-with-string-output-port
 		   (lambda (port) (write event port)))))
+     (write (list 'write-event: event))(newline)
      (write-length (string-length payload) port)
      (put-string port payload)
      (flush-output-port port)))

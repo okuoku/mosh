@@ -107,6 +107,9 @@ VM::VM(int stackSize, Object outPort, Object errorPort, Object inputPort, bool i
 #ifdef ENABLE_PROFILER
     profilerRunning_(false),
 #endif
+#ifdef WITH_NMOSH_DEFAULT
+    interrupt_(false),
+#endif
     isProfiler_(isProfiler),
     maxNumValues_(256),
     numValues_(0),
@@ -1056,3 +1059,20 @@ void VM::copyOptions(VM* destVM, VM* srcVM)
         destVM->setValueString(options[i], srcVM->getGlobalValueOrFalse(options[i]));
     }
 }
+#ifdef WITH_NMOSH_DEFAULTS
+void VM::InterruptNmosh()
+{
+    // FIXME: FIXME: Use atomic set
+    interrupt_ = true;
+}
+bool VM::GetInterruptStatusNmosh()
+{
+    // FIXME: FIXME: Use atomic get
+    return interrupt_;
+}
+void VM::ClearInterruptNmosh()
+{
+    // FIXME: FIXME: Use atomic set
+    interrupt_ = false;
+}
+#endif

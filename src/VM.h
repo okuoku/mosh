@@ -215,6 +215,11 @@ public:
     {
         return callBackTrampolines_->ref(Object::makeFixnum(uid), Object::False);
     }
+#ifdef WITH_NMOSH_DEFAULTS
+    bool GetInterruptStatusNmosh();
+    void InterruptNmosh();
+    void ClearInterruptNmosh();
+#endif
 
 protected:
     virtual int exit(int status)
@@ -316,6 +321,9 @@ protected:
     Object callHash_;            // for profiler
     int totalSampleCount_;       // for profiler
     bool profilerRunning_;       // for profiler
+#endif
+#ifdef WITH_NMOSH_DEFAULTS
+    bool interrupt_;
 #endif
     const bool isProfiler_;      // for profiler
     const int maxNumValues_;

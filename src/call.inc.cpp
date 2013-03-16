@@ -29,6 +29,15 @@
  *  $Id: call.inc.cpp 183 2008-07-04 06:19:28Z higepon $
  */
 
+#ifdef WITH_NMOSH_DEFAULTS
+            // Invoke interrupt handler
+            if(GetInterruptStatusNmosh()){
+                ClearInterruptNmosh();
+                static Object handler = Symbol::intern(UC("%nmosh-interrupt"));
+                return callClosureByName(handler, 
+                                         getStackTraceObj());
+            }
+#endif
             if (ac_.isCProcedure()) {
                 COUNT_CALL(ac_);
                 cl_ = ac_;

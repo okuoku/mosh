@@ -265,6 +265,11 @@ moshvm_getmainvm(void){
     return (void*)theVM;
 }
 
+void*
+moshvm_getcurrentvm(void){
+    return (void*)currentVM();
+}
+
 typedef void* (*xcallback_t)(void* ctx);
 
 void*

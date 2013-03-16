@@ -20,7 +20,9 @@
 	    throw-to-toplevel sldb-abort
 	    operator-arglist buffer-first-change
 	    create-repl listener-eval
+            ;; add
             swank-require
+            simple-completions
             )
     (import (rnrs)
 	    (rnrs eval)
@@ -30,7 +32,7 @@
 	    (nmosh swank restarts)
 	    (nmosh swank sys)
 	    )
- 
+
  (define (connection-info . _)
    `(,@'()
      :pid ,(getpid) 
@@ -58,7 +60,7 @@
      (if r (invoke-restart r) 'nil)))
 
  (define (create-repl target)
-   (list "" ""))
+   (list "name" "name"))
 
  (define (listener-eval string)
    (call-with-values (lambda () (eval-region string))
@@ -82,5 +84,9 @@
 
 ;; add
 (define (swank-require sym) 'nil)
+
+(define (simple-completions string package)
+  ;; Dummy
+  (list))
 
  )

@@ -849,8 +849,16 @@ target_link_libraries(${MOSH_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
 
 if(MOSH_PORTABLE) # FIXME: Bogus in ANDROID
     install(TARGETS ${MOSH_EXECUTABLE_NAME} DESTINATION .)
+    if(MOSH_BUILD_MODULE)
+        install(TARGETS ${MOSH_EXECUTABLE_NAME}-run
+            DESTINATION .)
+    endif()
 else()
     install(TARGETS ${MOSH_EXECUTABLE_NAME} DESTINATION bin)
+    if(MOSH_BUILD_MODULE)
+        install(TARGETS ${MOSH_EXECUTABLE_NAME}-run
+            DESTINATION bin)
+    endif()
 endif()
 
 if(MOSH_WITH_NMOSH_GUI)

@@ -1062,16 +1062,19 @@ void VM::copyOptions(VM* destVM, VM* srcVM)
 #ifdef WITH_NMOSH_DEFAULTS
 void VM::InterruptNmosh()
 {
+    // NB: MUST BE THREAD SAFE. NEVER ALLOCATE OBJECT HERE.
     // FIXME: FIXME: Use atomic set
     interrupt_ = true;
 }
 bool VM::GetInterruptStatusNmosh()
 {
+    // NB: MUST BE THREAD SAFE. NEVER ALLOCATE OBJECT HERE.
     // FIXME: FIXME: Use atomic get
     return interrupt_;
 }
 void VM::ClearInterruptNmosh()
 {
+    // NB: MUST BE THREAD SAFE. NEVER ALLOCATE OBJECT HERE.
     // FIXME: FIXME: Use atomic set
     interrupt_ = false;
 }

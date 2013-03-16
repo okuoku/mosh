@@ -203,7 +203,8 @@
   (set! libsyms (load-symfiles)))
 
 (define (debugger c trace)
-  (condition-printer/deco c)
+  (when c
+    (condition-printer/deco c)) 
   (when minidebug-key
     (display "!!! DOUBLE FAULT!\n" (current-error-port))
     (exit -1))

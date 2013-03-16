@@ -20,4 +20,7 @@
   (void* moshvm_export_object (void*))
   (void* moshvm_callback_call (void* void*))
   (void* moshvm_execute_callback (void* void*))
+  ;; interrupt
+  (void moshvm_keyboard_interrupt_enable)
+  (void moshvm_interrupt (void*))
   )

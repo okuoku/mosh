@@ -1,5 +1,5 @@
-;; psyntax-mosh version
-(library (swank sys)
+;; nmosh version
+(library (nmosh swank sys)
          (export implementation-name eval-in-interaction-environment)
          (import (rnrs)
                  (mosh pp)

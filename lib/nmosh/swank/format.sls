@@ -14,7 +14,7 @@
 ;;
 
 ;; Naive FORMAT implementation which supports: ~a ~s ~d ~x ~c
-(library (swank format)
+(library (nmosh swank format)
     (export format printf fprintf)
     (import (rnrs))
 

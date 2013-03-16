@@ -14,14 +14,14 @@
 ;;
 
 ;; The server proper.  Does the TCP stuff and exception handling.
-(library (swank)
+(library (nmosh swank)
     (export start-server)
     (import (rnrs) 
 	    (rnrs eval)
-	    (swank os)
-	    (swank format)
-	    (swank event-queue)
-	    (swank restarts))
+	    (nmosh swank os)
+	    (nmosh swank format)
+	    (nmosh swank event-queue)
+	    (nmosh swank restarts))
 
  (define-record-type connection
    (fields in-port out-port event-queue))

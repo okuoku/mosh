@@ -14,7 +14,7 @@
 ;;
 
 ;; CL-style restarts to let us continue after errors.
-(library (swank restarts)
+(library (nmosh swank restarts)
     (export with-simple-restart compute-restarts invoke-restart restart-name
 	    write-restart-report)
     (import (rnrs))

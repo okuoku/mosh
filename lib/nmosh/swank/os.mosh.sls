@@ -1,4 +1,4 @@
-(library (swank os)
+(library (nmosh swank os)
          (export getpid make-server-socket accept local-port close-socket)
          (import (rnrs)
                  (mosh process) ;; getpid

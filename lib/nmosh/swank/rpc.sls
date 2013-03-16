@@ -14,7 +14,7 @@
 ;;
 
 ;; Entry points for SLIME commands.
-(library (swank rpc)
+(library (nmosh swank rpc)
     (export connection-info interactive-eval
 	    ;;compile-string-for-emacs 
 	    throw-to-toplevel sldb-abort

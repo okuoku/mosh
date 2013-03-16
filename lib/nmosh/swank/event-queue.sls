@@ -14,7 +14,7 @@
 ;;
 
 ;; This module encodes & decodes messages from the wire and queues them.
-(library (swank event-queue)
+(library (nmosh swank event-queue)
     (export make-event-queue wait-for-event enqueue-event 
 	    read-event write-event)
     (import (rnrs)

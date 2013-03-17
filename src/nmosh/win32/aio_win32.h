@@ -25,6 +25,7 @@ int win32_handle_setbaud(void* h,int b);
 void* win32_ticket_alloc(void* h);
 void win32_ticket_chime(void*, void*, int);
 void* win32_get_ticket_chime(void);
+void* win32_get_ticket_callback(void);
 
 int win32_timer_create(void*);
 int win32_timer_set(void*,int,int,int,int,void*,void*);

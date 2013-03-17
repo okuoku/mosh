@@ -742,9 +742,20 @@ win32_ticket_chime(ticket* t,uintptr_t out0,int32_t out1){
     emit_queue_event(t->iocp,out0,out1,(uintptr_t)&t->ovl);
 }
 
+void
+win32_ticket_callback(ticket* t,uintptr_t out0){
+    //printf("chime_win32: %llx, %x\n",(long long)out0,out1);
+    emit_queue_event(t->iocp,out0,0,(uintptr_t)&t->ovl);
+}
+
 void*
 win32_get_ticket_chime(void){
     return &win32_ticket_chime;
+}
+
+void*
+win32_get_ticket_callback(void){
+    return &win32_ticket_callback;
 }
 
 void

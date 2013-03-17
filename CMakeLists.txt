@@ -1112,6 +1112,7 @@ if(MOSH_BUILD_MODULE)
     add_scheme_test(nmosh-test-misc.sps)
     add_scheme_test(nmosh-test-stack-trace.sps)
     add_scheme_test(r6rs-test-suite/tests/r6rs/run.sps)
+    add_scheme_test(nmosh/nmosh-threads.sps)
     # Benchmark
     add_nmosh_testrunner(OFF ${CMAKE_CURRENT_LIST_DIR}/tests/nmosh/testturbocharge.sps)
 endif()

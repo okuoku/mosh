@@ -41,4 +41,5 @@
   (void* win32_ticket_chime (void* void* int))
   (void* win32_ticket_alloc (void*))
   (void* win32_get_ticket_chime)
+  (void* win32_get_ticket_callback)
   )

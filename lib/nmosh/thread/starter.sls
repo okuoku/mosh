@@ -1,6 +1,6 @@
 ;; FIXME: This library should be folded into (nmosh startup)
 (library (nmosh thread starter)
-         (export starter thread-create)
+         (export starter thread-create thread-create/detached)
          (import (rnrs)
                  (rnrs eval)
                  ;(nmosh runlib)
@@ -8,9 +8,8 @@
                  (nmosh stubs moshvm-helper)
                  (nmosh global-flags))
 
-(define (thread-create name lib func . params) ;; => VM
-  (let ((vm (moshvm_alloc))
-        (loadpath (get-global-flag '%loadpath))
+(define (set-vm-parameters! vm lib func params)
+  (let ((loadpath (get-global-flag '%loadpath))
         (verbose? (get-global-flag '%verbose))
         (disable-acc? (get-global-flag '%disable-acc))
         (portable-mode? (get-global-flag '%nmosh-portable-mode))
@@ -26,8 +25,18 @@
     (moshvm_set_value_string vm "%nmosh-thread-func-name" (symbol->string func))
     (moshvm_set_value_pointer vm "%nmosh-thread-lib" (object->pointer lib))
     (moshvm_set_value_pointer vm "%nmosh-thread-params" (object->pointer
-                                                          params))
+                                                          params))))
+
+(define (thread-create name lib func . params) ;; => VM
+  (let ((vm (moshvm_alloc)))
+    (set-vm-parameters! vm lib func params)
     (moshvm_start vm 0 name)
+    vm))
+
+(define (thread-create/detached name func-ptr func-data lib func . params) ;; => VM
+  (let ((vm (moshvm_alloc)))
+    (set-vm-parameters! vm lib func params)
+    (moshvm_start_detached vm 0 name func-ptr func-data)
     vm))
 
 (define (starter)

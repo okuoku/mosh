@@ -8,9 +8,10 @@
                  queue-dispatch
                  
                  queue-invoke-ffithread
-                 queue-ticket-acquire
+                 queue-ticket-acquire ;; Deprecated
                  queue-ticket-dispose
                  queue-ticket-callback
+                 queue-ticket-create
 
                  queue-write0
                  queue-read0

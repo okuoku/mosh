@@ -20,6 +20,7 @@
                  ;; Tickets
                  win32_ticket_alloc
                  win32_get_ticket_chime
+                 win32_get_ticket_callback
 
                  ;; sockets
                  win32_sockaddr_storage_size
@@ -136,6 +137,7 @@
 (define* (win32_ticket_alloc (iocp win32-handle))
   (stub:win32_ticket_alloc (handle->pointer iocp)))
 (define win32_get_ticket_chime stub:win32_get_ticket_chime)
+(define win32_get_ticket_callback stub:win32_get_ticket_callback)
 
 (define* (win32_handle_read_async (h win32-handle)
                                   offset

@@ -695,6 +695,15 @@ namespace scheme {
 
         static void exit(void* exitValue)
         {
+
+            const Thread* me = self();
+            if(me && me->stubInfo_ && (me->stubInfo_->ticketFunction)){
+                // Notify thread exit
+                typedef void (*callback)(void* t, void* e);
+                callback cb;
+                cb = (callback)(me->stubInfo_->ticketFunction);
+                cb(me->stubInfo_->ticketData, exitValue);
+            }
 #ifdef _WIN32
             self()->stubInfo_->returnValue = exitValue;
             GC_endthreadex((unsigned int)(uintptr_t)exitValue);

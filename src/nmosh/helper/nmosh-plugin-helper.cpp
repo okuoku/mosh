@@ -156,7 +156,8 @@ entry(void* pvm){
 }
 
 void
-moshvm_start(void* pvm, int bogus /* prio */, const char* threadname){
+core_moshvm_start(void* pvm, int bogus /* prio */, const char* threadname,
+                  void* ticket_func, void* ticket_data){
     Thread* thread = new Thread();
     VM* vm = (VM *)pvm;
     // Initialize VM data
@@ -165,7 +166,19 @@ moshvm_start(void* pvm, int bogus /* prio */, const char* threadname){
         vm->setName(ucs4string::from_c_str(threadname));
     }
     // Kick VM thread
-    thread->create(entry, vm, Thread::priorityNormal, threadname);
+    thread->create(entry, vm, Thread::priorityNormal, threadname,
+                   ticket_func, ticket_data);
+}
+
+void
+moshvm_start(void* pvm, int bogus /* prio */, const char* threadname){
+    core_moshvm_start(pvm,bogus,threadname,NULL,NULL);
+}
+
+void
+moshvm_start_detached(void* pvm, int bogus /* prio */, const char* threadname,
+                      void* ticket_func, void* ticket_data){
+    core_moshvm_start(pvm,bogus,threadname,ticket_func,ticket_data);
 }
 
 void*

@@ -11,6 +11,7 @@
   (void moshvm_set_value_string (void* void* void*))
   (void moshvm_set_value_pointer (void* void* void*))
   (void moshvm_start (void* int void*))
+  (void moshvm_start_detached (void* int void* void* void*))
   (void* moshvm_join (void*))
   (void moshvm_sharedstorage_init (void*))
   (void moshvm_sharedstorage_get (void* void*))

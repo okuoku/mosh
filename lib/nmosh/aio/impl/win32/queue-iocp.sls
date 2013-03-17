@@ -11,9 +11,10 @@
 
            queue-register-handle
            queue-unregister-handle
-           queue-ticket-acquire
+           queue-ticket-acquire ;; Deprecated
            queue-ticket-dispose
            queue-ticket-callback
+           queue-ticket-create
 
            queue-window-register
            queue-window-destroy
@@ -37,7 +38,8 @@
 (define* (queue-wait (Q))
   (queue-wait/timeout Q -1))
 
-(define ticket-chime #f)
+(define ticket-chime #f) ;; Deprecated
+(define ticket-callback #f)
 (define* (queue-ticket-acquire (Q) cb) ;; => c-pointer
   (define (callback err bytes ovl key)
     ;; key = out0
@@ -50,9 +52,19 @@
 (define* (queue-ticket-dispose (Q) ticket)
   (win32_overlapped_free ticket))
 (define* (queue-ticket-callback (Q)) ;; => c-pointer
-  (unless ticket-chime
-    (set! ticket-chime (win32_get_ticket_chime)))
-  ticket-chime)
+  (unless ticket-callback
+    (set! ticket-callback (win32_get_ticket_callback)))
+  ticket-callback)
+
+(define* (queue-ticket-create (Q) cb) ;; => func ticket
+  (define chime (queue-ticket-callback Q))
+  (define (callback err bytes ovl key)
+    ;; key = out0
+    ;(write (list 'queue-callback: bytes))(newline)
+    (cb key))
+  (let ((ticket (win32_ticket_alloc (~ Q 'iocp))))
+    (win32_overlapped_setmydata ticket (object->pointer callback))
+    (values chime ticket)))
 
 (define (generic-callback bytes ovl key)
   (let ((callback (pointer->object (win32_overlapped_getmydata ovl))))

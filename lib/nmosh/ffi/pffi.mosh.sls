@@ -56,73 +56,70 @@
     thunk
     (lambda () (set! pffi-call-proxy #f))))
 
-(define (pffi-call p ptr arg* ret)
+(define (pffi-call p ptr argc . argv)
   (if pffi-call-proxy
-    (pffi-call-proxy p ptr arg* ret)
-    (pffi-call/sync p ptr arg* ret)))
+    (apply pffi-call-proxy p ptr argc argv)
+    (apply pffi-call/sync p ptr argc argv)))
 
 (define (make-pffi-call sym ptr)
   (define p (pffi-lookup pffi-lib sym))
-  (lambda (arg* ret)
-    (pffi-call p ptr arg* ret)))
+  (lambda arg*
+    (apply pffi-call p ptr (length arg*) arg*)))
 
 (define (make-caller name proxy-sym ptr arg* ret)
-  (define call (make-pffi-call proxy-sym ptr))
+  (define call (if ptr
+                 (make-pffi-call proxy-sym ptr)
+                 (lambda e
+                   (assertion-violation 'pffi
+                                        "PFFI function not found"
+                                        name))))
   (define arg-len (length arg*))
-  (define has-ret? (not (eq? 'void ret)))
-  (define (take-ret bv type)
-    (case type
-      ((void* char*) (ptr-box-ref bv))
+  (define (take-ret ptr)
+    (define (bv)
+      (define out (make-ptr-array 1))
+      (ptr-array-set! out 0 ptr)
+      out)
+    (case ret
+      ((void) 
+       (values))
+      ((void* char*) ptr)
       ((char)
        ;; FIXME: Little endian
-       (bytevector-s8-ref bv 0))
-      ((uchar)
-       (bytevector-u8-ref bv 0))
+       (bytevector-s8-ref (bv) 0))
       ((int long int32) ;; FIXME: long??
-       (int-box-ref bv))
+       (ptr-box-ref-signed (bv)))
       ((int64)
-       (bytevector-s64-native-ref bv 0))
-      ((uint ulong uint32)
-       (int-box-ref-unsigned bv))
-      ((uint64)
-       (bytevector-u64-native-ref bv 0))
+       (bytevector-s64-native-ref (bv) 0))
+      ((uchar uint64 uint ulong uint32)
+       (pointer->integer ptr))
       ;; IEEE Double
       ((double)
-       (bytevector-ieee-double-native-ref bv 0))
+       (bytevector-ieee-double-native-ref (bv) 0))
       (else
         (assertion-violation name
                              "Invalid return value type"
-                             type))))
-  (define (fill-argument1 bv off obj type)
-    (define addr (* off 8))
+                             ret))))
+  (define (conv-argument type obj)
     (define (complain)
       (assertion-violation name
                            "Invalid argument type"
-                           obj
-                           off))
+                           obj))
+    ;; FIXME: Add type check here.
     (case type
       ;; Pointer
       ((void* char*)
        (cond
-         ((bytevector? obj)
-          (bytevector-u64-native-set! bv addr (pointer->integer
-                                                (bytevector-pointer obj))))
-         ((pointer? obj)
-          (bytevector-u64-native-set! bv addr (pointer->integer obj)))
+         ((bytevector? obj) obj)
+         ((pointer? obj) obj)
          ((string? obj)
-          (bytevector-u64-native-set! bv addr (pointer->integer
-                                                (bytevector-pointer
-                                                  (string->utf8/null obj)))))
+          (string->utf8/null obj))
          (else (complain))))
       ;; Signed fixnums
-      ((char short int long int32 int64)
-       (bytevector-s64-native-set! bv addr obj))
+      ((char short int long int32 int64) obj)
       ;; Unsigned fixnums
-      ((uchar ushort uint ulong uint32 uint64)
-       (bytevector-u64-native-set! bv addr obj))
+      ((uchar ushort uint ulong uint32 uint64) obj)
       ;; IEEE Double
-      ((double)
-       (bytevector-ieee-double-native-set! bv addr obj))
+      ((double) obj)
       ;; IEEE Float(Single)
       #|
       ((float)
@@ -132,35 +129,22 @@
         (assertion-violation name
                              "Invalid type specifier"
                              type))))
-
-  (define (fill-arguments bv off arg type*)
-    (cond
-      ((not (null? arg))
-       (let ((obj (car arg))
-             (type (car type*)))
-         (fill-argument1 bv off obj type)
-         (fill-arguments bv (+ 1 off) (cdr arg) (cdr type*))))))
   (lambda in
-    (define argpacket (make-bytevector/ptr (* 8 arg-len)))
-    (define retpacket (if has-ret? (make-bytevector/ptr 8) #f))
     ;; Sanity check
     (unless (= (length in) arg-len)
       (assertion-violation name
-                           "Invalid argument"
+                           "Invalid argument length"
                            in))
-
-    ;; Construct parameter packet (64bit x N)
-    (fill-arguments argpacket 0 in arg*)
-    ;(write (list 'pffi-call: ptr name in))(newline)
-    ;; Call
-    (call (bytevector-pointer argpacket)
-          (if has-ret?
-            (bytevector-pointer retpacket)
-            (integer->pointer 0)))
-    (if has-ret?
-      (take-ret retpacket ret)
-      #f ;; undefined?
-      )))
+    (let* ((args (map conv-argument arg* in))
+           (ret (apply call args)))
+      ;(write (list 'pffi-call: ptr name in))(newline)
+      (cond
+        ((pointer? ret)
+         (take-ret ret))
+        (else
+          (assertion-violation name
+                               "Invalid result"
+                               ret))))))
 
 (define-syntax pffi-c-function
   (syntax-rules ()

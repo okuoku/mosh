@@ -4,6 +4,7 @@
            make-ptr-box
            ptr-box-ref
            ptr-box-ref-unsigned
+           ptr-box-ref-signed
            ptr-box-set!
            make-int-box
            int-box-ref
@@ -13,7 +14,8 @@
            ptr-array-set!
            ptr-array-set!-unsigned
            ptr-array-set!-signed
-           ptr-array-ref)
+           ptr-array-ref
+           )
          (import (rnrs)
                  (mosh ffi)
                  (nmosh global-flags))
@@ -38,7 +40,7 @@
 (define (array-64-ref x n)
   (bytevector-u64-native-ref x (* 8 n)))
 (define (array-64-set! x n v)
-  (bytevector-u64-set! x (* 8 n) v))
+  (bytevector-u64-native-set! x (* 8 n) v))
 (define (array-64-set!-signed x n v)
   (bytevector-s64-set! x (* 8 n) v))
 
@@ -73,6 +75,8 @@
   (let ((ref (sel32/64 size-of-void* box-32-ref box-64-ref)))
     (lambda (x) (ref x))))
 (define (ptr-box-ref b) (integer->pointer (ptr-box-ref-unsigned b)))
+(define ptr-box-ref-signed (sel32/64 size-of-void* box-32-ref-signed
+                                     box-64-ref-signed))
 
 (define ptr-box-set!
   (let ((set (sel32/64 size-of-void* box-32-set! box-64-set!)))

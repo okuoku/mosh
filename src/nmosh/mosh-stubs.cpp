@@ -379,18 +379,55 @@ get_pffi_caller(void){
     return (void*)&pffi_caller;
 }
 
+static uint64_t
+conv_arg(const Object& obj, int* res){
+    *res = 1;
+    if(obj.isFixnum()){
+        return obj.toFixnum();
+    }else if(obj.isFlonum()){
+        char buf[8];
+        *reinterpret_cast<double*>(buf) = obj.toFlonum()->value();
+        return *reinterpret_cast<uint64_t*>(buf);
+    }else if(obj.isBignum()){
+        if(obj.toBignum()->isNegative()){
+            return obj.toBignum()->toS64();
+        }else{
+            return obj.toBignum()->toU64();
+        }
+    }else if(obj.isBoolean()){
+        return obj.isTrue()?1:0;
+    }else if(obj.isPointer()){
+        return (uintptr_t)obj.toPointer()->pointer();
+    }else if(obj.isByteVector()){
+        return (uintptr_t)obj.toByteVector()->data();
+    }else{
+        *res = 0;
+        return 0;
+    }
+}
+
 static Object
 stub_pffi_call(VM* theVM, int argc, const Object* argv){
     pffi_caller_t call;
+    uint64_t ret;
+    uint64_t* args;
     DeclareProcedureName("%nmosh-pffi-call");
-    checkArgumentLength(4);
+    checkArgumentLengthAtLeast(3);
     argumentAsPointer(0, gate);
     argumentAsPointer(1, func);
-    argumentAsPointer(2, args);
-    argumentAsPointer(3, ret);
+    argumentAsFixnum(2, count_args);
+    args = (uint64_t*)alloca(sizeof(uint64_t)*count_args);
+    for(int i = 0; i!= count_args; i++){
+        int succeeded_p;
+        args[i] = conv_arg(argv[3+i], &succeeded_p);
+        if(!succeeded_p){
+            /* Error */
+            return Object::makeFixnum(i);
+        }
+    }
     call = (pffi_caller_t)(gate->pointer());
-    call((void*)func->pointer(), (void*)args->pointer(), (void*)ret->pointer());
-    return Object::True;
+    call((void*)func->pointer(), args, &ret);
+    return Object::makePointer((void*)(uintptr_t)ret);
 }
 
 static Object

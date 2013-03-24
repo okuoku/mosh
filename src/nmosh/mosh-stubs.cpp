@@ -28,6 +28,10 @@
 #include "Closure.h"
 #include "VM-inl.h"
 
+#ifdef __MINGW32__
+#include <malloc.h> /* For alloca */
+#endif
+
 #include "embed-libs.inc.h"
 
 #if !defined(_WIN32) && !defined(MONA)

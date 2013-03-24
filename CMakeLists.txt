@@ -18,6 +18,7 @@ option(MOSH_PORTABLE "build portable version of mosh interpreter" OFF)
 option(MOSH_PREFIXLESS "build prefix-less version of mosh interpreter" ON)
 option(MOSH_PRELOAD_CORE "always use precompiled base library" OFF)
 option(NMOSH_PRELOAD_EMBED "Embed preload image to interpreter" OFF)
+option(MOSH_PROFILER "Enable VM profiler" OFF)
 set(NMOSH_PRELOAD_EXCLUDES ""
     CACHE STRING 
     "List of excluded libraries from preload")
@@ -159,6 +160,10 @@ add_definitions(-DHAVE_CONFIG_H
     -DUSE_I686_PREFETCH
     -DDONT_ADD_BYTE_AT_END=1
     )
+
+if(MOSH_PROFILER)
+    add_definitions(-DENABLE_PROFILER)
+endif()
 
 if(NOT WIN32 AND NOT ANDROID)
     add_definitions(-DHANDLE_FORK=1)

@@ -309,6 +309,8 @@ void VM::loadCompiler()
 #ifdef ENABLE_PROFILER
     if (isProfiler_) {
         initProfiler();
+    }else{
+        samples_ = NULL;
     }
 #endif
     TRY_VM {

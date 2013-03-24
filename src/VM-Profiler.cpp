@@ -30,10 +30,11 @@
  */
 
 #ifdef _WIN32
+#include <windows.h>
 #else
 #include <sys/time.h>
-#endif
 #include <signal.h>
+#endif
 #include "Object.h"
 #include "Object-inl.h"
 #include "Pair.h"
@@ -45,6 +46,9 @@
 #include "TextualOutputPort.h"
 #include "StringProcedures.h"
 #include "Callable.h"
+#ifdef _WIN32
+#include "OSCompatThread.h"
+#endif
 
 using namespace scheme;
 
@@ -55,6 +59,39 @@ const int VM::SAMPLE_NUM = 50000;
 
 extern  void signal_handler(int signo);
 
+#ifdef _WIN32
+static void*
+profiler_interrupt_thread(void* p){
+    LARGE_INTEGER duetime;
+    HANDLE hTimer = NULL;
+    VM* vm = reinterpret_cast<VM *>(p);
+    // Create new timer(no named, names must be unique)
+    hTimer = CreateWaitableTimer(NULL, FALSE, NULL);
+
+    // duetime = 0;
+    duetime.QuadPart = -1LL; // wait 100 ns
+
+    SetWaitableTimer(hTimer, &duetime, 10 /* 10 ms */, NULL, NULL, 0);
+    for(;;){
+        if(WaitForSingleObject(hTimer, INFINITE) != WAIT_OBJECT_0){
+            // FAIL
+            return NULL;
+        }else{
+            EnterCriticalSection(&vm->profilerCs_);
+            if(vm->profilerTerminate_){
+                LeaveCriticalSection(&vm->profilerCs_);
+                return NULL;
+            }
+            if(vm->profilerEnable_){
+                SuspendThread(vm->vmThread_);
+                vm->collectProfile();
+                ResumeThread(vm->vmThread_);
+            }
+            LeaveCriticalSection(&vm->profilerCs_);
+        }
+    }
+}
+#endif
 
 void VM::initProfiler()
 {
@@ -66,6 +103,20 @@ void VM::initProfiler()
         samples_[i] = Object::Nil;
         callSamples_[i] = Object::Nil;
     }
+#ifdef _WIN32
+    const VM* target = this;
+    // FIXME: May leak thread handle
+    vmThread_ = OpenThread(THREAD_SUSPEND_RESUME,FALSE,GetCurrentThreadId());
+    profilerEnable_ = false;
+    profilerTerminate_ = false;
+    profilerInterruptThread_ = new Thread();
+    InitializeCriticalSection(&profilerCs_);
+    // FIXME: Move to startTimer??
+    profilerInterruptThread_->create(profiler_interrupt_thread, (void*)target, 
+                                     Thread::priorityNormal,
+                                     "Profiler Interrupt");
+#else
+    // UNIX SIGPROF sampler
     struct sigaction act;
     act.sa_handler = &signal_handler; // set signal_handler
     act.sa_flags = SA_RESTART;        // restart system call after signal handler
@@ -73,16 +124,29 @@ void VM::initProfiler()
     if (sigaction(SIGPROF, &act, NULL) != 0) {
         callAssertionViolationImmidiaImmediately(this, "profiler", "sigaction failed");
     }
+#endif
     startTimer();
 }
 
 void VM::stopProfiler()
 {
+#ifdef _WIN32
+    EnterCriticalSection(&profilerCs_);
+    profilerTerminate_ = true;
+    LeaveCriticalSection(&profilerCs_);
+#endif
     stopTimer();
 }
 
 void VM::startTimer()
 {
+    profilerRunning_ = true;
+#ifdef _WIN32
+    EnterCriticalSection(&profilerCs_);
+    profilerEnable_ = true;
+    LeaveCriticalSection(&profilerCs_);
+#else
+    // UNIX SIGPROF sampler
     const int INTERVAL_USEC = 10 * 1000;
     struct itimerval tval, oval;
     tval.it_interval.tv_sec = 0;
@@ -90,18 +154,25 @@ void VM::startTimer()
     tval.it_value.tv_sec = 0;
     tval.it_value.tv_usec = INTERVAL_USEC;
     setitimer(ITIMER_PROF, &tval, &oval);
-    profilerRunning_ = true;
+#endif
 }
 
 void VM::stopTimer()
 {
     profilerRunning_ = false;
+#ifdef _WIN32
+    EnterCriticalSection(&profilerCs_);
+    profilerEnable_ = false;
+    LeaveCriticalSection(&profilerCs_);
+#else
+    // UNIX SIGPROF sampler
     struct itimerval tval, oval;
     tval.it_interval.tv_sec = 0;
     tval.it_interval.tv_usec = 0;
     tval.it_value.tv_sec = 0;
     tval.it_value.tv_usec = 0;
     setitimer(ITIMER_PROF, &tval, &oval);
+#endif
 }
 
 void VM::collectProfile()
@@ -142,6 +213,9 @@ Object VM::getProfileResult()
 {
     profilerRunning_ = false;
     stopProfiler();
+    if(!samples_){
+        return Object::Nil;
+    }
     Object ret = Object::Nil;
     for (int i = 0; i < SAMPLE_NUM; i++) {
         const Object o = samples_[i];
@@ -182,4 +256,3 @@ Object VM::getClosureName(Object closure)
 
 
 #endif // ENABLE_PROFILER
-

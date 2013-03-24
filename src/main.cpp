@@ -163,7 +163,7 @@ void showUsage()
     exit(EXIT_FAILURE);
 }
 
-#ifdef ENABLE_PROFILER
+#if defined(ENABLE_PROFILER) && !defined(_WIN32)
 void signal_handler(int signo)
 {
     if (signo == SIGPROF && theVM != NULL) {

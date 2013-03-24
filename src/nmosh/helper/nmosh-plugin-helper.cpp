@@ -75,6 +75,16 @@ extern "C" {
 
 // FIXME: Copied from MultiVMProcedures.cpp, integrate them
 
+void*
+moshvm_profile_get_result(VM* vm){
+#ifdef ENABLE_PROFILER
+    const Object& obj = vm->getProfileResult();
+#else
+    const Object& obj = Object::False;
+#endif
+    return (void*)obj.val;
+}
+
 void
 moshvm_longjmp(jmp_buf* jbp){
     longjmp(*jbp,1);

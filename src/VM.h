@@ -314,13 +314,24 @@ protected:
     Object returnCode_[2];
     Object outerSourceInfo_;
 #ifdef ENABLE_PROFILER
-    intptr_t labelReturn_;           // for profiler
+    intptr_t labelReturn_;       // for profiler
     static const int SAMPLE_NUM; // for profiler
     Object* samples_;            // for profiler
     Object* callSamples_;        // for profiler
     Object callHash_;            // for profiler
     int totalSampleCount_;       // for profiler
     bool profilerRunning_;       // for profiler
+#ifdef _WIN32
+    // Win32 profiler interrupt thread data
+public: // FIXME: Add setter/getter
+    CRITICAL_SECTION profilerCs_;
+    HANDLE vmThread_;           // for profiler
+    bool profilerEnable_;
+    bool profilerTerminate_;
+protected:
+    Thread* profilerInterruptThread_;
+
+#endif //_WIN32
 #endif
 #ifdef WITH_NMOSH_DEFAULTS
     bool interrupt_;

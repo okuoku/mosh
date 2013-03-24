@@ -137,7 +137,19 @@ bool Thread::create(void* (*start)(void*), void* arg, ThreadPriority prio,
     stubInfo_->ticketData = ticket_data;
 #ifdef _WIN32
     unsigned int threadId;
+    int prio_win32;
     thread_ = (HANDLE)GC_beginthreadex(0, 0, stubFunction,stubInfo_, 0, &threadId);
+    if(thread_){ // Apply priority
+        switch(prio){
+            case priorityHigh:
+                prio_win32 = THREAD_PRIORITY_HIGHEST;
+                break;
+            default:
+                prio_win32 = THREAD_PRIORITY_NORMAL;
+                break;
+        }
+        SetThreadPriority(thread_, prio_win32);
+    }
     return thread_ != 0;
 #else
     if (GC_pthread_create(&thread_, NULL, stubFunction , stubInfo_) == 0) {

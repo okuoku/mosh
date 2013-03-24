@@ -597,7 +597,7 @@ namespace scheme {
 			//
 			// priorityLow,
 			priorityNormal,
-			// priorityHigh,
+			priorityHigh,
 			// priorityRealtime
 		};
         struct StubInfo EXTEND_GC

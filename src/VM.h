@@ -151,6 +151,7 @@ public:
     Object currentInputPort() const;
     Object getStackTrace();
     Object getStackTraceObj();
+    Object getStackTraceObjRaw();
     void setCurrentOutputPort(Object port);
     void setCurrentErrorPort(Object port);
     void setCurrentInputPort(Object port);
@@ -332,7 +333,7 @@ protected:
     Thread* profilerInterruptThread_;
 
 #endif //_WIN32
-#endif
+#endif //ENABLE_PROFILER
 #ifdef WITH_NMOSH_DEFAULTS
     bool interrupt_;
 #endif

@@ -114,7 +114,7 @@ void VM::initProfiler()
     InitializeCriticalSection(&profilerCs_);
     // FIXME: Move to startTimer??
     profilerInterruptThread_->create(profiler_interrupt_thread, (void*)target, 
-                                     Thread::priorityNormal,
+                                     Thread::priorityHigh,
                                      "Profiler Interrupt");
 #else
     // UNIX SIGPROF sampler

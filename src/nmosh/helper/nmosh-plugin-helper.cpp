@@ -284,6 +284,11 @@ moshvm_stacktrace_get(VM* pvm){
 }
 
 void*
+moshvm_stacktrace_raw(VM* vm){
+    return reinterpret_cast<void*>(vm->getStackTraceObjRaw().val);
+}
+
+void*
 moshvm_getmainvm(void){
     return (void*)theVM;
 }
@@ -298,6 +303,65 @@ typedef void* (*xcallback_t)(void* ctx);
 void*
 moshvm_execute_callback(xcallback_t fn, void* param){
     return fn(param);
+}
+
+/* Closure */
+void
+moshvm_closure_sourceinfo_set(uintptr_t obj, uintptr_t info){
+    Object& me = Object::makeRaw(obj);
+    if(me.isClosure()){
+        me.toClosure()->sourceInfo = Object::makeRaw(info);
+    }
+}
+
+/* Profiler */
+int
+moshvm_has_profiler(void){
+#ifdef ENABLE_PROFILER
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+void
+moshvm_profiler_init(VM* vm, int type){
+    /* type =  0: Top
+     *         1: Graph */
+#ifdef ENABLE_PROFILER
+    vm->initProfiler();
+#else
+    return;
+#endif
+}
+
+void
+moshvm_profiler_start(VM* vm){
+    // FIXME: Init profiler also starts profiling...
+#ifdef ENABLE_PROFILER
+    return;
+#else
+    return;
+#endif
+}
+
+void
+moshvm_profiler_stop(VM* vm){
+#ifdef ENABLE_PROFILER
+    vm->stopProfiler();
+    return;
+#else
+    return;
+#endif
+}
+
+void*
+moshvm_profiler_result(VM* vm){
+#ifdef ENABLE_PROFILER
+    return reinterpret_cast<void*>(vm->getProfileResult().val);
+#else
+    return NULL;
+#endif
 }
 
 } /* Extern C */

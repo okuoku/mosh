@@ -17,6 +17,7 @@
   (void moshvm_sharedstorage_init (void*))
   (void moshvm_sharedstorage_get (void* void*))
   (void* moshvm_stacktrace_get (void*))
+  (void* moshvm_stacktrace_raw (void*))
   (void* moshvm_getmainvm)
   ;; Pseudo: Will not be called from any Scheme code
   (void* moshvm_export_object (void*))
@@ -25,4 +26,10 @@
   ;; interrupt
   (void moshvm_keyboard_interrupt_enable)
   (void moshvm_interrupt (void*))
+  ;; Profiler
+  (int moshvm_has_profiler)
+  (void moshvm_profiler_init (void* int))
+  (void moshvm_profiler_start (void*)) ;; FIXME: NOP for now
+  (void moshvm_profiler_stop (void*))
+  (void moshvm_profiler_result (void*))
   )

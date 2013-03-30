@@ -96,6 +96,10 @@ profiler_interrupt_thread(void* p){
 
 void VM::initProfiler()
 {
+    if(profilerRunning_){
+        // Do nothing if profiler is already running.
+        return;
+    }
     samples_ = Object::makeObjectArray(SAMPLE_NUM);
     callSamples_ = Object::makeObjectArray(SAMPLE_NUM);
     callHash_ = Object::makeEqHashTable();

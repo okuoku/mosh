@@ -69,9 +69,9 @@ profiler_interrupt_thread(void* p){
     hTimer = CreateWaitableTimer(NULL, FALSE, NULL);
 
     // duetime = 0;
-    duetime.QuadPart = -1LL; // wait 100 ns
+    duetime.QuadPart = -100000LL; // wait 10ms
 
-    SetWaitableTimer(hTimer, &duetime, 10 /* 10 ms */, NULL, NULL, 0);
+    SetWaitableTimer(hTimer, &duetime, 0, NULL, NULL, 0);
     for(;;){
         if(WaitForSingleObject(hTimer, INFINITE) != WAIT_OBJECT_0){
             // FAIL
@@ -88,6 +88,7 @@ profiler_interrupt_thread(void* p){
                 ResumeThread(vm->vmThread_);
             }
             LeaveCriticalSection(&vm->profilerCs_);
+            SetWaitableTimer(hTimer, &duetime, 0, NULL, NULL, 0);
         }
     }
 }

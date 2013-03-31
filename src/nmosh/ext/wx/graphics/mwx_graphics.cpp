@@ -60,6 +60,7 @@ kick_pathop(wxGraphicsContext* ctx,
     int query_ptr = 0;
     mwx_graphics_drawop dop;
     wxGraphicsPath pth = ctx->CreatePath();
+    dop = OP;
     for(;;dop = OP){
         int r;
         switch(dop){
@@ -195,6 +196,7 @@ kick(wxGraphicsContext* ctx,
     int obj_ptr = 0;
     int query_ptr = 0;
     mwx_graphics_drawop dop;
+    dop = OP;
     for(int i=0;i!=count_op;dop = OP){
         int r;
         int op_next_ptr;
@@ -320,6 +322,17 @@ me(){
 
 extern "C" {
 // }
+
+MOSHEXPORT
+int /* 0 for success */
+mwx_graphics_kick_onpaint(wxWindowDC* dc,
+                  unsigned char* op, int count_op,
+                  double* vtx, int count_vtx,
+                  uintptr_t* obj, int count_obj,
+                  double* query, int count_query){
+    return kick(me()->CreateContext(dc),op,count_op,
+                vtx,count_vtx,obj,count_obj,query,count_query);
+}
 
 MOSHEXPORT
 int /* 0 for success */

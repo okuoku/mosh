@@ -1,9 +1,55 @@
 #include <nmosh/plugin-if.h>
 #include <wx/wx.h>
 #include <wx/window.h>
+#include "mwx_event.h"
+
+class nmoshPaintableWindow : public wxWindow {
+    public:
+        nmoshPaintableWindow(wxWindow* parent, long style)
+            : wxWindow(parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,style)
+        {};
+
+};
 
 extern "C" {
 // }
+
+MOSHEXPORT
+void*
+mwx_window_create_paintable(void* handler, wxWindow* parent, int style){
+    nmoshEventHandler* eh;
+    nmoshPaintableWindow* pw;
+    pw = new nmoshPaintableWindow(parent, style);
+    eh = new nmoshEventHandler(handler);
+    eh->AttachWithPaintable(pw);
+    pw->SetBackgroundStyle(wxBG_STYLE_CUSTOM); // Legacy.
+    return pw;
+}
+
+MOSHEXPORT
+void
+mwx_window_refresh(wxWindow* wnd, int x, int y, int w, int h){
+    wxRect r(x,y,w,h);
+    wnd->Refresh(true, &r);
+}
+
+MOSHEXPORT
+void
+mwx_window_setfocus(wxWindow* wnd){
+    wnd->SetFocus();
+}
+
+MOSHEXPORT
+int
+mwx_window_getid(wxWindow* wnd){
+    return wnd->GetId();
+}
+
+MOSHEXPORT
+void
+mwx_window_getsize(wxWindow* wnd, int* out_width, int* out_height){
+    wnd->GetSize(out_width, out_height);
+}
 
 MOSHEXPORT
 void

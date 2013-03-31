@@ -7,6 +7,8 @@
   ;(c-import: "mwx_font.cpp")
   #(ret name args)
   (int mwx_graphics_kick (void* void* int void* int void* int void* int))
+  (int mwx_graphics_kick_onpaint 
+       (void* void* int void* int void* int void* int))
   (void mwx_bitmap_destroy (void*))
   (void* mwx_bitmap_create (int int int))
   (void* mwx_bitmap_from_image (void*))

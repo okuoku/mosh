@@ -7,6 +7,11 @@
   (c-import: "mwx_window.cpp"
              "mwx_sizer.cpp")
   #(ret name args)
+  (void* mwx_window_create_paintable (void* void* int))
+  (void mwx_window_setfocus (void*))
+  (void mwx_window_getid (void*))
+  (void mwx_window_getsize (void* void* void*))
+  (void mwx_window_refresh (void* int int int int))
   (void mwx_window_setsizer (void* void*))
   (void mwx_window_show (void* int))
   (void mwx_window_destroy (void*))

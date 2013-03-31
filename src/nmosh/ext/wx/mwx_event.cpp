@@ -1,4 +1,5 @@
 #include <nmosh/plugin-if.h>
+#include <wx/dcbuffer.h>
 #include "mwx_event.h"
 
 BEGIN_EVENT_TABLE(nmoshEventHandler, wxEvtHandler)
@@ -8,11 +9,26 @@ BEGIN_EVENT_TABLE(nmoshEventHandler, wxEvtHandler)
     EVT_CLOSE(nmoshEventHandler::invokeCloseEvent)
     EVT_MENU(wxID_ANY, nmoshEventHandler::invokeCommandEvent)
     EVT_WINDOW_DESTROY(nmoshEventHandler::invokeDestroyEvent)
+    EVT_PAINT(nmoshEventHandler::invokePaintEvent)
 END_EVENT_TABLE()
 
 // Constructor
 nmoshEventHandler::nmoshEventHandler(void *handler){
     m_handler = handler;
+}
+
+void
+nmoshEventHandler::invokePaintEvent(wxPaintEvent &e){
+    void* obj;
+    if(m_paint_target){ // Speed hack.
+        wxAutoBufferedPaintDC dc(m_paint_target);
+        NMOSH_EXPORT_BEGIN(param)
+            NMOSH_EXPORT_CSTRING(NULL, "paint")
+            NMOSH_EXPORT_POINTER(NULL, &dc)
+        NMOSH_EXPORT_END()
+        obj = NMOSH_EXPORT(param);
+        NMOSH_APPLY(m_handler, obj);
+    }
 }
 
 void
@@ -61,6 +77,14 @@ nmoshEventHandler::invokeDestroyEvent(wxWindowDestroyEvent &e){
 
 void
 nmoshEventHandler::Attach(wxWindow* wnd){
+    m_paint_target = NULL;
+    this->SetNextHandler(wnd->GetEventHandler());
+    wnd->SetEventHandler(this);
+}
+
+void
+nmoshEventHandler::AttachWithPaintable(wxWindow* wnd){
+    m_paint_target = wnd;
     this->SetNextHandler(wnd->GetEventHandler());
     wnd->SetEventHandler(this);
 }

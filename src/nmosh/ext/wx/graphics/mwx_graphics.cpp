@@ -5,12 +5,14 @@
 #if wxUSE_GRAPHICS_CONTEXT
 
 typedef enum {
+	MWX_TERMINATE = 0,
     // Context OPs
     MWX_SET_FONT, // [O R G B A]
     MWX_SET_PEN, // [O]
     MWX_SET_BRUSH, // [O]
-    //  Context transforms
+    // Bitmap
     MWX_BITMAP, // [O X Y W H]
+    //  Context transforms
     MWX_ROTATE, // [Radian]
     MWX_SCALE, // [X Y]
     MWX_IDENTITY,
@@ -64,6 +66,9 @@ kick_pathop(wxGraphicsContext* ctx,
     for(;;dop = OP){
         int r;
         switch(dop){
+			case MWX_PATH_BEGIN:
+				// NOP
+				break;
             case MWX_SET_PEN: // [O]
                 ctx->SetPen(*OBJPEN);
                 break;
@@ -203,6 +208,8 @@ kick(wxGraphicsContext* ctx,
         int vtx_next_ptr;
         int obj_next_ptr;
         switch(dop){
+			case MWX_TERMINATE:
+				goto finish;
             case MWX_PATH_BEGIN:
                 // Kick path ops
                 op_next_ptr = op_ptr;
@@ -299,6 +306,7 @@ kick(wxGraphicsContext* ctx,
                 return -1;
         }
     }
+finish:
     // Sanity check
     if(count_query && (query_ptr > count_query)){
         return -2;

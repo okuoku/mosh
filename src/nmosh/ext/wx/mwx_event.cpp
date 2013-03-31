@@ -10,6 +10,7 @@ BEGIN_EVENT_TABLE(nmoshEventHandler, wxEvtHandler)
     EVT_MENU(wxID_ANY, nmoshEventHandler::invokeCommandEvent)
     EVT_WINDOW_DESTROY(nmoshEventHandler::invokeDestroyEvent)
     EVT_PAINT(nmoshEventHandler::invokePaintEvent)
+    EVT_MOUSE_EVENTS(nmoshEventHandler::invokeMouseEvent)
 END_EVENT_TABLE()
 
 // Constructor
@@ -21,9 +22,11 @@ void
 nmoshEventHandler::invokePaintEvent(wxPaintEvent &e){
     void* obj;
     if(m_paint_target){ // Speed hack.
-        wxAutoBufferedPaintDC dc(m_paint_target);
+        //wxAutoBufferedPaintDC dc(m_paint_target);
+        wxPaintDC dc(m_paint_target);
         NMOSH_EXPORT_BEGIN(param)
             NMOSH_EXPORT_CSTRING(NULL, "paint")
+            NMOSH_EXPORT_POINTER(NULL, &e)
             NMOSH_EXPORT_POINTER(NULL, &dc)
         NMOSH_EXPORT_END()
         obj = NMOSH_EXPORT(param);
@@ -36,6 +39,17 @@ nmoshEventHandler::invokeCommandEvent(wxCommandEvent &e){
     void* obj;
     NMOSH_EXPORT_BEGIN(param)
         NMOSH_EXPORT_INT(NULL, e.GetId())
+        NMOSH_EXPORT_POINTER(NULL, &e)
+    NMOSH_EXPORT_END()
+    obj = NMOSH_EXPORT(param);
+    NMOSH_APPLY(m_handler, obj);
+}
+
+void
+nmoshEventHandler::invokeMouseEvent(wxMouseEvent &e){
+    void* obj;
+    NMOSH_EXPORT_BEGIN(param)
+        NMOSH_EXPORT_CSTRING(NULL, "mouse")
         NMOSH_EXPORT_POINTER(NULL, &e)
     NMOSH_EXPORT_END()
     obj = NMOSH_EXPORT(param);
@@ -104,8 +118,53 @@ mwx_event_type(wxEvent* e){
     return e->GetEventType();
 }
 
+MOSHEXPORT
+int
+mwx_event_mouse_wheel_axis(wxMouseEvent* e){
+    return e->GetWheelAxis();
+}
+
+MOSHEXPORT
+int
+mwx_event_mouse_wheel_delta(wxMouseEvent* e){
+    return e->GetWheelDelta();
+}
+
+MOSHEXPORT
+int
+mwx_event_mouse_x(wxMouseEvent* e){
+    return e->GetX();
+}
+
+MOSHEXPORT
+int
+mwx_event_mouse_y(wxMouseEvent* e){
+    return e->GetY();
+}
+
 NMOSH_CONSTANT_BEGIN(mwx_event)
     NMOSH_EXPORT_SYMBOL_INT(wxEVT_COMMAND_TEXT_ENTER)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_ENTER_WINDOW)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_LEAVE_WINDOW)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_AUX2_UP)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_AUX2_DOWN)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_AUX2_DCLICK)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_AUX1_UP)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_AUX1_DOWN)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_AUX1_DCLICK)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_RIGHT_UP)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_RIGHT_DOWN)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_RIGHT_DCLICK)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_MIDDLE_UP)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_MIDDLE_DOWN)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_MIDDLE_DCLICK)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_LEFT_UP)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_LEFT_DOWN)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_LEFT_DCLICK)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_MOTION)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_MOUSEWHEEL)
+    NMOSH_EXPORT_SYMBOL_INT(wxMOUSE_WHEEL_VERTICAL)
+    NMOSH_EXPORT_SYMBOL_INT(wxMOUSE_WHEEL_HORIZONTAL)
 NMOSH_CONSTANT_END()
 
 // {

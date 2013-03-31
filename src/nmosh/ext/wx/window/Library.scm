@@ -5,7 +5,8 @@
   (libname: mosh_wx window)
   (parent-libname: mosh_wx)
   (c-import: "mwx_window.cpp"
-             "mwx_sizer.cpp")
+             "mwx_sizer.cpp"
+             "../mwx_event.cpp")
   #(ret name args)
   (void* mwx_window_create_paintable (void* void* int))
   (void mwx_window_setfocus (void*))
@@ -23,4 +24,8 @@
   ;; in mwx_event
   (void mwx_event_skip (void*))
   (int mwx_event_type (void*))
+  (int mwx_event_mouse_wheel_delta (void*))
+  (int mwx_event_mouse_wheel_axis (void*))
+  (int mwx_event_mouse_x (void*))
+  (int mwx_event_mouse_y (void*))
   )

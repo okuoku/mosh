@@ -21,6 +21,7 @@
   (values (int-box-ref w) (int-box-ref h)))
 (define (window-refresh-all wnd)
   (receive (w h) (window-getsize wnd)
+    (display (list 'refresh: w h))(newline)
     (mwx_window_refresh wnd 0 0 w h)))
 
 (define-syntax drawop-elem
@@ -44,10 +45,12 @@
 (define (draw dc w h x y)
   (define (gen)
     `((path-begin)
-      (brush ,white)
+      (brush ,black)
       (rect 0 0 ,w ,h)
       (fill-winding)
-      (brush ,black)
+      (path-end)
+      (path-begin)
+      (brush ,white)
       (circle ,x ,y 20)
       (fill-winding)
       (path-end)))
@@ -99,7 +102,7 @@
       (values (op-proc) op-count (vtx-proc) vtx-count (obj-proc) obj-count)))
 
   (unless white
-    (set! white (mwx_brush_create 255 255 255 255 wxSOLID)))
+    (set! white (mwx_brush_create 255 255 255 255 wxBRUSHSTYLE_SOLID)))
   (unless black
     (set! black (mwx_brush_create 0 0 0 255 wxSOLID)))
   (receive (op op-cnt vtx vtx-cnt obj obj-cnt) (pack (gen))
@@ -124,13 +127,14 @@
            (("paint" e dc)
             (when p
               (receive (w h) (window-getsize wnd)
-                (draw dc w h (car p) (cadr p)))))
+                (draw dc w h (car p) (cadr p))
+                (display (list 'paint: w h))(newline))))
            (else
              (write (list 'wnd-handler e))(newline))))
   (define (frm-handler . e)
     (write (list 'frm-handler e))(newline)
     (match e
-           (("close" e _)
+           (("close" _)
             (exit 0))
            (else 'ok)))
   (set! frm

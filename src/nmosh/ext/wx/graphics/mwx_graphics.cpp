@@ -56,10 +56,9 @@ kick_pathop(wxGraphicsContext* ctx,
             unsigned char* op, int* inout_op_ptr,
             double* vtx, int* inout_vtx_ptr,
             uintptr_t* obj, int* inout_obj_ptr){
-    int op_ptr = 0;
-    int vtx_ptr = 0;
-    int obj_ptr = 0;
-    int query_ptr = 0;
+    int op_ptr = *inout_op_ptr;
+    int vtx_ptr = *inout_vtx_ptr;
+    int obj_ptr = *inout_obj_ptr;
     mwx_graphics_drawop dop;
     wxGraphicsPath pth = ctx->CreatePath();
     dop = OP;
@@ -338,7 +337,7 @@ mwx_graphics_kick_onpaint(wxWindowDC* dc,
                   double* vtx, int count_vtx,
                   uintptr_t* obj, int count_obj,
                   double* query, int count_query){
-    return kick(me()->CreateContext(dc),op,count_op,
+    return kick(me()->CreateContext(*dc),op,count_op,
                 vtx,count_vtx,obj,count_obj,query,count_query);
 }
 
@@ -443,6 +442,7 @@ NMOSH_CONSTANT_BEGIN(mwx_graphics)
     NMOSH_EXPORT_SYMBOL_INT(MWX_PATH_LINETO) // [X Y]
     NMOSH_EXPORT_SYMBOL_INT(MWX_PATH_RECT) // [X Y W H]
     NMOSH_EXPORT_SYMBOL_INT(MWX_PATH_RRECT) // [X Y W H R]
+    NMOSH_EXPORT_SYMBOL_INT(wxBRUSHSTYLE_SOLID)
     NMOSH_EXPORT_SYMBOL_INT(wxSOLID)
     NMOSH_EXPORT_SYMBOL_INT(wxTRANSPARENT)
     NMOSH_EXPORT_SYMBOL_INT(wxDOT)

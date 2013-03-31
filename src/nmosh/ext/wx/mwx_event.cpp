@@ -22,8 +22,7 @@ void
 nmoshEventHandler::invokePaintEvent(wxPaintEvent &e){
     void* obj;
     if(m_paint_target){ // Speed hack.
-        //wxAutoBufferedPaintDC dc(m_paint_target);
-        wxPaintDC dc(m_paint_target);
+        wxAutoBufferedPaintDC dc(m_paint_target);
         NMOSH_EXPORT_BEGIN(param)
             NMOSH_EXPORT_CSTRING(NULL, "paint")
             NMOSH_EXPORT_POINTER(NULL, &e)
@@ -31,7 +30,9 @@ nmoshEventHandler::invokePaintEvent(wxPaintEvent &e){
         NMOSH_EXPORT_END()
         obj = NMOSH_EXPORT(param);
         NMOSH_APPLY(m_handler, obj);
-    }
+    }else{
+		e.Skip();
+	}
 }
 
 void

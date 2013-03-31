@@ -74,6 +74,11 @@
         (for-each (^e (format port ", ~a" (out e))) 
                   (cdr l))
         (proc))))
+  (define (retptr ret)
+    ;; Use proper width
+    (cond
+      ((string=? "int" ret) "intptr_t")
+      (else ret)))
   (receive (arg* ret) (signature->c-arg*+ret (symbol->string sym))
     (format p "typedef ~a (*func_~a_t)(~a);\n"
             ret sym (gen-arg arg* #f))
@@ -84,7 +89,7 @@
       (format p "    func(~a);\n}\n\n"
               (gen-arg arg* #t))  
       (format p "    *(~a*)ret = func(~a);\n}\n\n"
-              ret (gen-arg arg* #t))) ))
+              (retptr ret) (gen-arg arg* #t))) ))
 
 (define (gen-libdata p csym libname sym*)
   (define (name rest)

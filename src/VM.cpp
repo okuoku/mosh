@@ -699,7 +699,7 @@ Object VM::getStackTraceObjRaw()
     const Object& PROC = Symbol::intern(UC("*proc*"));
     const Object& CPROC = Symbol::intern(UC("*cproc*"));
     const Object& REGMATCH = Symbol::intern(UC("*reg-match*"));
-    const Object& REGEXP = Symbol::intern(UC("*regexp*"));
+    const Object& REGEX = Symbol::intern(UC("*regexp*"));
     Object r = Object::Nil;
     Object cur = Object::Nil;
     Object* fp = fp_;
@@ -715,7 +715,7 @@ Object VM::getStackTraceObjRaw()
             r = L2(REGMATCH,*cl);
             i++;
         } else if (cl->isRegexp()) {
-            r = L2(REGEXP,*cl);
+            r = L2(REGEX,*cl);
             i++;
         } else {
             MOSH_ASSERT(false);

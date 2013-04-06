@@ -43,6 +43,8 @@ endif()
 
 set(MOSH_EXECUTABLE_NAME "nmosh" CACHE STRING "Interpreter executable name")
 
+option(MOSH_DEBUG_SRCDIR_AS_LIBDIR "Include source directory as default library path (Debug)" OFF)
+
 if(APPLE)
     option(MOSH_BUILD_OSX_BUNDLE "Build GUI Version (OSX)" OFF)
 endif()
@@ -137,6 +139,10 @@ elseif(MOSH_PREFIXLESS)
 else()
     set(MOSH_LIB_PATH 
         "${CMAKE_INSTALL_PREFIX}/share/${MOSH_NAME}/${MOSH_VERSION}/lib")
+endif()
+if(MOSH_DEBUG_SRCDIR_AS_LIBDIR)
+    set(MOSH_LIB_PATH
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 endif()
 
 mark_as_advanced(MOSH_WITH_NMOSH 

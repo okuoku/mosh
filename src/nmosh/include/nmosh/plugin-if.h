@@ -30,18 +30,24 @@ typedef struct {
 typedef void* (*nmosh_export_callback_t)(const nmosh_export_entry_t* obj);
 typedef uintptr_t (*nmosh_callback_call_t)(void*,void*);
 
+#define NMOSH_PLUGIN_DEFINE(name) \
+NMOSH_CONSTANT_BEGIN(name) \
+NMOSH_CONSTANT_END() \
+NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
+
 #ifdef NMOSHPLUGIN_EMBED
 /* FIXME: Use declspec(dllimport) ?? */
+#include "nmosh-c.h"
 #define nmosh_callback_call moshvm_callback_call
 #define nmosh_export_callback moshvm_export_object
-/* FIXME: Say something */
-#define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) "Unsupported" 
-#define NMOSH_PLUGIN_DEFINE(name) /* Nothing to do */
+#define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
+    void nmosh_plugin_init_##name(void* exp, void* call,void** objout){ \
+        if(NMOSH_CONSTANT_NAME(name)){ \
+            *objout = NMOSH_EXPORT(NMOSH_CONSTANT_NAME(name)); \
+        }else{ \
+            *objout = NULL; \
+        }}
 #else
-#define NMOSH_PLUGIN_DEFINE(name) \
-    NMOSH_CONSTANT_BEGIN(name) \
-    NMOSH_CONSTANT_END() \
-    NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
 
 #define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
     nmosh_callback_call_t nmosh_callback_call; \

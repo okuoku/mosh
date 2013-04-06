@@ -110,14 +110,31 @@
     (define funcs*+plgname (vector->list ev))
     (define funcs* (map (^e (cdr (reverse e))) funcs*+plgname))
     (define plgnames (map (^e (car (reverse e))) funcs*+plgname))
-    (define (with-libname+plgname+functions iter)
-      (for-each 
-        (^[l p f]
-          ;; FIXME: Do something for force-embedded?
-          ;; Do not execute this if force-embedded plugin
-          (when p
-            (iter l p f)))
-        libnames plgnames funcs*))
+    (define (with-plgname+functions iter)
+      ;; Fold plgname and functions again
+      (define ht (make-eq-hashtable))
+      (for-each
+        (^[p f]
+          (let ((c (hashtable-ref ht p '())))
+            (hashtable-set! ht p (append f c))))
+        plgnames funcs*)
+      (receive (pv fv) (hashtable-entries ht)
+        (define (append-init p l)
+          (if p
+            (let ((n (string->symbol
+                       (string-append "nmosh_plugin_init_"
+                                      (symbol->string p)))))
+              (cons n l))
+            l))
+        (define p* (vector->list pv))
+        (define f* (map append-init p* (vector->list fv)))
+        (for-each 
+          (^[p f]
+            ;; FIXME: Do something for force-embedded?
+            ;; Do not execute this if force-embedded plugin
+            (when p
+              (iter p f)))
+          p* f*)))
     (when (file-exists? embed-libs/hdr)
       (delete-file embed-libs/hdr))
     (when (file-exists? embed-libs)
@@ -126,8 +143,8 @@
       embed-libs/hdr
       (^p
         ;; Emit header
-        (with-libname+plgname+functions
-          (^[l pn f*]
+        (with-plgname+functions
+          (^[pn f*]
             (format p "#ifdef NMOSHPLUGIN_~a_EMBED\n"
                     pn)
             (for-each (^e (format p "extern \"C\" void* ~a(void);\n" e)) f*)
@@ -137,8 +154,8 @@
       embed-libs
       (^p
         ;; Emit launch
-        (with-libname+plgname+functions
-          (^[l pn bogus]
+        (with-plgname+functions
+          (^[pn bogus]
             (format p "#ifdef NMOSHPLUGIN_~a_EMBED\n"
                     pn)
             (format p "    tmp = Object::cons(LIBDATA_~a,tmp);\n" pn)

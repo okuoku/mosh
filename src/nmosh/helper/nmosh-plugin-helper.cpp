@@ -364,4 +364,6 @@ moshvm_profiler_result(VM* vm){
 #endif
 }
 
+NMOSH_PLUGIN_DEFINE(moshvm_helper);
+
 } /* Extern C */

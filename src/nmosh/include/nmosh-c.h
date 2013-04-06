@@ -16,6 +16,7 @@ void moshvm_set_value_string(void* pvm, const char* symname, const char* value);
 void moshvm_set_value_pointer(void* pvm, const char* symname, void* value);
 void moshvm_set_value_boolean(void* pvm, const char* symname, int b);
 void* moshvm_export_object(const nmosh_export_entry_t en[]);
+uintptr_t moshvm_callback_call(void* p, void* l);
 
 // {
 #ifdef __cplusplus

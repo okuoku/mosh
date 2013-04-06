@@ -21,7 +21,7 @@
   (values (int-box-ref w) (int-box-ref h)))
 (define (window-refresh-all wnd)
   (receive (w h) (window-getsize wnd)
-    (display (list 'refresh: w h))(newline)
+    ;(display (list 'refresh: w h))(newline)
     (mwx_window_refresh wnd 0 0 w h)))
 
 (define-syntax drawop-elem
@@ -113,6 +113,8 @@
   (list (mwx_event_mouse_x e)
         (mwx_event_mouse_y e)))
 (define NULL (integer->pointer 0))
+(define w)
+(define f)
 (define (main)
   (define frm)
   (define wnd)
@@ -122,30 +124,35 @@
     (match e
            (("mouse" e)
             (set! p (pos e))
-            (write (list 'mouse p))(newline)
+            ;(write (list 'mouse p))(newline)
             (window-refresh-all wnd))
            (("paint" e dc)
             (when p
               (receive (w h) (window-getsize wnd)
                 (draw dc w h (car p) (cadr p))
-                (display (list 'paint: w h))(newline))))
+                ;(display (list 'paint: w h))(newline)
+                )))
            (else
              (write (list 'wnd-handler e))(newline))))
   (define (frm-handler . e)
-    (write (list 'frm-handler e))(newline)
+    ;(write (list 'frm-handler e))(newline)
     (match e
            (("close" _)
             (exit 0))
            (else 'ok)))
+  (define handler (make-callback frm-handler))
+  (define w-handler (make-callback wnd-handler))
+  (set! w w-handler)
+  (set! f handler)
   (set! frm
-    (mwx_frame_create (make-callback frm-handler)
+    (mwx_frame_create handler
                       "Nmosh draw test"
                       0 0 0 0
                       "Nmosh draw test2"
                       NULL
                       wxDEFAULT_FRAME_STYLE))
   (set! wnd
-    (mwx_window_create_paintable (make-callback wnd-handler) frm 0))
+    (mwx_window_create_paintable w-handler frm 0))
   (set! siz (mwx_boxsizer_create wxVERTICAL))
   (mwx_sizer_add_window siz wnd 1 wxEXPAND)
   (mwx_window_setsizer frm siz)

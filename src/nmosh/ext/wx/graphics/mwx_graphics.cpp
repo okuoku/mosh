@@ -337,8 +337,12 @@ mwx_graphics_kick_onpaint(wxWindowDC* dc,
                   double* vtx, int count_vtx,
                   uintptr_t* obj, int count_obj,
                   double* query, int count_query){
-    return kick(me()->CreateContext(*dc),op,count_op,
-                vtx,count_vtx,obj,count_obj,query,count_query);
+    int r;
+    wxGraphicsContext* ctx;
+    ctx = me()->CreateContext(*dc);
+    r = kick(ctx,op,count_op,vtx,count_vtx,obj,count_obj,query,count_query);
+    delete ctx;
+    return r;
 }
 
 MOSHEXPORT
@@ -348,8 +352,12 @@ mwx_graphics_kick(wxWindow* wnd,
                   double* vtx, int count_vtx,
                   uintptr_t* obj, int count_obj,
                   double* query, int count_query){
-    return kick(me()->CreateContext(wnd),op,count_op,
-                vtx,count_vtx,obj,count_obj,query,count_query);
+    int r;
+    wxGraphicsContext* ctx;
+    ctx = me()->CreateContext(wnd);
+    r = kick(ctx,op,count_op,vtx,count_vtx,obj,count_obj,query,count_query);
+    delete ctx;
+    return r;
 }
 
 MOSHEXPORT

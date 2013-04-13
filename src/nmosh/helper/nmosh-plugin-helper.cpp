@@ -308,7 +308,7 @@ moshvm_execute_callback(xcallback_t fn, void* param){
 /* Closure */
 void
 moshvm_closure_sourceinfo_set(uintptr_t obj, uintptr_t info){
-    Object& me = Object::makeRaw(obj);
+    Object me = Object::makeRaw(obj);
     if(me.isClosure()){
         me.toClosure()->sourceInfo = Object::makeRaw(info);
     }

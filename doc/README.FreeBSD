@@ -4,6 +4,8 @@ mosh on FreeBSD
 1. Install
 ----------
 
+FreeBSD ports collection has 'lang/mosh' as official (n)mosh distribution.
+
 - Install following ports:
   devel/gmake
   devel/oniguruma5

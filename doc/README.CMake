@@ -1,6 +1,6 @@
 
-Building MOSH/NMOSH with CMake
-==============================
+Building NMOSH with CMake
+=========================
 
 LIMITATIONS
 -----------
@@ -21,7 +21,7 @@ Other platforms are may or may not work.
 We recommend Ninja generator if available.
 
 - Microsoft Visual Studio 2010 SP1
-- Microsoft Visual Studio 2012 RC
+- Microsoft Visual Studio 2012
 - Apple Xcode 4.x and Mac OS X 10.7 (amd64/i386 only)
 - GCC/G++ 4.3 or later
 - TDM-GCC 4.6 or later
@@ -46,7 +46,6 @@ setup GMP:
 ----------------
 
 TBD.
-
 
 3. Build
 --------

@@ -197,6 +197,7 @@
   [(scheme repl) (r7b-impl repl)]
   [(scheme time) (r7b-impl time)]
   [(scheme write) (r7b-impl write)]
+  [(scheme r5rs) (r7b-impl r5rs)]
 )
 
 (rnrs

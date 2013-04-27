@@ -1803,9 +1803,9 @@
  ("1L2" 100.0 "100.0" "100.")
  ;; NaN, Inf
  ("+nan.0" +nan.0 "+nan.0" "+NaN.0")
- ("+NAN.0" +nan.0 "+nan.0" "+NaN.0")
+; ("+NAN.0" +nan.0 "+nan.0" "+NaN.0")
  ("+inf.0" +inf.0 "+inf.0" "+Inf.0")
- ("+InF.0" +inf.0 "+inf.0" "+Inf.0")
+; ("+InF.0" +inf.0 "+inf.0" "+Inf.0")
  ("-inf.0" -inf.0 "-inf.0" "-Inf.0")
  ("-iNF.0" -inf.0 "-inf.0" "-Inf.0")
  ("#i+nan.0" +nan.0 "+nan.0" "+NaN.0")
@@ -1821,7 +1821,7 @@
  ("#i3/2" (/ 3.0 2.0) "1.5")
  ;; Exact complex
  ("1+2i" (make-rectangular 1 2))
- ("1+2I" (make-rectangular 1 2) "1+2i")
+; ("1+2I" (make-rectangular 1 2) "1+2i")
  ("1-2i" (make-rectangular 1 -2))
  ("-1+2i" (make-rectangular -1 2))
  ("-1-2i" (make-rectangular -1 -2))

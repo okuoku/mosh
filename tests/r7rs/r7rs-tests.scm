@@ -1,100 +1,14 @@
-;; R7RS test suite from chibi-scheme. Modified for Mosh R6RS.
-;;
-;; XXX: #vu8 => #vu8
-
-;; Copyright (c) 2009-2012 Alex Shinn
-;; All rights reserved.
-;; 
-;; Redistribution and use in source and binary forms, with or without
-;; modification, are permitted provided that the following conditions
-;; are met:
-;; 1. Redistributions of source code must retain the above copyright
-;;    notice, this list of conditions and the following disclaimer.
-;; 2. Redistributions in binary form must reproduce the above copyright
-;;    notice, this list of conditions and the following disclaimer in the
-;;    documentation and/or other materials provided with the distribution.
-;; 3. The name of the author may not be used to endorse or promote products
-;;    derived from this software without specific prior written permission.
-;; 
-;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-;; IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-;; OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-;; IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-;; INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-;; NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-;; DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-;; THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-;; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 ;; -*- coding: utf-8 -*-
 
 (import (scheme base) (scheme char) (scheme lazy)
         (scheme inexact) (scheme complex) (scheme time)
         (scheme file) (scheme read) (scheme write)
         (scheme eval) (scheme process-context) (scheme case-lambda)
-        ;(scheme r5rs)
-        (srfi :48)
-        (nmosh debugger condition-printer)
-        (except (rnrs r5rs) force delay))
+        (scheme r5rs)
+        (chibi test))
 
-(define total 0)
-(define success 0)
-
-(define (test-begin . x) 'ok)
-(define (test-end . x) 'ok)
-(define (true-test-end . x) 
-  (display "Test finished.\n")
-  (format #t "~a/~a Fail\n" (- total success) total))
-#|
-(define-syntax test
-  (syntax-rules ()
-    ((_ expected expr)
-     (test-equal expected expr))))
-|#
-
-(define-syntax test
-  (syntax-rules ()
-    ((test expected expr)
-     (guard
-       (c 
-         (#t
-          (display "something wrong")(newline)
-          (write 'expr)(newline)
-          'WRONGWRONG))
-
-       (set! total (+ total 1))
-       (let ((res (with-condition-printer/raise expr)))
-         (cond
-           ((not (equal? expr expected))
-            (display "FAIL: ")
-            (write 'expr)
-            (display ": expected ")
-            (write expected)
-            (display " but got ")
-            (write res)
-            (newline))
-           (else
-             (set! success (+ 1 success)))))))))
-
-(define-syntax test-values
-  (syntax-rules ()
-    ((_ expected expr)
-     (begin
-       (define a #f)
-       (define b #f)
-       (call-with-values (lambda () expected)
-                         (lambda p (set! a p)))
-       (call-with-values (lambda () expr)
-                         (lambda p (set! b p)))
-       (test
-         (begin 'expected a)
-         (begin 'expr b))))))
-
-;; R7RS test suite.  Covers all procedures and syntax in the small
-;; language except `delete-file'.  Currently assumes full-unicode
-;; support, the full numeric tower and all standard libraries
-;; provided.
+;; R7RS test suite.  Currently assumes full-unicode support, the full
+;; numeric tower and all standard libraries provided.
 ;;
 ;; Uses the (chibi test) library which is written in portable R7RS.
 ;; This provides test-begin, test-end and test, which could be defined
@@ -252,6 +166,26 @@
 
 (let*-values (((root rem) (exact-integer-sqrt 32)))
   (test 35 (* root rem)))
+
+(test '(1073741824 0)
+    (let*-values (((root rem) (exact-integer-sqrt (expt 2 60))))
+      (list root rem)))
+
+(test '(1518500249 3000631951)
+    (let*-values (((root rem) (exact-integer-sqrt (expt 2 61))))
+      (list root rem)))
+
+(test '(815238614083298888 443242361398135744)
+    (let*-values (((root rem) (exact-integer-sqrt (expt 2 119))))
+      (list root rem)))
+
+(test '(1152921504606846976 0)
+    (let*-values (((root rem) (exact-integer-sqrt (expt 2 120))))
+      (list root rem)))
+
+(test '(1630477228166597776 1772969445592542976)
+    (let*-values (((root rem) (exact-integer-sqrt (expt 2 121))))
+      (list root rem)))
 
 (let*-values (((root rem) (exact-integer-sqrt (expt 2 140))))
   (test 0 rem)
@@ -449,9 +383,30 @@
   (define bar (lambda (a b) (+ (* a b) a)))
   (foo (+ x 3))))
 
-(test 3 (let ()
-  (define-values (x y) (values 1 2))
-  (+ x y)))
+(test 'ok
+    (let ()
+      (define-values () (values))
+      'ok))
+(test 1
+    (let ()
+      (define-values (x) (values 1))
+      x))
+(test 3
+    (let ()
+      (define-values x (values 1 2))
+      (apply + x)))
+(test 3
+    (let ()
+      (define-values (x y) (values 1 2))
+      (+ x y)))
+(test 6
+    (let ()
+      (define-values (x y z) (values 1 2 3))
+      (+ x y z)))
+(test 10
+    (let ()
+      (define-values (x y . z) (values 1 2 3 4))
+      (+ x y (car z) (cadr z))))
 
 (test '(2 1) (let ((x 1) (y 2))
   (define-syntax swap!
@@ -1273,8 +1228,8 @@
 
 (test-begin "6.9 Bytevectors")
 
-(test #t (bytevector? #vu8()))
-(test #t (bytevector? #vu8(0 1 2)))
+(test #t (bytevector? #u8()))
+(test #t (bytevector? #u8(0 1 2)))
 (test #f (bytevector? #()))
 (test #f (bytevector? #(0 1 2)))
 (test #f (bytevector? '()))
@@ -1290,60 +1245,60 @@
 (test 1 (bytevector-u8-ref (bytevector 0 1 2) 1))
 (test 2 (bytevector-u8-ref (bytevector 0 1 2) 2))
 
-(test #vu8(0 255 2)
+(test #u8(0 255 2)
     (let ((bv (bytevector 0 1 2))) (bytevector-u8-set! bv 1 255) bv))
 
-(test #vu8() (bytevector-copy #vu8()))
-(test #vu8(0 1 2) (bytevector-copy #vu8(0 1 2)))
-(test #vu8(1 2) (bytevector-copy #vu8(0 1 2) 1))
-(test #vu8(1) (bytevector-copy #vu8(0 1 2) 1 2))
+(test #u8() (bytevector-copy #u8()))
+(test #u8(0 1 2) (bytevector-copy #u8(0 1 2)))
+(test #u8(1 2) (bytevector-copy #u8(0 1 2) 1))
+(test #u8(1) (bytevector-copy #u8(0 1 2) 1 2))
 
-(test #vu8(1 6 7 4 5)
+(test #u8(1 6 7 4 5)
     (let ((bv (bytevector 1 2 3 4 5)))
-      (bytevector-copy! bv 1 #vu8(6 7 8 9 10) 0 2)
+      (bytevector-copy! bv 1 #u8(6 7 8 9 10) 0 2)
       bv))
-(test #vu8(6 7 8 9 10)
+(test #u8(6 7 8 9 10)
     (let ((bv (bytevector 1 2 3 4 5)))
-      (bytevector-copy! bv 0 #vu8(6 7 8 9 10))
+      (bytevector-copy! bv 0 #u8(6 7 8 9 10))
       bv))
-(test #vu8(8 9 10 4 5)
+(test #u8(8 9 10 4 5)
     (let ((bv (bytevector 1 2 3 4 5)))
-      (bytevector-copy! bv 0 #vu8(6 7 8 9 10) 2)
+      (bytevector-copy! bv 0 #u8(6 7 8 9 10) 2)
       bv))
-(test #vu8(1 2 6 7 8)
+(test #u8(1 2 6 7 8)
     (let ((bv (bytevector 1 2 3 4 5)))
-      (bytevector-copy! bv 2 #vu8(6 7 8 9 10) 0 3)
+      (bytevector-copy! bv 2 #u8(6 7 8 9 10) 0 3)
       bv))
-(test #vu8(1 2 8 4 5)
+(test #u8(1 2 8 4 5)
     (let ((bv (bytevector 1 2 3 4 5)))
-      (bytevector-copy! bv 2 #vu8(6 7 8 9 10) 2 3)
+      (bytevector-copy! bv 2 #u8(6 7 8 9 10) 2 3)
       bv))
 
 ;; same source and dest
-(test #vu8(1 1 2 4 5)
+(test #u8(1 1 2 4 5)
     (let ((bv (bytevector 1 2 3 4 5)))
       (bytevector-copy! bv 1 bv 0 2)
       bv))
-(test #vu8(1 2 3 1 2)
+(test #u8(1 2 3 1 2)
     (let ((bv (bytevector 1 2 3 4 5)))
       (bytevector-copy! bv 3 bv 0 2)
       bv))
 
-(test #vu8() (bytevector-append #vu8()))
-(test #vu8() (bytevector-append #vu8() #vu8()))
-(test #vu8(0 1 2) (bytevector-append #vu8() #vu8(0 1 2)))
-(test #vu8(0 1 2) (bytevector-append #vu8(0 1 2) #vu8()))
-(test #vu8(0 1 2 3 4) (bytevector-append #vu8(0 1 2) #vu8(3 4)))
-(test #vu8(0 1 2 3 4 5) (bytevector-append #vu8(0 1 2) #vu8(3 4) #vu8(5)))
+(test #u8() (bytevector-append #u8()))
+(test #u8() (bytevector-append #u8() #u8()))
+(test #u8(0 1 2) (bytevector-append #u8() #u8(0 1 2)))
+(test #u8(0 1 2) (bytevector-append #u8(0 1 2) #u8()))
+(test #u8(0 1 2 3 4) (bytevector-append #u8(0 1 2) #u8(3 4)))
+(test #u8(0 1 2 3 4 5) (bytevector-append #u8(0 1 2) #u8(3 4) #u8(5)))
 
-(test "ABC" (utf8->string #vu8(#x41 #x42 #x43)))
-(test "ABC" (utf8->string #vu8(0 #x41 #x42 #x43) 1))
-(test "ABC" (utf8->string #vu8(0 #x41  #x42 #x43 0) 1 4))
-(test "λ" (utf8->string #vu8(0 #xCE #xBB 0) 1 3))
-(test #vu8(#x41 #x42 #x43) (string->utf8 "ABC"))
-(test #vu8(#x42 #x43) (string->utf8 "ABC" 1))
-(test #vu8(#x42) (string->utf8 "ABC" 1 2))
-(test #vu8(#xCE #xBB) (string->utf8 "λ"))
+(test "ABC" (utf8->string #u8(#x41 #x42 #x43)))
+(test "ABC" (utf8->string #u8(0 #x41 #x42 #x43) 1))
+(test "ABC" (utf8->string #u8(0 #x41  #x42 #x43 0) 1 4))
+(test "λ" (utf8->string #u8(0 #xCE #xBB 0) 1 3))
+(test #u8(#x41 #x42 #x43) (string->utf8 "ABC"))
+(test #u8(#x42 #x43) (string->utf8 "ABC" 1))
+(test #u8(#x42) (string->utf8 "ABC" 1 2))
+(test #u8(#xCE #xBB) (string->utf8 "λ"))
 
 (test-end)
 
@@ -1522,7 +1477,7 @@
 
 (test-begin "6.12 Environments and evaluation")
 
-(test 21 (eval '(* 7 3) (scheme-report-environment 5)))
+;; (test 21 (eval '(* 7 3) (scheme-report-environment 5)))
 
 (test 20
     (let ((f (eval '(lambda (f x) (f x x)) (null-environment 5))))
@@ -1546,7 +1501,7 @@
 
 (test #t (textual-port? (open-input-string "abc")))
 (test #t (textual-port? (open-output-string)))
-(test #t (binary-port? (open-input-bytevector #vu8(0 1 2))))
+(test #t (binary-port? (open-input-bytevector #u8(0 1 2))))
 (test #t (binary-port? (open-output-bytevector)))
 
 (test #t (input-port-open? (open-input-string "abc")))
@@ -1624,58 +1579,58 @@
     (flush-output-port out)
     (get-output-string out)))
 
-(test #t (eof-object? (read-u8 (open-input-bytevector #vu8()))))
-(test 1 (read-u8 (open-input-bytevector #vu8(1 2 3))))
+(test #t (eof-object? (read-u8 (open-input-bytevector #u8()))))
+(test 1 (read-u8 (open-input-bytevector #u8(1 2 3))))
 
-(test #t (eof-object? (read-bytevector 3 (open-input-bytevector #vu8()))))
-(test #t (u8-ready? (open-input-bytevector #vu8(1))))
-(test #vu8(1) (read-bytevector 3 (open-input-bytevector #vu8(1))))
-(test #vu8(1 2) (read-bytevector 3 (open-input-bytevector #vu8(1 2))))
-(test #vu8(1 2 3) (read-bytevector 3 (open-input-bytevector #vu8(1 2 3))))
-(test #vu8(1 2 3) (read-bytevector 3 (open-input-bytevector #vu8(1 2 3 4))))
+(test #t (eof-object? (read-bytevector 3 (open-input-bytevector #u8()))))
+(test #t (u8-ready? (open-input-bytevector #u8(1))))
+(test #u8(1) (read-bytevector 3 (open-input-bytevector #u8(1))))
+(test #u8(1 2) (read-bytevector 3 (open-input-bytevector #u8(1 2))))
+(test #u8(1 2 3) (read-bytevector 3 (open-input-bytevector #u8(1 2 3))))
+(test #u8(1 2 3) (read-bytevector 3 (open-input-bytevector #u8(1 2 3 4))))
 
 (test #t
     (let ((bv (bytevector 1 2 3 4 5)))
-      (eof-object? (read-bytevector! bv (open-input-bytevector #vu8())))))
+      (eof-object? (read-bytevector! bv (open-input-bytevector #u8())))))
 
-(test #vu8(6 7 8 9 10)
+(test #u8(6 7 8 9 10)
   (let ((bv (bytevector 1 2 3 4 5)))
-    (read-bytevector! bv (open-input-bytevector #vu8(6 7 8 9 10)) 0 5)
+    (read-bytevector! bv (open-input-bytevector #u8(6 7 8 9 10)) 0 5)
     bv))
 
-(test #vu8(6 7 8 4 5)
+(test #u8(6 7 8 4 5)
   (let ((bv (bytevector 1 2 3 4 5)))
-    (read-bytevector! bv (open-input-bytevector #vu8(6 7 8 9 10)) 0 3)
+    (read-bytevector! bv (open-input-bytevector #u8(6 7 8 9 10)) 0 3)
     bv))
 
-(test #vu8(1 2 3 6 5)
+(test #u8(1 2 3 6 5)
   (let ((bv (bytevector 1 2 3 4 5)))
-    (read-bytevector! bv (open-input-bytevector #vu8(6 7 8 9 10)) 3 4)
+    (read-bytevector! bv (open-input-bytevector #u8(6 7 8 9 10)) 3 4)
     bv))
 
-(test #vu8(1 2 3)
+(test #u8(1 2 3)
   (let ((out (open-output-bytevector)))
     (write-u8 1 out)
     (write-u8 2 out)
     (write-u8 3 out)
     (get-output-bytevector out)))
 
-(test #vu8(1 2 3 4 5)
+(test #u8(1 2 3 4 5)
   (let ((out (open-output-bytevector)))
-    (write-bytevector #vu8(1 2 3 4 5) out)
+    (write-bytevector #u8(1 2 3 4 5) out)
     (get-output-bytevector out)))
 
-(test #vu8(3 4 5)
+(test #u8(3 4 5)
   (let ((out (open-output-bytevector)))
-    (write-bytevector #vu8(1 2 3 4 5) out 2)
+    (write-bytevector #u8(1 2 3 4 5) out 2)
     (get-output-bytevector out)))
 
-(test #vu8(3 4)
+(test #u8(3 4)
   (let ((out (open-output-bytevector)))
-    (write-bytevector #vu8(1 2 3 4 5) out 2 4)
+    (write-bytevector #u8(1 2 3 4 5) out 2 4)
     (get-output-bytevector out)))
 
-(test #vu8()
+(test #u8()
   (let ((out (open-output-bytevector)))
     (flush-output-port out)
     (get-output-bytevector out)))
@@ -1728,8 +1683,8 @@
 (test #() (read (open-input-string "#()")))
 (test #(a b) (read (open-input-string "#(a b)")))
 
-(test #vu8() (read (open-input-string "#vu8()")))
-(test #vu8(0 1) (read (open-input-string "#vu8(0 1)")))
+(test #u8() (read (open-input-string "#u8()")))
+(test #u8(0 1) (read (open-input-string "#u8(0 1)")))
 
 (test 'abc (read (open-input-string "abc")))
 (test 'abc (read (open-input-string "abc def")))
@@ -1848,9 +1803,9 @@
  ("1L2" 100.0 "100.0" "100.")
  ;; NaN, Inf
  ("+nan.0" +nan.0 "+nan.0" "+NaN.0")
- ;("+NAN.0" +nan.0 "+nan.0" "+NaN.0") ;; FIXME: mosh
+ ("+NAN.0" +nan.0 "+nan.0" "+NaN.0")
  ("+inf.0" +inf.0 "+inf.0" "+Inf.0")
- ;("+InF.0" +inf.0 "+inf.0" "+Inf.0") ;; FIXME: mosh
+ ("+InF.0" +inf.0 "+inf.0" "+Inf.0")
  ("-inf.0" -inf.0 "-inf.0" "-Inf.0")
  ("-iNF.0" -inf.0 "-inf.0" "-Inf.0")
  ("#i+nan.0" +nan.0 "+nan.0" "+NaN.0")
@@ -1866,7 +1821,7 @@
  ("#i3/2" (/ 3.0 2.0) "1.5")
  ;; Exact complex
  ("1+2i" (make-rectangular 1 2))
- ;("1+2I" (make-rectangular 1 2) "1+2i") ;; FIXME: mosh
+ ("1+2I" (make-rectangular 1 2) "1+2i")
  ("1-2i" (make-rectangular 1 -2))
  ("-1+2i" (make-rectangular -1 2))
  ("-1-2i" (make-rectangular -1 -2))
@@ -1975,8 +1930,10 @@
 (test #t (file-exists? "."))
 (test #f (file-exists? " no such file "))
 
-(test-end)
+(test #t (file-error?
+          (guard (exn (else exn))
+            (delete-file " no such file "))))
 
 (test-end)
 
-(true-test-end)
+(test-end)

@@ -1,0 +1,15 @@
+#include <nmosh/plugin-if.h>
+
+NMOSH_PLUGIN_DECLARE(mcurl_easy);
+NMOSH_PLUGIN_DECLARE(mcurl_form);
+NMOSH_PLUGIN_DECLARE(mcurl_multi);
+NMOSH_PLUGIN_DECLARE(mcurl_global);
+
+NMOSH_CONSTANT_BEGIN(mosh_libcurl)
+    NMOSH_EXPORT_SYMBOL_PLUGIN(mcurl_easy)
+    NMOSH_EXPORT_SYMBOL_PLUGIN(mcurl_multi)
+    NMOSH_EXPORT_SYMBOL_PLUGIN(mcurl_form)
+    NMOSH_EXPORT_SYMBOL_PLUGIN(mcurl_global)
+NMOSH_CONSTANT_END()
+
+NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(mosh_libcurl);

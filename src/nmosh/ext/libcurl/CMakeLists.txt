@@ -33,6 +33,11 @@ endif()
 
 if(_build)
     add_nmosh_plugin(mosh_libcurl
-        C_SOURCES mcurl_multi.c
+        C_SOURCES 
+        mcurl.c
+        mcurl_easy.c
+        mcurl_multi.c
+        mcurl_form.c
+        mcurl_global.c
         LINK_LIBRARIES libcurl)
 endif()

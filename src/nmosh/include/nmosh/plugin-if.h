@@ -45,7 +45,7 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
         if(NMOSH_CONSTANT_NAME(name)){ \
             *objout = NMOSH_EXPORT(NMOSH_CONSTANT_NAME(name)); \
         }else{ \
-            *objout = NULL; \
+            *objout = 0; \
         }}
 #else
 
@@ -59,7 +59,7 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
         if(NMOSH_CONSTANT_NAME(name)){\
             *objout = NMOSH_EXPORT(NMOSH_CONSTANT_NAME(name)); \
         }else{ \
-            *objout = NULL; \
+            *objout = 0; \
         }}
 
 extern nmosh_export_callback_t nmosh_export_callback;

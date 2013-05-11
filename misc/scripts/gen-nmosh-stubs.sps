@@ -26,10 +26,15 @@
                                "NMOSH_EXPORT_SYMBOL_POINTER("
                                ($ (* (~ #\))))
                                ")")))
+(define irx-pointer-int (irregex 
+                          `(: bos (* space) 
+                            "NMOSH_EXPORT_SYMBOL_POINTER_INT("
+                            ($ (* (~ #\))))
+                            ")")))
 
 (define (extract-c-exports filename) ;; => int pointer plugin
   (define lines* (file->string-list filename))
-  (define irx* (list irx-int irx-pointer irx-plugin))
+  (define irx* (list irx-int irx-pointer irx-pointer-int irx-plugin))
   (define (proc irx)
     (fold-left
       (^[cur line]
@@ -40,7 +45,12 @@
             cur)))
       '()
       lines*))
-  (apply values (map proc irx*)))
+  (define (fold-result int ptr ptr-int plg)
+    (values
+      int
+      (append ptr ptr-int)
+      plg))
+  (apply fold-result (map proc irx*)))
 
 (define targets '("src/nmosh"))
 (define callstub "src/call-stubs.inc.c")

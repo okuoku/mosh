@@ -135,6 +135,12 @@ extern nmosh_callback_call_t nmosh_callback_call;
       (uintptr_t)&name, \
       0 } ,
 
+#define NMOSH_EXPORT_SYMBOL_POINTER_INT(name) \
+    { NMOSH_EXPORT_TYPE_POINTER , \
+      #name, \
+      (uintptr_t)name, \
+      0 } ,
+
 #define NMOSH_EXPORT_SYMBOL_PLUGIN(name) \
     { NMOSH_EXPORT_TYPE_STRUCT , \
       #name, \

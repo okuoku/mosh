@@ -30,6 +30,22 @@ typedef struct {
 typedef void* (*nmosh_export_callback_t)(const nmosh_export_entry_t* obj);
 typedef uintptr_t (*nmosh_callback_call_t)(void*,void*);
 
+#define NMOSH_PLUGIN_ABI_VERSION 1
+
+struct nmosh_plugin_callback_table_s {
+    uintptr_t vm_private;
+    uintptr_t abi_version;
+    nmosh_export_callback_t cb_export;
+    nmosh_callback_call_t   cb_call;
+};
+
+typedef struct nmosh_plugin_callback_table_s nmosh_plugin_callback_table_t;
+
+typedef void (*nmosh_plugin_callback_fill_t)(nmosh_plugin_callback_table_t**
+                                             tbl, 
+                                             const char* plugin_name,
+                                             uintptr_t abi);
+
 #define NMOSH_PLUGIN_DEFINE(name) \
 NMOSH_CONSTANT_BEGIN(name) \
 NMOSH_CONSTANT_END() \
@@ -41,7 +57,9 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
 #define nmosh_callback_call moshvm_callback_call
 #define nmosh_export_callback moshvm_export_object
 #define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
-    void nmosh_plugin_init_##name(void* exp, void* call,void** objout){ \
+    void nmosh_plugin_init_##name(nmosh_plugin_callback_fill_t bogus, \
+                                  void** objout){ \
+        (void)bogus; \
         if(NMOSH_CONSTANT_NAME(name)){ \
             *objout = NMOSH_EXPORT(NMOSH_CONSTANT_NAME(name)); \
         }else{ \
@@ -49,21 +67,21 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
         }}
 #else
 
+#define nmosh_callback_call nmosh_plugin_callback_table->cb_call
+#define nmosh_export_callback nmosh_plugin_callback_table->cb_export
 #define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
-    nmosh_callback_call_t nmosh_callback_call; \
-    nmosh_export_callback_t nmosh_export_callback; \
-    MOSHEXPORT void nmosh_plugin_init_##name(void* exp, void* call, \
+    nmosh_plugin_callback_table_t* nmosh_plugin_callback_table; \
+    MOSHEXPORT void nmosh_plugin_init_##name(nmosh_plugin_callback_fill_t \
+                                             fill, \
                                              void** objout){ \
-        nmosh_export_callback = (nmosh_export_callback_t)exp; \
-        nmosh_callback_call = (nmosh_callback_call_t)call; \
+        fill(&nmosh_plugin_callback_table, #name, NMOSH_PLUGIN_ABI_VERSION); \
         if(NMOSH_CONSTANT_NAME(name)){\
             *objout = NMOSH_EXPORT(NMOSH_CONSTANT_NAME(name)); \
         }else{ \
             *objout = 0; \
         }}
 
-extern nmosh_export_callback_t nmosh_export_callback;
-extern nmosh_callback_call_t nmosh_callback_call;
+extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
 #endif
 
 #define NMOSH_CONSTANT_NAME(name) nmosh_constant_##name

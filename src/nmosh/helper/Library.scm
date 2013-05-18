@@ -20,6 +20,8 @@
   (void* moshvm_stacktrace_raw (void*))
   (void* moshvm_getmainvm)
   ;; Pseudo: Will not be called from any Scheme code
+  ;; Plugin support
+  (void moshvm_plugin_callback_fill (void* void* void*))
   (void* moshvm_export_object (void*))
   (void* moshvm_callback_call (void* void*))
   (void* moshvm_execute_callback (void* void*))

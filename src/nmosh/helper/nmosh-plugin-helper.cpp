@@ -364,6 +364,25 @@ moshvm_profiler_result(VM* vm){
 #endif
 }
 
+struct nmosh_plugin_callback_table_s callbacks = {
+    NMOSH_PLUGIN_ABI_VERSION,
+    moshvm_export_object,
+    moshvm_callback_call,
+};
+
+void
+moshvm_plugin_callback_fill(nmosh_plugin_callback_table_t** tbl, 
+                            const char* name,
+                            uintptr_t abi){
+    /* NB: Do not do anything meaningful. May not be called if
+     *     the plugin was embedded */
+    if(abi == NMOSH_PLUGIN_ABI_VERSION){
+        *tbl = &callbacks;
+    }else{
+        *tbl = NULL;
+    }
+}
+
 NMOSH_PLUGIN_DEFINE(moshvm_helper);
 
 } /* Extern C */

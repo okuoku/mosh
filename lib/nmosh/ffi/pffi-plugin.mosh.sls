@@ -22,14 +22,10 @@
 
 (define plugin-initialized? #f)
 
-(define moshvm_callback_call
+(define moshvm_plugin_callback_fill
   (pffi-lookup
     (make-pffi-ref 'moshvm_helper)
-    'moshvm_callback_call))
-(define moshvm_export_object
-  (pffi-lookup
-    (make-pffi-ref 'moshvm_helper)
-    'moshvm_export_object))
+    'moshvm_plugin_callback_fill))
 
 (define pffi-feature-set              
   (let ((f (get-global-flag '%get-pffi-feature-set)))
@@ -78,7 +74,7 @@
         (let ((init (pffi-c-function/init library initname))
               (objbox (make-ptr-box)))
           ;(display (list 'Initializing: initname))(newline)
-          (init moshvm_export_object moshvm_callback_call objbox)
+          (init moshvm_plugin_callback_fill objbox)
           (let ((p (ptr-box-ref objbox)))
             (if (= 0 (pointer->integer p))
               '() ;; No constants

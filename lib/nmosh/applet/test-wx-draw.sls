@@ -102,7 +102,7 @@
       (values (op-proc) op-count (vtx-proc) vtx-count (obj-proc) obj-count)))
 
   (unless white
-    (set! white (mwx_brush_create 255 255 255 255 wxBRUSHSTYLE_SOLID)))
+    (set! white (mwx_brush_create 255 255 255 255 wxSOLID)))
   (unless black
     (set! black (mwx_brush_create 0 0 0 255 wxSOLID)))
   (receive (op op-cnt vtx vtx-cnt obj obj-cnt) (pack (gen))

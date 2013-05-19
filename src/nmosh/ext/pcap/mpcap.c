@@ -9,13 +9,15 @@ reterr(const char* errbuf){
     return NMOSH_EXPORT(param);
 }
 
+#define MAYBENULL(x) (x?x:"")
+
 static void*
 mpcap_findalldevs_itr(void** ctx, const void* bogus){
     const pcap_if_t* pcapif = (const pcap_if_t*)(*ctx);
     if(pcapif){
         NMOSH_EXPORT_BEGIN(param)
-            NMOSH_EXPORT_CSTRING(NULL, pcapif->name)
-            NMOSH_EXPORT_CSTRING(NULL, pcapif->description)
+            NMOSH_EXPORT_CSTRING(NULL, MAYBENULL(pcapif->name))
+            NMOSH_EXPORT_CSTRING(NULL, MAYBENULL(pcapif->description))
             // FIXME: Addr
             NMOSH_EXPORT_INT(NULL, pcapif->flags)
         NMOSH_EXPORT_END()

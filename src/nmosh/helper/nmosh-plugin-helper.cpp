@@ -262,6 +262,22 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
     return (void*)Pair::reverse(tmp).val;
 }
 
+void*
+moshvm_export_object_map_ptr(nmosh_export_object_map_ptr_cb_t cb, void* ctx,
+                             const void** in_ptrptr){
+    Object ret = Object::Nil;
+    for(int i = 0;;i++){
+        const void* p = in_ptrptr[i];
+        if(p){
+            void* r = cb(ctx, p);
+            ret = Object::cons(Object::makeRaw(r), ret);
+        }else{
+            break;
+        }
+    }
+    return (void*)Pair::reverse(ret).val;
+}
+
 // Shared storage
 void
 moshvm_sharedstorage_init(void* p){
@@ -365,9 +381,11 @@ moshvm_profiler_result(VM* vm){
 }
 
 struct nmosh_plugin_callback_table_s callbacks = {
+    NULL, /* vm_private */
     NMOSH_PLUGIN_ABI_VERSION,
     moshvm_export_object,
     moshvm_callback_call,
+    moshvm_export_object_map_ptr,
 };
 
 void

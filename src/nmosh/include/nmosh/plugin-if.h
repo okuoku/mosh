@@ -32,12 +32,6 @@ typedef uintptr_t (*nmosh_callback_call_t)(void*,void*);
 
 #define NMOSH_PLUGIN_ABI_VERSION 1
 
-struct nmosh_plugin_callback_table_s {
-    uintptr_t vm_private;
-    uintptr_t abi_version;
-    nmosh_export_callback_t cb_export;
-    nmosh_callback_call_t   cb_call;
-};
 
 typedef struct nmosh_plugin_callback_table_s nmosh_plugin_callback_table_t;
 
@@ -45,6 +39,22 @@ typedef void (*nmosh_plugin_callback_fill_t)(nmosh_plugin_callback_table_t**
                                              tbl, 
                                              const char* plugin_name,
                                              uintptr_t abi);
+
+// #define NMOSH_EXPORT_OBJECT_SKIP ((void*)(intptr_t)-1)
+
+typedef void* (*nmosh_export_object_map_ptr_cb_t)
+    (void* ctx, const void* in_ptr);
+typedef void* (*nmosh_export_object_map_ptr_t)
+    (nmosh_export_object_map_ptr_cb_t cb, void* ctx,
+     const void** in_ptrptr);
+
+struct nmosh_plugin_callback_table_s {
+    uintptr_t vm_private;
+    uintptr_t abi_version;
+    nmosh_export_callback_t       cb_export;
+    nmosh_callback_call_t         cb_call;
+    nmosh_export_object_map_ptr_t cb_export_map_ptr;
+};
 
 #define NMOSH_PLUGIN_DEFINE(name) \
 NMOSH_CONSTANT_BEGIN(name) \
@@ -56,6 +66,7 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
 #include "nmosh-c.h"
 #define nmosh_callback_call moshvm_callback_call
 #define nmosh_export_callback moshvm_export_object
+#define nmosh_export_object_map_ptr moshvm_export_object_map_ptr
 #define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
     void nmosh_plugin_init_##name(nmosh_plugin_callback_fill_t bogus, \
                                   void** objout){ \
@@ -69,6 +80,8 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
 
 #define nmosh_callback_call nmosh_plugin_callback_table->cb_call
 #define nmosh_export_callback nmosh_plugin_callback_table->cb_export
+#define nmosh_export_object_map_ptr \
+    nmosh_plugin_callback_table->cb_export_map_ptr
 #define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
     nmosh_plugin_callback_table_t* nmosh_plugin_callback_table; \
     MOSHEXPORT void nmosh_plugin_init_##name(nmosh_plugin_callback_fill_t \
@@ -80,7 +93,6 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
         }else{ \
             *objout = 0; \
         }}
-
 extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
 #endif
 
@@ -159,6 +171,12 @@ extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
       (uintptr_t)name, \
       0 } ,
 
+#define NMOSH_EXPORT_SYMBOL_OBJECT(name, ptr) \
+    { NMOSH_EXPORT_TYPE_STRUCT , \
+      name, \
+      ptr, \
+      0 } ,
+
 #define NMOSH_EXPORT_SYMBOL_PLUGIN(name) \
     { NMOSH_EXPORT_TYPE_STRUCT , \
       #name, \
@@ -170,6 +188,9 @@ extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
 
 #define NMOSH_APPLY(closure, data) \
     nmosh_callback_call(closure, data)
+
+#define NMOSH_EXPORT_MAP_POINTER(cb, ctx, ptr) \
+        nmosh_export_map_ptr(cb, ctx, ptr)
 
 typedef void (*nmosh_chime_callback_t)(void* chime_param);
 

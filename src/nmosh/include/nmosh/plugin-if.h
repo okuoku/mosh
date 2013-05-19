@@ -42,11 +42,14 @@ typedef void (*nmosh_plugin_callback_fill_t)(nmosh_plugin_callback_table_t**
 
 // #define NMOSH_EXPORT_OBJECT_SKIP ((void*)(intptr_t)-1)
 
-typedef void* (*nmosh_export_object_map_ptr_cb_t)
+typedef void* (*nmosh_export_object_map_cb_t)
     (void* ctx, const void* in_ptr);
 typedef void* (*nmosh_export_object_map_ptr_t)
-    (nmosh_export_object_map_ptr_cb_t cb, void* ctx,
+    (nmosh_export_object_map_cb_t cb, void* ctx,
      const void** in_ptrptr);
+typedef void* (*nmosh_export_object_map_t)
+    (nmosh_export_object_map_cb_t cb, void* ctx,
+     const void* in_ptr);
 
 struct nmosh_plugin_callback_table_s {
     uintptr_t vm_private;
@@ -54,6 +57,7 @@ struct nmosh_plugin_callback_table_s {
     nmosh_export_callback_t       cb_export;
     nmosh_callback_call_t         cb_call;
     nmosh_export_object_map_ptr_t cb_export_map_ptr;
+    nmosh_export_object_map_t     cb_export_map;
 };
 
 #define NMOSH_PLUGIN_DEFINE(name) \
@@ -66,6 +70,7 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
 #include "nmosh-c.h"
 #define nmosh_callback_call moshvm_callback_call
 #define nmosh_export_callback moshvm_export_object
+#define nmosh_export_object_map moshvm_export_object_map
 #define nmosh_export_object_map_ptr moshvm_export_object_map_ptr
 #define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
     void nmosh_plugin_init_##name(nmosh_plugin_callback_fill_t bogus, \
@@ -82,6 +87,9 @@ NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name)
 #define nmosh_export_callback nmosh_plugin_callback_table->cb_export
 #define nmosh_export_object_map_ptr \
     nmosh_plugin_callback_table->cb_export_map_ptr
+#define nmosh_export_object_map \
+    nmosh_plugin_callback_table->cb_export_map
+
 #define NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(name) \
     nmosh_plugin_callback_table_t* nmosh_plugin_callback_table; \
     MOSHEXPORT void nmosh_plugin_init_##name(nmosh_plugin_callback_fill_t \
@@ -109,6 +117,7 @@ extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
 #define NMOSH_EXPORT_TYPE_BUFFER  4 /* arg0 = Ptr, arg1 = length */
 #define NMOSH_EXPORT_TYPE_STRUCT  5 /* arg0 = Entry */
 #define NMOSH_EXPORT_TYPE_POINTER 6 /* arg0 = Ptr */
+#define NMOSH_EXPORT_TYPE_OBJECT  7 /* arg0 = Ptr */
 
 #define NMOSH_EXPORT_BEGIN(name) \
     const nmosh_export_entry_t name[] = {
@@ -172,7 +181,7 @@ extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
       0 } ,
 
 #define NMOSH_EXPORT_SYMBOL_OBJECT(name, ptr) \
-    { NMOSH_EXPORT_TYPE_STRUCT , \
+    { NMOSH_EXPORT_TYPE_OBJECT , \
       name, \
       ptr, \
       0 } ,
@@ -189,8 +198,11 @@ extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
 #define NMOSH_APPLY(closure, data) \
     nmosh_callback_call(closure, data)
 
+#define NMOSH_EXPORT_MAP(cb, ctx, ptr) \
+        nmosh_export_object_map(cb, ctx, ptr)
+
 #define NMOSH_EXPORT_MAP_POINTER(cb, ctx, ptr) \
-        nmosh_export_map_ptr(cb, ctx, ptr)
+        nmosh_export_object_map_ptr(cb, ctx, ptr)
 
 typedef void (*nmosh_chime_callback_t)(void* chime_param);
 

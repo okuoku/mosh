@@ -253,6 +253,10 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
                 me = objcons(en[i].name,
                              Object::makePointer((void*)en[i].arg0));
                 break;
+            case NMOSH_EXPORT_TYPE_OBJECT:
+                me = objcons(en[i].name,
+                             Object::makeRaw((void*)en[i].arg0));
+                break;
             default:
                 me = Object::Nil;
                 break;
@@ -263,13 +267,28 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
 }
 
 void*
-moshvm_export_object_map_ptr(nmosh_export_object_map_ptr_cb_t cb, void* ctx,
+moshvm_export_object_map_ptr(nmosh_export_object_map_cb_t cb, void* ctx,
                              const void** in_ptrptr){
     Object ret = Object::Nil;
     for(int i = 0;;i++){
         const void* p = in_ptrptr[i];
         if(p){
             void* r = cb(ctx, p);
+            ret = Object::cons(Object::makeRaw(r), ret);
+        }else{
+            break;
+        }
+    }
+    return (void*)Pair::reverse(ret).val;
+}
+
+void*
+moshvm_export_object_map(nmosh_export_object_map_cb_t cb, void* ctx,
+                             const void* in_ptr){
+    Object ret = Object::Nil;
+    for(;;){
+        void* r = cb(ctx, in_ptr);
+        if(r){
             ret = Object::cons(Object::makeRaw(r), ret);
         }else{
             break;
@@ -386,6 +405,7 @@ struct nmosh_plugin_callback_table_s callbacks = {
     moshvm_export_object,
     moshvm_callback_call,
     moshvm_export_object_map_ptr,
+    moshvm_export_object_map,
 };
 
 void

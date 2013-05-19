@@ -504,7 +504,9 @@ stub_alloc_root_set(VM* theVM, int argc, const Object* argv){
     argumentAsFixnum(0, length);
     const char* ptr;
     ptr = (const char*)GC_MALLOC(length);
-    return Object::makeByteVector(ptr, length);
+    // Construct ByteVector with explicit buffer
+    return Object::makeByteVector(new(GC) 
+                                  ByteVector((size_t)length, (uint8_t*)ptr));
 }
 
 #ifdef NMOSH_PRELOAD_EMBED

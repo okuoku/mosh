@@ -103,9 +103,31 @@ nmosh_object_export(const nmosh_export_entry_t* e, nmosh_object_t* out){
 }
 
 NMOSHDLL
+int
+nmosh_object_export_gc(const nmosh_export_entry_t* e, nmosh_object_t* out){
+    void** v;
+    v = (nmosh_object_t*)GC_MALLOC(sizeof(void*));
+    *v = moshvm_export_object(e);
+    *out = v;
+    return NMOSH_SUCCESS;
+}
+
+NMOSHDLL
 void
 nmosh_object_destroy(nmosh_object_t obj){
     GC_FREE(obj);
+}
+
+NMOSHDLL
+void*
+nmosh_rootset_alloc(size_t size){
+    return GC_MALLOC_UNCOLLECTABLE(size);
+}
+
+NMOSHDLL 
+void
+nmosh_rootset_free(void* p){
+    return GC_FREE(p);
 }
 
 /* CURSOR */

@@ -212,7 +212,19 @@ nmosh_cursor_bytevector(nmosh_object_cursor_t in,
     }else{
         return NMOSH_TYPE_VIOLATION;
     }
+}
 
+NMOSHDLL
+int
+nmosh_cursor_bytevector_pointer(nmosh_object_cursor_t in,
+        void** out){
+    const Object& o = curref(in);
+    if(o.isByteVector()){
+        *out = o.toByteVector()->data();
+        return NMOSH_SUCCESS;
+    }else{
+        return NMOSH_TYPE_VIOLATION;
+    }
 }
 
 NMOSHDLL
@@ -225,6 +237,19 @@ nmosh_cursor_integer_unsigned(nmosh_object_cursor_t in,
         return NMOSH_SUCCESS;
     }else if(o.isBignum()){
         *out = o.toBignum()->toU64();
+        return NMOSH_SUCCESS;
+    }else{
+        return NMOSH_TYPE_VIOLATION;
+    }
+}
+
+NMOSHDLL
+int
+nmosh_cursor_pointer(nmosh_object_cursor_t in,
+                            void** out){
+    const Object& o = curref(in);
+    if(o.isPointer()){
+        *out = (void*)o.toPointer()->pointer();
         return NMOSH_SUCCESS;
     }else{
         return NMOSH_TYPE_VIOLATION;

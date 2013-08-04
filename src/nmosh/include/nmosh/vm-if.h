@@ -91,10 +91,14 @@ NMOSHDLL int nmosh_cursor_bytevector_size(nmosh_object_cursor_t in,
 NMOSHDLL int nmosh_cursor_bytevector(nmosh_object_cursor_t in,
                                      uintptr_t offset, uintptr_t count,
                                      void* buf);
+NMOSHDLL int nmosh_cursor_bytevector_pointer(nmosh_object_cursor_t in,
+        void** out);
 NMOSHDLL int nmosh_cursor_integer_unsigned(nmosh_object_cursor_t in,
                                            uint64_t* out);
 NMOSHDLL int nmosh_cursor_integer_signed(nmosh_object_cursor_t in,
                                          int64_t* out);
+NMOSHDLL int nmosh_cursor_pointer(nmosh_object_cursor_t in, 
+        void** out);
 NMOSHDLL int nmosh_cursor_double(nmosh_object_cursor_t in,
                                  double* out);
 

@@ -73,7 +73,8 @@ typedef void* nmosh_object_cursor_t;
 NMOSHDLL void nmosh_object_destroy(nmosh_object_t obj);
 NMOSHDLL int nmosh_object_cursor(nmosh_object_t obj,
                                  nmosh_object_cursor_t* out);
-NMOSHDLL int nmosh_object_export(nmosh_export_entry_t* e, nmosh_object_t* out);
+NMOSHDLL int nmosh_object_export(const nmosh_export_entry_t* e, 
+        nmosh_object_t* out);
 NMOSHDLL nmosh_object_type nmosh_cursor_type(nmosh_object_cursor_t in);
 /*   CURSOR */
 NMOSHDLL int nmosh_cursor_car(nmosh_object_cursor_t in,

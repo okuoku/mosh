@@ -36,7 +36,7 @@
 
 using namespace scheme;
 
-void*
+static void*
 build_init_param(nmosh_vm_s* par){
     NMOSH_EXPORT_BEGIN(p)
         NMOSH_EXPORT_POINTER("library-load", &par->library_load)
@@ -45,12 +45,12 @@ build_init_param(nmosh_vm_s* par){
     return moshvm_export_object(p);
 }
 
-Object
+static Object
 objref(nmosh_object_t obj){
     return Object::makeRaw(*(void **)obj);
 }
 
-Object
+static Object
 curref(nmosh_object_cursor_t obj){
     return Object::makeRaw((void *)obj);
 }
@@ -94,7 +94,7 @@ nmosh_library_load(nmosh_vm_t vm, const char* libname){
 /* OBJECT */
 NMOSHDLL
 int
-nmosh_object_export(nmosh_export_entry_t* e, nmosh_object_t* out){
+nmosh_object_export(const nmosh_export_entry_t* e, nmosh_object_t* out){
     void** v;
     v = (nmosh_object_t*)GC_MALLOC_UNCOLLECTABLE(sizeof(void*));
     *v = moshvm_export_object(e);

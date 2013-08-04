@@ -13,6 +13,12 @@ BEGIN_EVENT_TABLE(nmoshEventHandler, wxEvtHandler)
     EVT_MOUSE_EVENTS(nmoshEventHandler::invokeMouseEvent)
 END_EVENT_TABLE()
 
+// Common event header
+#define EVENT_HEADER(e) \
+    NMOSH_EXPORT_INT(NULL, e.GetEventType()) \
+    NMOSH_EXPORT_POINTER(NULL, &e)
+
+
 // Constructor
 nmoshEventHandler::nmoshEventHandler(void *handler){
     m_handler = handler;
@@ -24,23 +30,22 @@ nmoshEventHandler::invokePaintEvent(wxPaintEvent &e){
     if(m_paint_target){ // Speed hack.
         wxAutoBufferedPaintDC dc(m_paint_target);
         NMOSH_EXPORT_BEGIN(param)
-            NMOSH_EXPORT_CSTRING(NULL, "paint")
-            NMOSH_EXPORT_POINTER(NULL, &e)
+            EVENT_HEADER(e)
             NMOSH_EXPORT_POINTER(NULL, &dc)
         NMOSH_EXPORT_END()
         obj = NMOSH_EXPORT(param);
         NMOSH_APPLY(m_handler, obj);
     }else{
 		e.Skip();
-	}
+    }
 }
 
 void
 nmoshEventHandler::invokeCommandEvent(wxCommandEvent &e){
     void* obj;
     NMOSH_EXPORT_BEGIN(param)
+        EVENT_HEADER(e)
         NMOSH_EXPORT_INT(NULL, e.GetId())
-        NMOSH_EXPORT_POINTER(NULL, &e)
     NMOSH_EXPORT_END()
     obj = NMOSH_EXPORT(param);
     NMOSH_APPLY(m_handler, obj);
@@ -50,8 +55,7 @@ void
 nmoshEventHandler::invokeMouseEvent(wxMouseEvent &e){
     void* obj;
     NMOSH_EXPORT_BEGIN(param)
-        NMOSH_EXPORT_CSTRING(NULL, "mouse")
-        NMOSH_EXPORT_POINTER(NULL, &e)
+        EVENT_HEADER(e)
     NMOSH_EXPORT_END()
     obj = NMOSH_EXPORT(param);
     NMOSH_APPLY(m_handler, obj);
@@ -62,22 +66,17 @@ nmoshEventHandler::invokeCloseEvent(wxCloseEvent &e){
     void* obj;
     uintptr_t r;
     NMOSH_EXPORT_BEGIN(param)
-        NMOSH_EXPORT_CSTRING(NULL, "close")
-        NMOSH_EXPORT_INT(NULL, e.CanVeto()?1:0)
-        //NMOSH_EXPORT_INT(NULL, e.GetLoggingOff()?1:0)
+        EVENT_HEADER(e)
     NMOSH_EXPORT_END()
     obj = NMOSH_EXPORT(param);
-    r = NMOSH_APPLY(m_handler, obj); // 0 = Veto Quit event
-    if(r == 0){
-        e.Veto();
-    }
+    NMOSH_APPLY(m_handler, obj);
 }
 
 void
 nmoshEventHandler::invokeIconizeEvent(wxIconizeEvent &e){
     void* obj;
     NMOSH_EXPORT_BEGIN(param)
-        NMOSH_EXPORT_CSTRING(NULL, "iconize")
+        EVENT_HEADER(e)
         NMOSH_EXPORT_INT(NULL, e.IsIconized()?1:0)
     NMOSH_EXPORT_END()
     obj = NMOSH_EXPORT(param);

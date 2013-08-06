@@ -781,6 +781,12 @@ configure_file(cmake/config-cmake.h.in
 source_group(gc FILES ${gc_srcs})
 source_group(oniguruma FILES ${onig_srcs})
 
+macro(dll_str_param var def desc)
+    if(NOT ${var})
+        set(${var} ${def} CACHE STRING ${desc})
+    endif()
+endmacro()
+
 # Generate executable
 if(WIN32)
     if(WIN32)
@@ -789,6 +795,37 @@ if(WIN32)
             ${PROJECT_BINARY_DIR}/misc/logo)
     endif()
     if(MOSH_BUILD_MODULE)
+        if(WIN32) # Win32 DLL
+            dll_str_param(NMOSH_DLL_COMPANYNAME
+                "Mosh project"
+                "CompanyName for DLL")
+            dll_str_param(NMOSH_DLL_FILEVERSION
+                "0,0,0,0"
+                "FILEVERSION for DLL")
+            dll_str_param(NMOSH_DLL_PRODUCTVERSION
+                "0,0,0,0"
+                "PRODUCTVERSION for DLL")
+            dll_str_param(NMOSH_DLL_FILEDESCRIPTION
+                "nmosh dll"
+                "FileDescription for DLL")
+            dll_str_param(NMOSH_DLL_INTERNALNAME
+                "nmosh VM"
+                "InternalName for DLL")
+            dll_str_param(NMOSH_DLL_LEGALCOPYRIGHT
+                ""
+                "LegalCopyRight for DLL")
+            dll_str_param(NMOSH_DLL_PRODUCTNAME
+                "nmosh Scheme system"
+                "ProductName for DLL")
+            dll_str_param(NMOSH_DLL_PRODUCTVERSION
+                "0.0.0.0"
+                "ProductVersion for DLL")
+            configure_file(src/nmosh/win32/nmoshdll.rc.in
+                ${CMAKE_CURRENT_BINARY_DIR}/nmoshdll.rc
+                @ONLY
+                NEWLINE_STYLE WIN32)
+            list(APPEND mosh_core_srcs ${CMAKE_CURRENT_BINARY_DIR}/nmoshdll.rc)
+        endif()
         add_library(${MOSH_EXECUTABLE_NAME} SHARED
             ${onig_srcs} 
             ${gc_srcs} 

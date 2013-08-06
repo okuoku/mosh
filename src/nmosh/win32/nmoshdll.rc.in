@@ -1,0 +1,28 @@
+#include <winver.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION @NMOSH_DLL_FILEVERSION@
+PRODUCTVERSION @NMOSH_DLL_PRODUCTVERSION@
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS 0L
+BEGIN
+    BLOCK "VarFileInfo"
+    BEGIN
+        /* Use EN in JA */
+        VALUE "Translation", 0x0409, 1252
+    END
+
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4" /* US EN */
+        BEGIN
+            VALUE "CompanyName", "@NMOSH_DLL_COMPANYNAME@"
+            VALUE "FileDescription", "@NMOSH_DLL_FILEDESCRIPTION@"
+            VALUE "FileVersion", "@NMOSH_DLL_FILEVERSION@\0"
+            VALUE "InternalName", "@NMOSH_DLL_INTERNALNAME@\0"
+            VALUE "LegalCopyright", "@NMOSH_DLL_LEGALCOPYRIGHT@\0"
+            VALUE "ProductName", "@NMOSH_DLL_PRODUCTNAME@\0"
+            VALUE "ProductVersion", "@NMOSH_DLL_PRODUCTVERSION@\0"
+        END
+    END
+END

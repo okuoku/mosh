@@ -69,7 +69,7 @@ free-vars-decl.scm: free-vars.scm
 	mosh --disable-acc $(SCRIPTS_DIR)/gen-free-vars-decl.scm $< > $@
 
 GIT_BRANCH_NAME=`git branch | grep '*' | cut -d ' ' -f 2`
-SVN_REPOS="http://mosh-scheme.googlecode.com/svn/branches"
+SVN_REPOS="https://mosh-scheme.googlecode.com/svn/branches"
 
 bootstrap:
 	svn checkout $(SVN_REPOS)/psyntax.$(GIT_BRANCH_NAME)/ runtimes/psyntax-mosh/psyntax.$(GIT_BRANCH_NAME) || \

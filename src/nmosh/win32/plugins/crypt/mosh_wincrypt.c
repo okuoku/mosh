@@ -57,33 +57,7 @@ madvapi_credwrite_generic(void* targetname, void* comment,
     return 0;
 }
 
-/* --------------------------------------------------------------
- * Registry
- * -------------------------------------------------------------- */
-
-MOSHEXPORT
-int /* Win32 error */
-madvapi_reg_open(void* hkey, void* regname, int access, void* out_hkey){
-    LONG r;
-    r = RegOpenKeyExW(hkey, regname, 0, access, out_hkey);
-    return r;
-}
-
-MOSHEXPORT
-int /* Win32 error */
-madvapi_reg_close(void* hkey){
-    return RegCloseKey(hkey);
-}
-
-MOSHEXPORT
-int
-madvapi_reg_query(void* hkey, void* regname, void* buf, int* inout_size, 
-                  int* out_type){
-    return RegQueryValueExW(hkey, regname, 0, out_type, buf, inout_size);
-}
-
-
-NMOSH_CONSTANT_BEGIN(mosh_advapi)
+NMOSH_CONSTANT_BEGIN(mosh_wincrypt)
     /* Cred */
     NMOSH_EXPORT_SYMBOL_INT(CRED_MAX_STRING_LENGTH)
     NMOSH_EXPORT_SYMBOL_INT(CRED_MAX_CREDENTIAL_BLOB_SIZE)
@@ -92,4 +66,4 @@ NMOSH_CONSTANT_BEGIN(mosh_advapi)
     NMOSH_EXPORT_SYMBOL_INT(CRED_PERSIST_ENTERPRISE)
 NMOSH_CONSTANT_END()
 
-NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(mosh_advapi);
+NMOSH_PLUGIN_DEFINE_WITH_CONSTANTS(mosh_wincrypt);

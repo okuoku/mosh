@@ -30,12 +30,8 @@ endif()
 option(MOSH_DEBUG_VERSION "build Debug version of mosh interpreter" OFF)
 option(MOSH_GC_PARALLEL_MARK "Boehm GC: Turn on parallel-marking" OFF)
 if(NOT ANDROID)
-    if(WIN32) # FIXME: Allow MOSH_BUILD_MODULE on other platform
-        option(MOSH_BUILD_MODULE 
-            "build module(.so/.dll) version of mosh interpreter" OFF)
-    else()
-        set(MOSH_BUILD_MODULE OFF)
-    endif()
+    option(MOSH_BUILD_MODULE 
+        "build module(.so/.dylib/.dll) version of mosh interpreter" OFF)
 else()
     # Nmosh will be built as a module on ANDROID
     set(MOSH_BUILD_MODULE ON)
@@ -788,67 +784,38 @@ macro(dll_str_param var def desc)
     endif()
 endmacro()
 
-# Generate executable
-if(WIN32)
-    if(WIN32)
-        # FIXME: We should use configure_file
-        file(COPY ${PROJECT_SOURCE_DIR}/misc/logo/mosh.ico DESTINATION 
-            ${PROJECT_BINARY_DIR}/misc/logo)
-    endif()
-    if(MOSH_BUILD_MODULE)
-        if(WIN32) # Win32 DLL
-            dll_str_param(NMOSH_DLL_COMPANYNAME
-                "Mosh project"
-                "CompanyName for DLL")
-            dll_str_param(NMOSH_DLL_FILEVERSION
-                "0,0,0,0"
-                "FILEVERSION for DLL")
-            dll_str_param(NMOSH_DLL_PRODUCTVERSION
-                "0,0,0,0"
-                "PRODUCTVERSION for DLL")
-            dll_str_param(NMOSH_DLL_FILEDESCRIPTION
-                "nmosh dll"
-                "FileDescription for DLL")
-            dll_str_param(NMOSH_DLL_INTERNALNAME
-                "nmosh VM"
-                "InternalName for DLL")
-            dll_str_param(NMOSH_DLL_LEGALCOPYRIGHT
-                ""
-                "LegalCopyRight for DLL")
-            dll_str_param(NMOSH_DLL_PRODUCTNAME
-                "nmosh Scheme system"
-                "ProductName for DLL")
-            dll_str_param(NMOSH_DLL_PRODUCTVERSION
-                "0.0.0.0"
-                "ProductVersion for DLL")
-            configure_file(src/nmosh/win32/nmoshdll.rc.in
-                ${CMAKE_CURRENT_BINARY_DIR}/nmoshdll.rc
-                @ONLY
-                NEWLINE_STYLE WIN32)
-            list(APPEND mosh_core_srcs ${CMAKE_CURRENT_BINARY_DIR}/nmoshdll.rc)
-        endif()
-        add_library(${MOSH_EXECUTABLE_NAME} SHARED
-            ${onig_srcs} 
-            ${gc_srcs} 
-            ${mosh_core_srcs} 
-            ${mosh_core_hdrs}
-            ${mosh_runtime_src}
-            src/nmosh/export/nmosh-vmif.cpp
-            src/main.cpp)
-        set_property(SOURCE
-            src/nmosh/export/nmosh-vmif.cpp
-            APPEND
-            PROPERTY COMPILE_DEFINITIONS
-            NMOSH_BUILD_MODULE)
-        add_executable(checkmosh
-            tests/nmosh/checkmosh.c)
-        set_property(SOURCE
-            tests/nmosh/checkmosh.c
-            APPEND
-            PROPERTY COMPILE_DEFINITIONS
-            "CHECKMOSH_LOADPATH=\"${CMAKE_CURRENT_LIST_DIR}\"")
-        target_link_libraries(checkmosh
-            ${MOSH_EXECUTABLE_NAME})
+if(MOSH_BUILD_MODULE)
+    if(WIN32) # Win32 DLL
+        dll_str_param(NMOSH_DLL_COMPANYNAME
+            "Mosh project"
+            "CompanyName for DLL")
+        dll_str_param(NMOSH_DLL_FILEVERSION
+            "0,0,0,0"
+            "FILEVERSION for DLL")
+        dll_str_param(NMOSH_DLL_PRODUCTVERSION
+            "0,0,0,0"
+            "PRODUCTVERSION for DLL")
+        dll_str_param(NMOSH_DLL_FILEDESCRIPTION
+            "nmosh dll"
+            "FileDescription for DLL")
+        dll_str_param(NMOSH_DLL_INTERNALNAME
+            "nmosh VM"
+            "InternalName for DLL")
+        dll_str_param(NMOSH_DLL_LEGALCOPYRIGHT
+            ""
+            "LegalCopyRight for DLL")
+        dll_str_param(NMOSH_DLL_PRODUCTNAME
+            "nmosh Scheme system"
+            "ProductName for DLL")
+        dll_str_param(NMOSH_DLL_PRODUCTVERSION
+            "0.0.0.0"
+            "ProductVersion for DLL")
+        configure_file(src/nmosh/win32/nmoshdll.rc.in
+            ${CMAKE_CURRENT_BINARY_DIR}/nmoshdll.rc
+            @ONLY
+            NEWLINE_STYLE WIN32)
+        list(APPEND mosh_core_srcs ${CMAKE_CURRENT_BINARY_DIR}/nmoshdll.rc)
+        # Win32 console version of nmosh
         add_executable(${MOSH_EXECUTABLE_NAME}-run
             src/win/mosh.rc
             src/nmosh/win32/cuimain.cpp)
@@ -858,17 +825,57 @@ if(WIN32)
             OUTPUT_NAME ${MOSH_EXECUTABLE_NAME})
         target_link_libraries(${MOSH_EXECUTABLE_NAME}-run
             ${MOSH_EXECUTABLE_NAME})
-    else()
-        add_executable(${MOSH_EXECUTABLE_NAME}
-            ${onig_srcs} 
-            ${gc_srcs} 
-            ${mosh_core_srcs} 
-            ${mosh_core_hdrs}
-            ${mosh_runtime_src}
-            src/win/mosh.rc
-            src/nmosh/win32/cuimain.cpp
-            src/main.cpp)
     endif()
+    # nmosh shared library
+    add_library(${MOSH_EXECUTABLE_NAME} SHARED
+        ${onig_srcs} 
+        ${gc_srcs} 
+        ${mosh_core_srcs} 
+        ${mosh_core_hdrs}
+        ${mosh_runtime_src}
+        src/nmosh/export/nmosh-vmif.cpp
+        src/main.cpp)
+    set_property(SOURCE
+        src/nmosh/export/nmosh-vmif.cpp
+        APPEND
+        PROPERTY COMPILE_DEFINITIONS
+        NMOSH_BUILD_MODULE)
+    # Testing target(for IDE)
+    # FIXME: Allow to suppress it
+    add_executable(checkmosh
+        tests/nmosh/checkmosh.c)
+    set_property(SOURCE
+        tests/nmosh/checkmosh.c
+        APPEND
+        PROPERTY COMPILE_DEFINITIONS
+        "CHECKMOSH_LOADPATH=\"${CMAKE_CURRENT_LIST_DIR}\"")
+    target_link_libraries(checkmosh
+            ${MOSH_EXECUTABLE_NAME})
+    # Add checkmosh applets
+    foreach(e ${NMOSH_CHECKMOSH_APPLETS})
+        add_executable(checkmosh-${e}
+            tests/nmosh/checkmosh.c)
+        set_property(TARGET
+            checkmosh-${e}
+            APPEND
+            PROPERTY COMPILE_DEFINITIONS
+            "CHECKMOSH_APPLET=\"${e}\"")
+        target_link_libraries(checkmosh-${e}
+            ${MOSH_EXECUTABLE_NAME})
+    endforeach()
+elseif(WIN32) # Win32 Executable
+    # FIXME: We should use configure_file
+    file(COPY ${PROJECT_SOURCE_DIR}/misc/logo/mosh.ico DESTINATION 
+        ${PROJECT_BINARY_DIR}/misc/logo)
+    add_executable(${MOSH_EXECUTABLE_NAME}
+        ${onig_srcs} 
+        ${gc_srcs} 
+        ${mosh_core_srcs} 
+        ${mosh_core_hdrs}
+        ${mosh_runtime_src}
+        src/win/mosh.rc
+        src/nmosh/win32/cuimain.cpp
+        src/main.cpp)
 elseif(MOSH_BUILD_OSX_BUNDLE)
     # Mac OSX Bundle
     add_executable(${MOSH_EXECUTABLE_NAME} MACOSX_BUNDLE
@@ -879,7 +886,7 @@ elseif(MOSH_BUILD_OSX_BUNDLE)
         ${mosh_runtime_src}
         src/main.cpp)
 elseif(NOT ANDROID)
-    # FIXME: Implement MOSH_BUILD_MODULE
+    # Executable
     add_executable(${MOSH_EXECUTABLE_NAME}
         ${onig_srcs} 
         ${gc_srcs} 
@@ -889,6 +896,7 @@ elseif(NOT ANDROID)
         src/main.cpp)
 
 else() # Android
+    # FIXME: Integrate this with BUILD_MODULE
     add_library(${MOSH_EXECUTABLE_NAME} SHARED
         ${onig_srcs} 
         ${gc_srcs} 
@@ -897,20 +905,27 @@ else() # Android
         ${mosh_runtime_src}
         src/main.cpp)
 endif()
+
 target_link_nmosh_plugin(${MOSH_EXECUTABLE_NAME})
 target_link_libraries(${MOSH_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
 
 if(MOSH_PORTABLE) # FIXME: Bogus in ANDROID
     install(TARGETS ${MOSH_EXECUTABLE_NAME} DESTINATION .)
     if(MOSH_BUILD_MODULE)
-        install(TARGETS ${MOSH_EXECUTABLE_NAME}-run
-            DESTINATION .)
+        # Console version is only for Win32
+        if(WIN32)
+            install(TARGETS ${MOSH_EXECUTABLE_NAME}-run
+                DESTINATION .)
+        endif()
     endif()
 else()
     install(TARGETS ${MOSH_EXECUTABLE_NAME} DESTINATION bin)
     if(MOSH_BUILD_MODULE)
-        install(TARGETS ${MOSH_EXECUTABLE_NAME}-run
-            DESTINATION bin)
+        if(WIN32)
+            # Console version is only for Win32
+            install(TARGETS ${MOSH_EXECUTABLE_NAME}-run
+                DESTINATION bin)
+        endif()
     endif()
 endif()
 

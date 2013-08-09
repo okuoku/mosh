@@ -1090,6 +1090,10 @@ ucs4char* scheme::getEnv(const ucs4string& key)
 #define environ _environ
 #elif defined(MONA)
 char** environ = NULL;
+#elif defined(__APPLE__) && defined(WITH_MOSH_ALTMAIN)
+// We cannot use environ on dylib build
+#include <crt_externs.h>
+#define environ (*_NSGetEnviron())
 #else
 extern  char** environ;
 #endif

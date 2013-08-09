@@ -24,7 +24,7 @@ check(nmosh_object_cursor_t obj){
 int
 main(int ac, char** av){
     int r;
-    nmosh_object_t repl;
+    nmosh_object_t run;
     nmosh_object_t param;
     nmosh_object_t outobj;
     nmosh_vmattr_t attr;
@@ -40,12 +40,18 @@ main(int ac, char** av){
     nmosh_vmattr_setloadpath(attr, CHECKMOSH_LOADPATH);
     r = nmosh_vm_create(attr, &vm);
     printf("r = %d, vm = %lx\n",r,vm);
-    nmosh_library_lookup(vm, "(nrepl simple)", "nrepl", &repl);
-    printf("repl = %lx\n",repl);
+#ifdef CHECKMOSH_APPLET
+    nmosh_library_lookup(vm, "(nmosh applet " CHECKMOSH_APPLET ")", 
+                         CHECKMOSH_APPLET, &run);
+    printf("applet = %lx\n",run);
+#else
+    nmosh_library_lookup(vm, "(nrepl simple)", "nrepl", &run);
+    printf("repl = %lx\n",run);
+#endif
     nmosh_object_export(out, &outobj);
     nmosh_vm_set(vm, "%check", outobj);
     nmosh_object_destroy(outobj);
-    nmosh_object_export(px, &param);
-    nmosh_vm_apply(vm, repl, param, NULL);
+    nmosh_object_export(px, &param); /* Nil */
+    nmosh_vm_apply(vm, run, param, NULL);
     return 0;
 }

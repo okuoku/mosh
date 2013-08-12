@@ -12,6 +12,8 @@
     (cb) 
     ;; FIXME: Force continue
     #t)
-  (mwx_startapp (make-callback starter) (object->pointer '())))
+  (define null-list (object->pointer '()))
+  (define obj-starter (make-callback starter))
+  (mwx_startapp obj-starter null-list))
 
 )

@@ -3,6 +3,7 @@
          (import (rnrs)
                  (match)
                  (yuni core)
+                 (nmosh ext wx events)
                  (nmosh ffi pffi)
                  (nmosh pffi interface)
                  (nmosh stubs mosh_wx menu)
@@ -30,22 +31,29 @@
             (let ((l (mwx_textctrl_getlastposition logarea)))
               (mwx_textctrl_showposition logarea l)))))
   (define (inputarea-handler . e)
-    ;; FIXME: Check event type!
-    (let ((obj (pointer->object (mwx_textctrl_getvalue inputarea))))
-      (and (list? obj)
-           (begin 
-             (mwx_textctrl_setvalue inputarea "")
-             (cb (utf8->string (car obj)))))))
+    (display (list 'inputarea-handler: e))(newline)
+    (event-dispatch
+      e
+      ((wxEVT_COMMAND_TEXT_ENTER evt id)
+       (let ((obj (pointer->object (mwx_textctrl_getvalue inputarea))))
+         (and (list? obj)
+              (begin 
+                ;; Clear textarea
+                (mwx_textctrl_setvalue inputarea "")
+                ;; Send string
+                (cb (utf8->string (car obj)))))))))
+
   (define (logarea-handler . e)
     ;(display (list 'logarea: e))(newline)
     #f)
   (define (frm-handler . e)
-    (match e
-           (("close" _)
-            (cb #f) #f)
-           (else #f)))
+    (display (list 'frm-handler: e))(newline)
+    (event-dispatch 
+      e
+      ((wxEVT_CLOSE_WINDOW _)
+       (cb #f) #f)))
   (set! frm
-    (mwx_frame_create (make-callback frm-handler)
+    (mwx_frame_create (make-eventhandler frm-handler)
                       title:
                       0 0 0 0
                       "NMoshListener"
@@ -53,12 +61,12 @@
                       wxDEFAULT_FRAME_STYLE))
   (set! inputarea 
     (mwx_textctrl_create frm
-                         (make-callback inputarea-handler)
+                         (make-eventhandler inputarea-handler)
                          -1
                          (bitwise-ior wxTE_PROCESS_ENTER)) )
   (set! logarea
     (mwx_textctrl_create frm
-                         (make-callback logarea-handler)
+                         (make-eventhandler logarea-handler)
                          -1
                          (bitwise-ior
                            wxTE_MULTILINE
@@ -68,6 +76,7 @@
   (mwx_sizer_add_window siz inputarea 0 wxEXPAND)
   (mwx_textctrl_sethint inputarea hint:)
   (mwx_window_setsizer frm siz)
+  (mwx_window_setfocus inputarea)
   (mwx_window_show frm 1)
   logger)
 

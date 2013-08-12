@@ -11,6 +11,8 @@ BEGIN_EVENT_TABLE(nmoshEventHandler, wxEvtHandler)
     EVT_WINDOW_DESTROY(nmoshEventHandler::invokeDestroyEvent)
     EVT_PAINT(nmoshEventHandler::invokePaintEvent)
     EVT_MOUSE_EVENTS(nmoshEventHandler::invokeMouseEvent)
+    EVT_SET_FOCUS(nmoshEventHandler::invokeSetFocusEvent)
+    EVT_KILL_FOCUS(nmoshEventHandler::invokeKillFocusEvent)
 END_EVENT_TABLE()
 
 // Common event header
@@ -90,6 +92,26 @@ nmoshEventHandler::invokeDestroyEvent(wxWindowDestroyEvent &e){
 }
 
 void
+nmoshEventHandler::invokeKillFocusEvent(wxFocusEvent &e){
+    void* obj;
+    NMOSH_EXPORT_BEGIN(param)
+        EVENT_HEADER(e)
+    NMOSH_EXPORT_END()
+    obj = NMOSH_EXPORT(param);
+    NMOSH_APPLY(m_handler, obj);
+}
+
+void
+nmoshEventHandler::invokeSetFocusEvent(wxFocusEvent &e){
+    void* obj;
+    NMOSH_EXPORT_BEGIN(param)
+        EVENT_HEADER(e)
+    NMOSH_EXPORT_END()
+    obj = NMOSH_EXPORT(param);
+    NMOSH_APPLY(m_handler, obj);
+}
+
+void
 nmoshEventHandler::Attach(wxWindow* wnd){
     m_paint_target = NULL;
     this->SetNextHandler(wnd->GetEventHandler());
@@ -147,6 +169,7 @@ mwx_event_mouse_y(wxMouseEvent* e){
 }
 
 NMOSH_CONSTANT_BEGIN(mwx_event)
+    NMOSH_EXPORT_SYMBOL_INT(wxEVT_CLOSE_WINDOW)
     NMOSH_EXPORT_SYMBOL_INT(wxEVT_COMMAND_TEXT_ENTER)
     NMOSH_EXPORT_SYMBOL_INT(wxEVT_ENTER_WINDOW)
     NMOSH_EXPORT_SYMBOL_INT(wxEVT_LEAVE_WINDOW)

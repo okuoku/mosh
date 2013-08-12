@@ -9,4 +9,5 @@
   (void* mwx_font_create (int int int int void* int))
   (void mwx_font_destroy (void*))
   (void* mwx_font_copy (void*))
+  (int mwx_font_is_fixedwith(void*))
   )

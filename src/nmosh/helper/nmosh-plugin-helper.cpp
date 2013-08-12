@@ -227,6 +227,10 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
         Object me;
         switch(en[i].type){
             case NMOSH_EXPORT_TYPE_INT:
+                me = objcons(en[i].name, 
+                             Object::makeBignum((intptr_t)en[i].arg0));
+                break;
+            case NMOSH_EXPORT_TYPE_UINT:
                 me = objcons(en[i].name, Object::makeBignum(en[i].arg0));
                 break;
             case NMOSH_EXPORT_TYPE_DOUBLE:

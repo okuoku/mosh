@@ -14,6 +14,7 @@
   (void mwx_textctrl_appendtext (void* void*))
   (void mwx_textctrl_showposition (void* int))
   (int mwx_textctrl_getlastposition (void*))
+  (void mwx_textctrl_setdefaultstyle (void* void*))
   (void* mwx_textattr_create)
   (void mwx_textattr_destroy (void*))
   (void mwx_textattr_merge (void* void*))

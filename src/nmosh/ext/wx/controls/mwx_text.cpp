@@ -64,6 +64,11 @@ mwx_textctrl_sethint(wxTextCtrl* ctl, const char* text){
 #endif
 }
 
+MOSHEXPORT
+void
+mwx_textctrl_setdefaultstyle(wxTextCtrl* ctl, const wxTextAttr* attr){
+    ctl->SetDefaultStyle(*attr);
+}
 
 NMOSH_CONSTANT_BEGIN(mwx_text)
     NMOSH_EXPORT_SYMBOL_INT(wxTE_PROCESS_ENTER)

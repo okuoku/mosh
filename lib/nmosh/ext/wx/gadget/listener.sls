@@ -13,7 +13,8 @@
                  (nmosh stubs mosh_wx controls))
 
 (define (apply-monospace w)
-  (define font (mwx_font_create 10 wxFONTFAMILY_TELETYPE 0 
+  (define font (mwx_font_create 10 wxFONTFAMILY_TELETYPE
+                                wxFONTSTYLE_NORMAL
                                 wxFONTWEIGHT_NORMAL
                                 0
                                 "" wxFONTENCODING_SYSTEM))

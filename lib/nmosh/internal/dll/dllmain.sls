@@ -18,10 +18,10 @@
   (read p))
 
 (define (library-lookup libname objname)
-  (define obj (eval (string->symbol objname)
-                    (environment (string->object libname))))
-  ;(write (list 'library-lookup: libname objname '=> obj))(newline)
-  obj)
+  (write (list 'library-lookup: libname objname))(newline)
+  (let ((obj (eval (string->symbol objname)
+                   (environment (string->object libname)))))
+    obj))
 
 (define (dllmain)
   ;; DLL Entry point.

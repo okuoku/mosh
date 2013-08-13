@@ -1,5 +1,3 @@
-project(wx-plugin)
-
 find_package(wxWidgets COMPONENTS aui adv core base)
 
 include_directories(.)

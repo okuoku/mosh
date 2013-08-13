@@ -5,7 +5,7 @@
 extern "C" {
 // }
 
-
+MOSHEXPORT
 void*
 mwx_font_create(int point, int family, int style, int weight, 
                 int underline_p, const char* name, int encoding){
@@ -14,16 +14,19 @@ mwx_font_create(int point, int family, int style, int weight,
                        wxString::FromUTF8(name), (wxFontEncoding) encoding);
 }
 
+MOSHEXPORT
 void
 mwx_font_destroy(wxFont* fnt){
     delete fnt;
 }
 
+MOSHEXPORT
 void*
 mwx_font_copy(const wxFont* fnt){
     return new wxFont(*fnt);
 }
 
+MOSHEXPORT
 int
 mwx_font_is_fixedwith(const wxFont* fnt){
     return fnt->IsFixedWidth()?1:0;

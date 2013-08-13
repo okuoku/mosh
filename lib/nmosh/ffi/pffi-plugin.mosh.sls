@@ -86,7 +86,13 @@
         '()))))
 
 (define (pickup-export name ht)
-  ;(display (list 'pickup name))(newline)
-  (hashtable-ref ht name #f))
+  ;(display (list 'pickup ht name))(newline)
+  (cond
+    ((null? ht)
+     (display (list "WARNING: Invalid library symbol = " name))
+     (newline)
+     #f)
+    (else
+      (hashtable-ref ht name #f) )))
 
 )

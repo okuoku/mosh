@@ -22,6 +22,7 @@
   (void mwx_sizer_add_window (void* void* int int))
   (void mwx_sizer_add_sizer (void* void* int int))
   ;; in mwx_event
+  (void* mwx_event_acquire_ids)
   (void mwx_event_skip (void*))
   (int mwx_event_type (void*))
   (int mwx_event_mouse_wheel_delta (void*))

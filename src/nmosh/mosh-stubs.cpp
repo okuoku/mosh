@@ -494,8 +494,11 @@ static Object
 stub_pffi_callback_create(VM* theVM, int argc, const Object* argv){
     DeclareProcedureName("%nmosh-create-callback");
     argumentAsClosure(0, clo);
-    return Object::cons(Object::makeVM(theVM), 
-                        Object::makeClosure(clo));
+    void** p;
+    p = (void **)GC_MALLOC_UNCOLLECTABLE(sizeof(void*)*2);
+    p[0] = theVM;
+    p[1] = (void*)Object::makeClosure(clo).val;
+    return Object::makePointer(p);
 }
 
 static Object
@@ -531,7 +534,7 @@ register_stubs(VM* theVM){
     theVM->setValueString(UC("%nmosh-alloc-root-set"),
                           Object::makeCProcedure(stub_alloc_root_set));
     theVM->setValueString(UC("%nmosh-pffi-call"),
-                          Object::makeCProcedure(stub_pffi_call));
+                          Object::makeReentrantCProcedure(stub_pffi_call));
     theVM->setValueString(UC("%nmosh-pffi-callback-create"),
                           Object::makeCProcedure(stub_pffi_callback_create));
     theVM->setValueString(UC("%nmosh-archive-pointer"),

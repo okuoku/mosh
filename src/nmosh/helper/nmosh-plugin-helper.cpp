@@ -201,10 +201,11 @@ moshvm_join(void* pvm){
 
 uintptr_t // Called from embedded plugins
 moshvm_callback_call(void* p, void* l){
-    const Object& obj = Object::makeRaw(p);
+    void** cbobj = (void**)p;
     const Object& lis = Object::makeRaw(l);
-    VM* theVM = obj.toPair()->car.toVM();
-    const Object& ret = theVM->apply(obj.toPair()->cdr, lis);
+    VM* theVM = (VM*)cbobj[0];
+    Object clo = Object::makeRaw((uintptr_t)cbobj[1]);
+    const Object& ret = theVM->apply(clo, lis);
     return (uintptr_t)ret.toPointer()->pointer();
 }
 

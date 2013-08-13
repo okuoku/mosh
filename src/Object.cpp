@@ -359,6 +359,15 @@ Object Object::makeCProcedure(Object (*proc)(VM* vm, int, const Object*))
     return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::CProcedure, reinterpret_cast<intptr_t>(new CProcedure(proc)))));
 }
 
+// FIXME: Reentrant variant of CProcedure
+Object Object::makeReentrantCProcedure(Object (*proc)(VM* vm, int, const Object*))
+{
+
+    const Object& o = Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::CProcedure, reinterpret_cast<intptr_t>(new CProcedure(proc)))));
+    o.toCProcedure()->returnCode[0] = Object::Nil;
+    return o;
+}
+
 Object Object::makeCodeBuilder()
 {
     return Object(reinterpret_cast<intptr_t>(new HeapObject(HeapObject::CodeBuilder,

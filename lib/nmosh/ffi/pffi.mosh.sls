@@ -30,23 +30,22 @@
                                        "Interpreter too old")))))
 
 (define (make-callback closure)
-  (object->pointer
-    (nmosh-pffi-callback-create
-      (lambda e
-        (let ((r (apply closure e)))
-          (cond 
-            ((boolean? r)
-             (integer->pointer (if r 1 0)))
-            ((integer? r)
-             (integer->pointer r))
-            ((pointer? r) r)
-            ((or (string? r)
-                 (bytevector? r))
-             ;; FIXME: We reject them for now. These are not GC safe.
-             (assertion-violation 'callback
-                                  "Invalid return value"
-                                  r))
-            (else (integer->pointer 0))))))))
+  (nmosh-pffi-callback-create
+    (lambda e
+      (let ((r (apply closure e)))
+        (cond 
+          ((boolean? r)
+           (integer->pointer (if r 1 0)))
+          ((integer? r)
+           (integer->pointer r))
+          ((pointer? r) r)
+          ((or (string? r)
+               (bytevector? r))
+           ;; FIXME: We reject them for now. These are not GC safe.
+           (assertion-violation 'callback
+                                "Invalid return value"
+                                r))
+          (else (integer->pointer 0)))))))
 
 (define pffi-call-proxy #f)
 

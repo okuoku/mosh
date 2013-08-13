@@ -264,6 +264,7 @@ public:
     static Object makeEqHashTable();
     static Object makeEqvHashTable(VM* theVM);
     static Object makeCProcedure(Object (*proc)(VM*, int, const Object*));
+    static Object makeReentrantCProcedure(Object (*proc)(VM*, int, const Object*));
     static Object makeBox(Object o);
     static Object makeByteVector(int n);
     static Object makeByteVector(int n, int8_t v);

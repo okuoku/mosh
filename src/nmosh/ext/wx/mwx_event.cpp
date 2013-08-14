@@ -136,7 +136,11 @@ mwx_event_acquire_ids(void){
     /* wx 2.9 dynamically(?) assigns event ids. get it runtime */
     NMOSH_EXPORT_BEGIN(ret)
         EXP(wxEVT_CLOSE_WINDOW)
-        EXP(wxEVT_COMMAND_TEXT_ENTER)
+#if wxCHECK_VERSION(2,9,0)
+#else
+#define wxEVT_TEXT_ENTER wxEVT_COMMAND_TEXT_ENTER
+#endif
+        EXP(wxEVT_TEXT_ENTER)
         EXP(wxEVT_ENTER_WINDOW)
         EXP(wxEVT_LEAVE_WINDOW)
         EXP(wxEVT_RIGHT_UP)

@@ -47,7 +47,7 @@
     (display (list 'inputarea-handler: e))(newline)
     (event-dispatch
       e
-      ((wxEVT_COMMAND_TEXT_ENTER evt id)
+      ((wxEVT_TEXT_ENTER evt id)
        (let ((obj (pointer->object (mwx_textctrl_getvalue inputarea))))
          (and (list? obj)
               (begin 

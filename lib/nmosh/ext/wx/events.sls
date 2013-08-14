@@ -9,13 +9,22 @@
 
 (define event-ids-ht #f)
 
+(define rename-legacy-set
+  '((wxEVT_COMMAND_TEXT_ENTER . wxEVT_TEXT_ENTER)))
+
+(define (rename-legacy sym)
+  (define p (assq sym rename-legacy-set))
+  (or (and p (cdr p))
+      sym))
+
 (define (event-ids-init)
   (set! event-ids-ht (make-eq-hashtable))
   (for-each (^e (match e ((namestr . value)
                           ;(display (list 'out: namestr value))(newline)
                           (hashtable-set! 
                             event-ids-ht
-                            (string->symbol namestr) value))))
+                            (rename-legacy
+                              (string->symbol namestr)) value))))
             (pointer->object (mwx_event_acquire_ids))))
 
 (define (event-id-lookup sym)

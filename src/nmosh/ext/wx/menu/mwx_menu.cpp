@@ -23,8 +23,10 @@ nmoshMenu::invoke(wxCommandEvent& e){
     NMOSH_EXPORT_BEGIN(param)
         NMOSH_EXPORT_INT(NULL, e.GetId())
     NMOSH_EXPORT_END()
-    obj = NMOSH_EXPORT(param);
-    NMOSH_APPLY(m_handler, obj);
+    if(m_handler){
+        obj = NMOSH_EXPORT(param);
+        NMOSH_APPLY(m_handler, obj);
+    }
 }
 
 BEGIN_EVENT_TABLE(nmoshMenu, wxMenu)

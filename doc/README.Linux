@@ -42,3 +42,32 @@ FFI(Foreign Function Interface).
 - mosh is currently only tested at i386, x86_64 and PowerPC architecture.
 - FFI features are only available at i386 or x86_64 architecture.
 
+
+3. Development setup (Mint, Ubuntu and Debian)
+----------------------------------------------
+
+- TBD.
+
+3. Development setup (Fedora or other RPM based)
+------------------------------------------------
+
+Install following packages:
+
+ - gcc
+ - gcc-c++
+ - oniguruma-devel
+ - gmp-devel
+ - subversion
+ - git
+ - automake
+ - autoconf
+ - re2c
+ - bison
+
+(Optional for nmosh development)
+
+ - cmake
+ - (cmake-gui if you want to use Qt-based config GUI)
+ - (ninja-build if you want to use Ninja as build frontend)
+ - wxGTK-devel
+

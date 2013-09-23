@@ -119,6 +119,7 @@ extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
 #define NMOSH_EXPORT_TYPE_POINTER 6 /* arg0 = Ptr */
 #define NMOSH_EXPORT_TYPE_OBJECT  7 /* arg0 = Ptr */
 #define NMOSH_EXPORT_TYPE_UINT    8 /* arg0 = Value */
+#define NMOSH_EXPORT_TYPE_FLOAT   9 /* arg0 = Ptr, arg1 = 0(float) */
 
 #define NMOSH_EXPORT_BEGIN(name) \
     const nmosh_export_entry_t name[] = {
@@ -165,6 +166,12 @@ extern nmosh_plugin_callback_table_t* nmosh_plugin_callback_table;
 
 #define NMOSH_EXPORT_FLOAT(name, val) \
     { NMOSH_EXPORT_TYPE_FLOAT, \
+      name, \
+      (uintptr_t)&val, \
+      0 } ,
+
+#define NMOSH_EXPORT_DOUBLE(name, val) \
+    { NMOSH_EXPORT_TYPE_DOUBLE, \
       name, \
       (uintptr_t)&val, \
       0 } ,

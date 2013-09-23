@@ -234,6 +234,7 @@ moshvm_export_object(const nmosh_export_entry_t en[]){
             case NMOSH_EXPORT_TYPE_UINT:
                 me = objcons(en[i].name, Object::makeBignum(en[i].arg0));
                 break;
+            case NMOSH_EXPORT_TYPE_FLOAT: /* FIXME: Handle mantissa width */
             case NMOSH_EXPORT_TYPE_DOUBLE:
                 d = *(double *)en[i].arg0;
                 me = objcons(en[i].name, Object::makeFlonum(d));

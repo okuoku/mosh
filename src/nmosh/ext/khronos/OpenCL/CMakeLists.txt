@@ -11,10 +11,10 @@ if(MOSHPLUGIN_OPENCL)
         add_definitions(-DHAVE_CL)
         add_nmosh_plugin(mosh_opencl 
             LINK_LIBRARIES ${OPENCL_LIBRARIES}
-            C_SOURCES mosh_opencl.c)
+            C_SOURCES mocl.c)
         # FIXME: Workaround for AMD APP SDK
         if(MINGW)
-            set_source_files_properties(mosh_opencl.c
+            set_source_files_properties(mocl.c
                 PROPERTIES
                 COMPILE_FLAGS "-I\"${OPENCL_INCLUDE_DIRS}\""
                 )

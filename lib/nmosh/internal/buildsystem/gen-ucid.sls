@@ -1,5 +1,5 @@
 (library (nmosh internal buildsystem gen-ucid)
-         (export gen-ucid genucid-cmd)
+         (export gen-ucid genucid-cmd genucid)
          (import (rnrs)
                  (shorten)
                  (srfi :8)
@@ -65,7 +65,6 @@
   (let ((f (find (^e (eq? (car e) sym)) core-types)))
     (match f
            ((sym export-type mosh-type c-type)
-            (pp (list 'RET sym '=> c-type))
             c-type)
            (else 
              (assertion-violation 'core-c-type
@@ -426,7 +425,7 @@
     (define (lower e sym)
       ;; Do actual lowering
       ;;Assert try-next? if we succeeded lowering
-      (display (list 'lowerd (~ e 'name) '=> sym))(newline)
+      ;(display (list 'lowerd (~ e 'name) '=> sym))(newline)
       (~ e 'lowerd-type := sym)
       (set! try-next? #t))
     (define (calc e)
@@ -534,7 +533,7 @@
                                       cexp))))))))))
   (for-each generate sexp))
 
-(define (genucid-cmd)
+(define (genucid dir*)
   (define (locate dir)
     (define lis '())
     (directory-walk
@@ -542,11 +541,15 @@
       (^p (when (string=? (path-basename p) "API.scm")
             (set! lis (cons p lis)))))
     lis)
+  
+  (for-each gen-ucid
+            (apply append (map locate dir*))))
+
+(define (genucid-cmd)
   (let ((c (command-line)))
     (match c
            ((_ in)
-            (for-each gen-ucid
-                      (locate in)))
+            (genucid (list in)))
            (else
              (assertion-violation 'command-line
                                   "Invalid argument"

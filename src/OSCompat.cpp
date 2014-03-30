@@ -1000,11 +1000,27 @@ ucs4string scheme::getMoshExecutablePath(bool& isErrorOccured)
     char path[4096];
     int ret = readlink("/proc/self/exe", path, sizeof(path));
     if (ret != -1) {
+#ifndef __CYGWIN__
         std::string chop(path, ret);
         int pos = chop.find_last_of('/');
         if (pos > 0) {
             return ucs4string::from_c_str(chop.substr(0, pos + 1).c_str());
         }
+#else
+        /* FIXME: Cygwin cannot use std::string Due to operator delete
+         *        overload */
+        if(ret == 0){
+            return UC("/");
+        }else{
+            for(ret--;;ret--){
+                if(!ret) return UC("/");
+                if(path[ret] == '/'){
+                    path[ret] = 0;
+                    return ucs4string::from_c_str(path);
+                }
+            }
+        }
+#endif
     }
     isErrorOccured = true;
     return UC("");

@@ -150,7 +150,7 @@ enum {
 typedef int32_t ucs4char; // use -1 for EOF
 typedef int fixedint;
 
-#if defined(_MSC_VER) || defined(MONA)
+#if defined(_MSC_VER) || defined(MONA) || defined(__CYGWIN64__)
 const ucs4char* UC(const char *str);
 #elif defined(__CYGWIN__) || defined (_WIN32)
 #define UC_(x) L ## x

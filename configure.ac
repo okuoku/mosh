@@ -330,6 +330,10 @@ i[[3456]]86|pentium)
                 MOSH_OPTS="$MOSH_INTEL_OPTS"
                 MOSH_LDADD_ARCH="-lpthread"
                 ;;
+                *cygwin*)
+                MOSH_OPTS="-O3"
+                MOSH_LDADD_ARCH="-ldl -lpthread"
+	        ;;
                 *)
 		MOSH_OPTS="-O3 -momit-leaf-frame-pointer -fomit-frame-pointer"
 		AC_MSG_RESULT([x86_64])

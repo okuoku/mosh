@@ -206,7 +206,7 @@ struct Pair
     Object car;
     Object cdr;
 #ifdef DISABLE_ANN_PAIR_OPTIMIZATION
-    uint64_t space;
+    uintptr_t space;
 #endif
 };
 

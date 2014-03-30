@@ -66,7 +66,11 @@ inline bool Object::isAnnotatedPair() const
     // if (isPair()) {
     //     printf("GC_size((void*)val) =%d  sizeof(AnnotatedPair) =%d %d:%d", GC_size((void*)val), sizeof(AnnotatedPair), GC_size(GC_MALLOC(sizeof(struct Pair))), GC_size(new(GC) AnnotatedPair(Object::False, Object::False, Object::False)));
     // }
+#ifdef DISABLE_ANN_PAIR_OPTIMIZATION
+    return isPair() && (toPair()->space != 0);
+#else
     return isPair() && GC_base((void*)val) && GC_size((void*)val) > sizeof(AnnotatedPair);
+#endif
 }
 
 inline Object& Object::first() const

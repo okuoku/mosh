@@ -97,8 +97,13 @@ extern "C" {
        void* GC_dlopen(const char* path, int mode);
    }
 #  include <gc.h>
+#ifdef USE_SYSTEM_BDWGC
+#  include <gc/gc_cpp.h>
+#  include <gc/gc_allocator.h>
+#else
 #  include <gc_cpp.h>
 #  include <gc_allocator.h>
+#endif
    template <class T1, class T2>
    class gc_map : public std::map<T1, T2, std::less<T1>, gc_allocator<std::pair<const T1, T2> > >, public gc { };
    template <class T1>
@@ -237,5 +242,11 @@ inline uint8_t* allocatePointerFreeU8Array(int64_t size)
     return new uint8_t[BUF_SIZE];
 #endif
 }
+
+/* Disable annotated pair optimization if mosh compiled with system bdw-gc or 
+ * GC_DEBUG */
+#if defined(USE_SYSTEM_BDWGC)||defined(GC_DEBUG)
+#define DISABLE_ANN_PAIR_OPTIMIZATION
+#endif
 
 #endif // SCHEME_SCHEME_H_

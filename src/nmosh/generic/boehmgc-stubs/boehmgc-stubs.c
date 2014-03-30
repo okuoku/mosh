@@ -95,5 +95,5 @@ gfree_size(void){
 
 void
 gset_time_limit(int time){
-    GC_set_time_limit(time);
+//    GC_set_time_limit(time);
 }

@@ -12,9 +12,9 @@ GC_CFLAGS = \
 	    -DJAVA_FINALIZATION=1 \
 	    -DGC_GCJ_SUPPORT=1 \
 	    -DUSE_I686_PREFETCH \
-		-DDONT_ADD_BYTE_AT_END \
-		-DHANDLE_FORK \
-		-DGC_NOT_DLL 
+	    -DDONT_ADD_BYTE_AT_END \
+	    -DHANDLE_FORK \
+	    -DGC_NOT_DLL 
 
 GLOBAL_CFLAGS =  $(ONIG_CFLAGS) \
 		 -g \
@@ -23,8 +23,13 @@ GLOBAL_CFLAGS =  $(ONIG_CFLAGS) \
 		 -D MONA_SCHEME -D USE_BOEHM_GC \
 		 -D MOSH_LIB_PATH="\"$(MOSH_LIB_PATH)\"" \
 		 -D_FILE_OFFSET_BITS=64 -Wall -pipe $(DEBUG_FLAGS) \
-		 $(GC_CFLAGS) \
 		 $(MOSH_OPTS) # temp -Wno-deprecated
+
+if USE_SYSTEM_BDWGC
+    GLOBAL_CFLAGS += $(BDWGC_CFLAGS) -DUSE_SYSTEM_BDWGC
+else
+    GLOBAL_CFLAGS += $(GC_CFLAGS)
+endif
 
 GLOBAL_CXXFLAGS = -Wno-deprecated
 
@@ -270,7 +275,11 @@ if GC_WIN32
 GC_SRCS += $(GC_WIN32_SRCS)
 endif
 
+if USE_SYSTEM_BDWGC
+# Do nothing
+else
 MOSH_CORE_SRCS += $(GC_SRCS)
+endif
 
 noinst_LIBRARIES = libmosh_main.a libnmosh_main.a libmosh_core_for_test.a
 
@@ -314,7 +323,13 @@ datadir = $(MOSH_LIB_PATH)
 data_DATA = src/all-tests.scm
 nobase_data_DATA = ${mosh_core_libraries} #${mosh_core_fasl_libraries}
 
-INCLUDES       = -I $(top_srcdir)/$(BOEHM_GC_DIR)/include -I $(top_srcdir)/extlibs/libatomic_ops/src -I$(top_srcdir)/src -I$(top_srcdir)/src/nmosh/include
+if USE_SYSTEM_BDWGC
+    INCLUDES = 
+else
+    INCLUDES = -I $(top_srcdir)/$(BOEHM_GC_DIR)/include
+endif
+
+INCLUDES       += -I $(top_srcdir)/extlibs/libatomic_ops/src -I$(top_srcdir)/src -I$(top_srcdir)/src/nmosh/include
 EXTRA_DIST     = \
 boot/vm.scm boot/baselib boot/compiler.scm \
 boot/free-vars.scm misc/scripts boot/baselib/match.scm doc \

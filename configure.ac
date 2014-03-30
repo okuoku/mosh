@@ -411,6 +411,21 @@ AC_ARG_WITH(mysql,
   ]
 )
 
+# bdw-gc
+have_bdwgc=no
+AC_ARG_WITH(system-bdwgc,
+            AC_HELP_STRING([--with-system-bdwgc],[Use system-installed bdw GC package]),
+            [
+             PKG_CHECK_MODULES(BDWGC, [bdw-gc >= 7.0])
+             have_bdwgc=yes
+             LIBS="$LIBS $BDWGC_LIBS"
+             AC_SUBST(BDWGC_CFLAGS)
+            ],
+            # FIXME: Handle arguments?
+            [true])
+
+AM_CONDITIONAL(USE_SYSTEM_BDWGC, test x$have_bdwgc = xyes)
+
 AC_ARG_ENABLE(developer, AS_HELP_STRING([--enable-developer],
                                         [Flags are enabled for Mosh Developer]) ,
                                         [enable_developer=true], [enable_developer=false])

@@ -36,7 +36,11 @@ namespace scheme {
 
 struct Pair
 {
+#ifdef DISABLE_ANN_PAIR_OPTIMIZATION
+    Pair(Object car, Object cdr) : car(car), cdr(cdr), space(0)  {}
+#else
     Pair(Object car, Object cdr) : car(car), cdr(cdr)  {}
+#endif
     static int length(Object obj)
     {
         if (!obj.isPair()) return 0;
@@ -201,6 +205,9 @@ struct Pair
 
     Object car;
     Object cdr;
+#ifdef DISABLE_ANN_PAIR_OPTIMIZATION
+    uint64_t space;
+#endif
 };
 
 struct AnnotatedPair
@@ -209,9 +216,6 @@ struct AnnotatedPair
 
     Object car;
     Object cdr;
-#ifdef GC_DEBUG
-#error current AnnotatedPair implementation is not compatible with GC_DEBUG
-#endif
     // FIXME: do some magic!
     //   We will use GC_size to distinguish Pair and AnnotatedPair.
     //   But GC_size is not fully reliable. So we inject 2 more

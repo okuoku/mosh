@@ -26,6 +26,8 @@ Changes:
 
     VM:
         BoehmGC was updated to upstream 7.3alpha.
+        Note: Mosh now can link against system-shared libgc. See 'Build system'
+        section below.
 
     Reader:
         Reader now accepts following R7RS syntaxes:
@@ -78,6 +80,12 @@ Changes:
         NMOSH_CLICOLOR is now also work on Win32 console.
 
     Build system:
+        configure script learned new option --with-system-bdwgc to build with
+        system-installed BoehmGC. Note: this option disables cons pair object
+        size optmization.
+
+        Build system now require pkg-config to generate.
+
         nmosh CMake builds now can be compiled with VisualStudio 2012 RC.
 
         nmosh CMake builds now built with clang compiler on MacOS 10.7 or later.

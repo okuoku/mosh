@@ -25,6 +25,7 @@ On Windows, see [Build](http://mosh.monaos.org/files/doc/text/Download-txt.html)
 - [subversion](http://subversion.tigris.org/)
 - [autoconf](http://www.gnu.org/software/autoconf/) 2.63 or higher
 - [automake](http://www.gnu.org/software/automake/)
+- pkg-config
 
 ### auto tools
 Following autotools version works.

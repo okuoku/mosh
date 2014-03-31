@@ -81,7 +81,7 @@ extern "C" {
 #include <gmp.h>
 };
 #else
-#include <gmp.h>
+#include "bignum_shim.h"
 #endif
 #ifdef _MSC_VER
 #pragma warning(pop)

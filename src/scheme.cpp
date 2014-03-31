@@ -42,9 +42,6 @@
 #include "Flonum.h"
 #include "OSCompat.h"
 #include "UtilityProcedures.h" // for VM-shared nongenerativeRtds
-extern "C" {
-#include <gmp.h>
-}
 #include <time.h>
 #if HAVE_OPENSSL
 #include <openssl/ssl.h>

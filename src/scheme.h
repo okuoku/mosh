@@ -192,8 +192,6 @@ const ucs4char* UC(const char *str);
 
 #define PRFILER_TEMP_FILE "/tmp/mosh-profiler.log"
 
-void* my_realloc(void *ptr, size_t oldSize, size_t newSize);
-void my_dont_free(void *ptr, size_t size);
 void mosh_init();
 
 

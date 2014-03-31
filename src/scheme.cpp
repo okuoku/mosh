@@ -190,6 +190,8 @@ void mosh_init()
 
 
 
+#ifdef MONA
 extern "C" void dont_free(void* p)
 {
 }
+#endif

@@ -145,17 +145,27 @@ enum {
     forbidden_comma
 };
 
-//#define UC(a) (reinterpret_cast<const ucs4char*>(L##""a))
 
 typedef int32_t ucs4char; // use -1 for EOF
 typedef int fixedint;
 
-#if defined(_MSC_VER) || defined(MONA) || defined(__CYGWIN64__)
+// Use 16Bit wchar where the compiler does not support source charcode 
+// conversion(MSVC and gcc on Cygwin64)
+#ifndef USE_16BIT_WCHAR
+#  if defined(_MSC_VER) || defined(MONA)
+#    define USE_16BIT_WCHAR
+#  endif
+#  if defined(__CYGWIN__) && defined(__x86_64__)
+#    define USE_16BIT_WCHAR
+#  endif
+#endif
+
+#ifdef USE_16BIT_WCHAR
 const ucs4char* UC(const char *str);
-#elif defined(__CYGWIN__) || defined (_WIN32)
-#define UC_(x) L ## x
+#elif defined(__CYGWIN__) // Cygwin32 uses 32bit wchar
 // gcc can use utf32 on utf16 platforms but it results '\0' as 16bit zero
 // So we have to additional '\0' at its end
+#define UC_(x) L ## x
 #define UC(x) reinterpret_cast<const ucs4char*>(UC_(x)L"\0")
 #else
 #define UC_(x) L ## x
@@ -163,14 +173,19 @@ const ucs4char* UC(const char *str);
 #endif
 
 #ifdef __GNUC__
-#define ALWAYS_INLINE  __attribute__((always_inline))
+#  define ALWAYS_INLINE  __attribute__((always_inline))
 // FIXME: disable DIRECT_THREADED_CODE for XCode and Clang builds
 // USE_XCODE: set by CMakeLists.txt
-#if !defined(USE_XCODE) && !defined(__clang__)  
-#define USE_DIRECT_THREADED_CODE
-#endif /* USE_XCODE */
-#else
-#define ALWAYS_INLINE
+#  if !defined(USE_XCODE) && !defined(__clang__) && !defined(__CYGWIN__)
+#    define USE_DIRECT_THREADED_CODE
+#  else
+/* Only Cygwin32 can direct-threaded code */
+#  if defined(__CYGWIN__) && !defined(__x86_64__)
+#    define USE_DIRECT_THREADED_CODE
+#  endif
+#endif
+#else /* __GNUC__ */
+#  define ALWAYS_INLINE
 #endif
 
 #include "ucs4string.h"

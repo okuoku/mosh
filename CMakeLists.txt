@@ -271,6 +271,49 @@ else()
     endif()
 endif()
 
+# GMP things
+# => GMP_INCLUDE_DIR, GMP_LIBRARY
+
+set(GMP_SEARCH true)
+if(APPLE)
+    # use GMP.framework
+    # set(CMAKE_FRAMEWORK_PATH .)
+elseif(WIN32)
+    if(CMAKE_HOST_WIN32)
+        if(MOSH_GMP_DIR)
+            set(GMP_SEARCH false)
+            set(MOSH_GMP_DIR CACHE PATH 
+                "path to MPIR library (mpir-2.X.X/[lib|dll]/Win32/[Debug|Release])")
+            set(GMP_INCLUDE_DIR ${MOSH_GMP_DIR})
+            if(MSVC)
+                set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.lib)
+            else()
+                set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.dll)
+            endif()
+        endif()
+    endif()
+endif()
+
+if(GMP_SEARCH)
+    find_path(GMP_INCLUDE_DIR gmp.h)
+    find_library(GMP_LIBRARY NAMES gmp)
+
+    if(GMP_INCLUDE_DIR AND GMP_LIBRARY)
+        set(GMP_FOUND TRUE)
+    endif(GMP_INCLUDE_DIR AND GMP_LIBRARY)
+
+    if(GMP_FOUND)
+        message(STATUS "using GMP from : ${GMP_INCLUDE_DIR}, ${GMP_LIBRARY}")
+    else()
+        message(SEND_ERROR "GMP not found..")
+    endif()
+else()
+    # check gmp.h in GMP_INCLUDE_DIR
+    if(NOT EXISTS ${GMP_INCLUDE_DIR}/gmp.h)
+        message(SEND_ERROR "MPIR/GMP is not installed at ${GMP_INCLUDE_DIR}! (gmp.h could not found. please build MPIR(http://www.mpir.org) first and specify mpir-2.X.X/[lib|dll]/Win32/[Debug|Release] to MOSH_GMP_DIR.")
+    endif()
+endif()
+
 # includes
 CHECK_INCLUDE_FILE(alloca.h HAVE_ALLOCA_H)
 CHECK_INCLUDE_FILE(fcntl.h HAVE_FCNTL_H)
@@ -317,57 +360,15 @@ CHECK_TYPE_SIZE(double SIZEOF_DOUBLE)
 
 if(MOSH64)
     if(WIN32)
+        # FIXME: Why don't we rely Windows.h here?
         add_definitions(-D_WIN64)
     endif()
 endif()
 
 if(HAVE_STDARG_H)
+    # For oniguruma
     add_definitions(-DHAVE_STDARG_PROTOTYPES)
 endif()
-
-# GMP things
-# => GMP_INCLUDE_DIR, GMP_LIBRARY
-
-set(GMP_SEARCH true)
-if(APPLE)
-    # use GMP.framework
-    # set(CMAKE_FRAMEWORK_PATH .)
-elseif(WIN32)
-    if(CMAKE_HOST_WIN32)
-        if(MOSH_GMP_DIR)
-            set(GMP_SEARCH false)
-            set(MOSH_GMP_DIR CACHE PATH 
-                "path to MPIR library (mpir-2.X.X/[lib|dll]/Win32/[Debug|Release])")
-            set(GMP_INCLUDE_DIR ${MOSH_GMP_DIR})
-            if(MSVC)
-                set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.lib)
-            else()
-                set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.dll)
-            endif()
-        endif()
-    endif()
-endif()
-
-if(GMP_SEARCH)
-    find_path(GMP_INCLUDE_DIR gmp.h)
-    find_library(GMP_LIBRARY NAMES gmp)
-
-    if(GMP_INCLUDE_DIR AND GMP_LIBRARY)
-        set(GMP_FOUND TRUE)
-    endif(GMP_INCLUDE_DIR AND GMP_LIBRARY)
-
-    if(GMP_FOUND)
-        message(STATUS "using GMP from : ${GMP_INCLUDE_DIR}, ${GMP_LIBRARY}")
-    else()
-        message(SEND_ERROR "GMP not found..")
-    endif()
-else()
-    # check gmp.h in GMP_INCLUDE_DIR
-    if(NOT EXISTS ${GMP_INCLUDE_DIR}/gmp.h)
-        message(SEND_ERROR "MPIR/GMP is not installed at ${GMP_INCLUDE_DIR}! (gmp.h could not found. please build MPIR(http://www.mpir.org) first and specify mpir-2.X.X/[lib|dll]/Win32/[Debug|Release] to MOSH_GMP_DIR.")
-    endif()
-endif()
-
 
 # GC things
 # => gc_srcs

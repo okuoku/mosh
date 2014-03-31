@@ -276,7 +276,26 @@ endif()
 #  USE_MP_GMP
 #  USE_MP_MINI_GMP
 
-set(USE_MP_GMP true)
+set(MOSH_MP_BACKEND "GMP" CACHE STRING "Bignum backend which will be linked against VM runtime")
+
+set_property(CACHE MOSH_MP_BACKEND PROPERTY STRINGS GMP MINI_GMP)
+
+# MOSH_MP_BACKEND: Options visibility control
+if(MOSH_MP_BACKEND STREQUAL GMP)
+    mark_as_advanced(FORCE MOSH_MP_MINI_GMP_DIR)
+    # Don't touch MOSH_GMP_DIR for compatibility 
+    # mark_as_advanced(CLEAR MOSH_GMP_DIR)
+    set(USE_MP_GMP true)
+    set(USE_MP_MINI_GMP false)
+elseif(MOSH_MP_BACKEND STREQUAL MINI_GMP)
+    # Don't touch MOSH_GMP_DIR for compatibility 
+    # mark_as_advanced(FORCE MOSH_GMP_DIR)
+    set(MOSH_MP_MINI_GMP_DIR CACHE PATH
+        "Path to GMP source directory")
+    mark_as_advanced(CLEAR MOSH_MP_MINI_GMP_DIR)
+    set(USE_MP_GMP false)
+    set(USE_MP_MINI_GMP true)
+endif()
 
 
 # GMP things
@@ -325,7 +344,19 @@ if(USE_MP_GMP)
 
     set(MOSH_MP_LIBRARY "${GMP_LIBRARY}")
     set(MOSH_MP_INCLUDE_DIR "${GMP_INCLUDE_DIR}")
+    set(MOSH_MP_SRCS "")
+    add_definitions(-DUSE_MP_GMP)
+elseif(USE_MP_MINI_GMP)
+    set(MOSH_MP_INCLUDE_DIR "${MOSH_MP_MINI_GMP_DIR}/mini-gmp")
+    if(NOT EXISTS "${MOSH_MP_INCLUDE_DIR}/mini-gmp.h")
+        message(SEND_ERROR "Mini-gmp source was not found under ${MOSH_MP_MINI_GMP_DIR}. Please specify GMP source directory with MOSH_MP_MINI_GMP_DIR.")
+    endif()
+    set(MOSH_MP_SRCS "${MOSH_MP_INCLUDE_DIR}/mini-gmp.c")
+    set(MOSH_MP_LIBRARY "")
+    add_definitions(-DUSE_MP_MINI_GMP)
 endif()
+
+# Generic `configure` items.
 
 # includes
 CHECK_INCLUDE_FILE(alloca.h HAVE_ALLOCA_H)
@@ -766,7 +797,7 @@ src/nmosh/posix/wait3/wait3.c
 src/nmosh/posix/pthread/mosh_pthread.c
 )
 
-set(mosh_core_srcs ${mosh_core_cxxsrcs} ${ffi_stub})
+set(mosh_core_srcs ${mosh_core_cxxsrcs} ${ffi_stub} ${MOSH_MP_SRCS})
 if(NOT WIN32)
     list(APPEND mosh_core_srcs ${mosh_posix_srcs})
 endif()
@@ -791,6 +822,9 @@ configure_file(cmake/config-cmake.h.in
 
 source_group(gc FILES ${gc_srcs})
 source_group(oniguruma FILES ${onig_srcs})
+if(MOSH_MP_SRCS)
+    source_group(bignum_backend FILES ${MOSH_MP_SRCS})
+endif()
 
 macro(dll_str_param var def desc)
     if(NOT ${var})

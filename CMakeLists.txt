@@ -115,8 +115,6 @@ if(MOSH_PREFIXLESS)
     add_definitions(-DWITH_NMOSH_PREFIXLESS)
 endif()
 
-# external libraries
-# MOSH_GMP_DIR is MSVC only
 
 # sanity check
 
@@ -271,47 +269,62 @@ else()
     endif()
 endif()
 
+# external libraries
+# MOSH_GMP_DIR is MSVC only
+
+# Bignum library choises:
+#  USE_MP_GMP
+#  USE_MP_MINI_GMP
+
+set(USE_MP_GMP true)
+
+
 # GMP things
 # => GMP_INCLUDE_DIR, GMP_LIBRARY
 
-set(GMP_SEARCH true)
-if(APPLE)
-    # use GMP.framework
-    # set(CMAKE_FRAMEWORK_PATH .)
-elseif(WIN32)
-    if(CMAKE_HOST_WIN32)
-        if(MOSH_GMP_DIR)
-            set(GMP_SEARCH false)
-            set(MOSH_GMP_DIR CACHE PATH 
-                "path to MPIR library (mpir-2.X.X/[lib|dll]/Win32/[Debug|Release])")
-            set(GMP_INCLUDE_DIR ${MOSH_GMP_DIR})
-            if(MSVC)
-                set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.lib)
-            else()
-                set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.dll)
+if(USE_MP_GMP)
+    set(GMP_SEARCH true)
+    if(APPLE)
+        # use GMP.framework
+        # set(CMAKE_FRAMEWORK_PATH .)
+    elseif(WIN32)
+        if(CMAKE_HOST_WIN32)
+            if(MOSH_GMP_DIR)
+                set(GMP_SEARCH false)
+                set(MOSH_GMP_DIR CACHE PATH 
+                    "path to MPIR library (mpir-2.X.X/[lib|dll]/Win32/[Debug|Release])")
+                set(GMP_INCLUDE_DIR ${MOSH_GMP_DIR})
+                if(MSVC)
+                    set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.lib)
+                else()
+                    set(GMP_LIBRARY ${MOSH_GMP_DIR}/mpir.dll)
+                endif()
             endif()
         endif()
     endif()
-endif()
 
-if(GMP_SEARCH)
-    find_path(GMP_INCLUDE_DIR gmp.h)
-    find_library(GMP_LIBRARY NAMES gmp)
+    if(GMP_SEARCH)
+        find_path(GMP_INCLUDE_DIR gmp.h)
+        find_library(GMP_LIBRARY NAMES gmp)
 
-    if(GMP_INCLUDE_DIR AND GMP_LIBRARY)
-        set(GMP_FOUND TRUE)
-    endif(GMP_INCLUDE_DIR AND GMP_LIBRARY)
+        if(GMP_INCLUDE_DIR AND GMP_LIBRARY)
+            set(GMP_FOUND TRUE)
+        endif(GMP_INCLUDE_DIR AND GMP_LIBRARY)
 
-    if(GMP_FOUND)
-        message(STATUS "using GMP from : ${GMP_INCLUDE_DIR}, ${GMP_LIBRARY}")
+        if(GMP_FOUND)
+            message(STATUS "using GMP from : ${GMP_INCLUDE_DIR}, ${GMP_LIBRARY}")
+        else()
+            message(SEND_ERROR "GMP not found..")
+        endif()
     else()
-        message(SEND_ERROR "GMP not found..")
+        # check gmp.h in GMP_INCLUDE_DIR
+        if(NOT EXISTS ${GMP_INCLUDE_DIR}/gmp.h)
+            message(SEND_ERROR "MPIR/GMP is not installed at ${GMP_INCLUDE_DIR}! (gmp.h could not found. please build MPIR(http://www.mpir.org) first and specify mpir-2.X.X/[lib|dll]/Win32/[Debug|Release] to MOSH_GMP_DIR.")
+        endif()
     endif()
-else()
-    # check gmp.h in GMP_INCLUDE_DIR
-    if(NOT EXISTS ${GMP_INCLUDE_DIR}/gmp.h)
-        message(SEND_ERROR "MPIR/GMP is not installed at ${GMP_INCLUDE_DIR}! (gmp.h could not found. please build MPIR(http://www.mpir.org) first and specify mpir-2.X.X/[lib|dll]/Win32/[Debug|Release] to MOSH_GMP_DIR.")
-    endif()
+
+    set(MOSH_MP_LIBRARY "${GMP_LIBRARY}")
+    set(MOSH_MP_INCLUDE_DIR "${GMP_INCLUDE_DIR}")
 endif()
 
 # includes
@@ -500,7 +513,7 @@ ${MOSH_ONIG_DIR}/enc/cp1251.c
 include_directories(${PROJECT_BINARY_DIR}/cmake 
     extlibs/gc/include 
     extlibs/libatomic_ops/src src 
-    ${GMP_INCLUDE_DIR} 
+    ${MOSH_MP_INCLUDE_DIR} 
     ${MOSH_ONIG_DIR} 
     ${ARCH_INCLUDE}
     src/nmosh/include)
@@ -908,7 +921,7 @@ else() # Android
 endif()
 
 target_link_nmosh_plugin(${MOSH_EXECUTABLE_NAME})
-target_link_libraries(${MOSH_EXECUTABLE_NAME} ${GMP_LIBRARY} ${arch_libs})
+target_link_libraries(${MOSH_EXECUTABLE_NAME} ${MOSH_MP_LIBRARY} ${arch_libs})
 
 if(MOSH_PORTABLE) # FIXME: Bogus in ANDROID
     install(TARGETS ${MOSH_EXECUTABLE_NAME} DESTINATION .)
@@ -942,7 +955,7 @@ if(MOSH_WITH_NMOSH_GUI)
         src/nmosh/win32/winmain.cpp)
     target_link_nmosh_plugin(${MOSH_GUI_EXECUTABLE_NAME})
     target_link_libraries(${MOSH_GUI_EXECUTABLE_NAME} 
-        ${GMP_LIBRARY} ${arch_libs})
+        ${MOSH_MP_LIBRARY} ${arch_libs})
     if(MOSH_PORTABLE)
         install(TARGETS ${MOSH_GUI_EXECUTABLE_NAME} DESTINATION .)
     else()
@@ -958,11 +971,6 @@ if(WIN32)
         NEWLINE_STYLE DOS)
     if(EXISTS ${MOSH_GMP_DIR}/mpir.dll)
         nmosh_dist_uninstalled(${MOSH_GMP_DIR}/mpir.dll)
-    elseif(HAVE_GST_SDK) # GST SDK case
-        set(_nam ${GMP_INCLUDE_DIR}/../bin/libgmp-10.dll)
-        if(EXISTS ${_nam})
-            nmosh_dist_uninstalled(${_nam})
-        endif()
     endif()
 else()
     nmosh_config_uninstalled(cmake/testmosh.sh.in 
@@ -1081,7 +1089,7 @@ macro(add_moshcoretest testname)
     add_executable(moshtest${testname} EXCLUDE_FROM_ALL 
         ${gtest_srcs} src/${testname}.cpp ${ARGN})
     target_link_libraries(moshtest${testname} testingmosh testinggc 
-        ${GMP_LIBRARY} ${arch_libs})
+        ${MOSH_MP_LIBRARY} ${arch_libs})
     set_property(TARGET moshtest${testname}
         APPEND
         PROPERTY INCLUDE_DIRECTORIES

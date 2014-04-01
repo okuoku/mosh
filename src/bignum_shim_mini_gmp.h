@@ -70,9 +70,11 @@ static inline int mpq_sgn(const mpq_t x){
 }
 
 static inline void mpq_neg(mpq_t res, const mpq_t x){
-    if(-1 == mpq_sgn(x)){
-        mpz_neg(QNUM(res), QNUM(x));
-    }
+    /* Copy it */
+    mpq_set_num(res, QNUM(x));
+    mpq_set_den(res, QDEN(x));
+    /* Flip sign */
+    mpz_neg(QNUM(res), QNUM(x));
 }
 
 static inline void mpq_abs(mpq_t res, const mpq_t x){
@@ -88,8 +90,25 @@ static inline void mpq_abs(mpq_t res, const mpq_t x){
 
 static inline char* mpq_get_str(char* str, int base, const mpq_t x){
     /* Convert to string. num/den or num */
-    /* FIXME: Implement it */
-    return 0;
+    if(!mpz_cmp_ui(QDEN(x),1)){
+        /* x/1. Fallback to mpz equiv. */
+        return mpz_get_str(str, base, QNUM(x));
+    }else{
+        /* FIXME: May be slow */
+        mpq_t tmp;
+        mpq_init(tmp);
+        mpq_set_num(tmp, QNUM(x));
+        mpq_set_den(tmp, QDEN(x));
+        mpq_canonicalize(tmp);
+        const size_t lnum_bias = (-1 == mpz_sgn(QNUM(tmp))) ? 1 : 0 ;
+        const size_t lnum = mpz_sizeinbase(QNUM(tmp), base) + lnum_bias;
+        const size_t lden = mpz_sizeinbase(QDEN(tmp), base);
+        mpz_get_str(str, base, QNUM(tmp));
+        str[lnum] = '/';
+        mpz_get_str(&str[lnum+1], base, QDEN(tmp));
+        mpq_clear(tmp);
+    }
+    return str;
 }
 
 static inline double mpq_get_d(const mpq_t x){
@@ -101,7 +120,37 @@ static inline double mpq_get_d(const mpq_t x){
 }
 
 static inline void mpq_set_d(mpq_t res, double x){
-    /* FIXME: Implement it */
+    /* FIXME: TOO INEXACT! */
+    double m;
+    int e;
+    m = frexp(x, &e);
+    if(e>=0){
+        mpz_set_d(QNUM(res), x);
+        mpz_set_ui(QDEN(res), 1);
+    }else{
+        if(sizeof(long) >= 8){
+            /* FIXME: We assume IEEE754 64bit(52bit fraction) here */
+            const signed long FRAC = 53;
+            const signed long me = (long)ldexp(m,FRAC);
+            mpz_t tmp;
+            mpz_init(tmp);
+            mpz_set_si(QDEN(res), FRAC);
+            mpz_set_si(tmp, me);
+            mpz_mul_2exp(QDEN(res), tmp, -e);
+            mpz_clear(tmp);
+        }else{
+            /* FIXME: We assume IEEE754 32bit(23bit fraction) here */
+            /* FIXME: TOO INEXACT! */
+            const signed long FRAC = 24;
+            const signed long me = (long)ldexp(m,FRAC);
+            mpz_t tmp;
+            mpz_init(tmp);
+            mpz_set_si(QDEN(res), FRAC);
+            mpz_set_si(QNUM(res), me);
+            mpz_mul_2exp(QDEN(res), tmp, -e);
+            mpz_clear(tmp);
+        }
+    }
 }
 
 static inline void mpq_set_z(mpq_t res, const mpz_t x){
@@ -175,8 +224,6 @@ static inline int mpq_cmp_si(const mpq_t x, long int num, long int den){
 
     return ss;
 }
-
-
 
 #define mpq_numref(x) x[0].num
 #define mpq_denref(x) x[0].den

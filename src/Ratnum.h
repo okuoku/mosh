@@ -105,7 +105,12 @@ public:
 
     char* toString(int radix = 10) const
     {
-        return mpq_get_str(NULL, radix, value);
+        /* Allocate GC Memory */
+        const size_t len = mpz_sizeinbase(mpq_numref(value), radix)
+                         + mpz_sizeinbase(mpq_denref(value), radix)
+                         + 3 /* sign + slash + NUL */ ;
+        char* buf = (char*)GC_MALLOC_ATOMIC(len);
+        return mpq_get_str(buf, radix, value);
     }
 
     double toDouble() const

@@ -139,7 +139,10 @@ public:
 
     char* toString(int radix = 10) const
     {
-        return mpz_get_str(NULL, radix, value_);
+        /* Allocate GC Memory */
+        const size_t len = mpz_sizeinbase(value_, radix) + 2 /* sign + NUL */;
+        char* buf = (char *)GC_MALLOC_ATOMIC(len);
+        return mpz_get_str(buf, radix, value_);
     }
 
     double toDouble() const

@@ -190,8 +190,13 @@ static inline void mpq_mul(mpq_t res, const mpq_t x, const mpq_t y){
 }
 
 static inline void mpq_div(mpq_t res, const mpq_t x, const mpq_t y){
-    mpz_mul(QNUM(res), QNUM(x), QDEN(y));
-    mpz_mul(QDEN(res), QDEN(x), QNUM(y));
+    mpq_t tmp;
+    mpq_init(tmp);
+    mpz_mul(QNUM(tmp), QNUM(x), QDEN(y));
+    mpz_mul(QDEN(tmp), QDEN(x), QNUM(y));
+    mpq_set_num(res, QNUM(tmp));
+    mpq_set_den(res, QDEN(tmp));
+    mpq_clear(tmp);
 }
 
 static inline int mpq_cmp(const mpq_t x, const mpq_t y){

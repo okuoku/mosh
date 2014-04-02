@@ -1,7 +1,9 @@
 #ifndef SCHEME_BIGNUM_SHIM_MINI_GMP_H
 #define SCHEME_BIGNUM_SHIM_MINI_GMP_H
 
+// FIXME: Namespace it!
 #include <math.h>
+#include <float.h>
 
 #ifndef SCHEME_BIGNUM_SHIM_H
 #error Do not use this header directly..
@@ -124,32 +126,28 @@ static inline void mpq_set_d(mpq_t res, double x){
     double m;
     int e;
     m = frexp(x, &e);
+    /* Bias with DBL_MANT_DIG to extract integer portions of frac part */
+    m = ldexp(m, DBL_MANT_DIG);
+    e -= DBL_MANT_DIG;
+
     if(e>=0){
+        /* Maybe x was an integer */
         mpz_set_d(QNUM(res), x);
         mpz_set_ui(QDEN(res), 1);
     }else{
-        if(sizeof(long) >= 8){
-            /* FIXME: We assume IEEE754 64bit(52bit fraction) here */
-            const signed long FRAC = 53;
-            const signed long me = (long)ldexp(m,FRAC);
-            mpz_t tmp;
-            mpz_init(tmp);
-            mpz_set_si(QDEN(res), FRAC);
-            mpz_set_si(tmp, me);
-            mpz_mul_2exp(QDEN(res), tmp, -e);
-            mpz_clear(tmp);
-        }else{
-            /* FIXME: We assume IEEE754 32bit(23bit fraction) here */
-            /* FIXME: TOO INEXACT! */
-            const signed long FRAC = 24;
-            const signed long me = (long)ldexp(m,FRAC);
-            mpz_t tmp;
-            mpz_init(tmp);
-            mpz_set_si(QDEN(res), FRAC);
-            mpz_set_si(QNUM(res), me);
-            mpz_mul_2exp(QDEN(res), tmp, -e);
-            mpz_clear(tmp);
-        }
+        /* FIXME: TOO INEXACT when long was 32bit... */
+        /* FIXME: We assume IEEE754 64bit(52bit fraction) here */
+        mpz_set_d(QNUM(res), m);
+
+        /* Calc denominator = 2^e */
+        mpz_t tmp;
+        mpz_init(tmp);
+        mpz_set_si(tmp, 1);
+        mpz_mul_2exp(QDEN(res), tmp, -e);
+        mpz_clear(tmp);
+
+        /* We need canonicalize here to guarantee 3.0 = 3/1 etc. */
+        mpq_canonicalize(res);
     }
 }
 

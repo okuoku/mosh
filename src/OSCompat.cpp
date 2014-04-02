@@ -1015,7 +1015,7 @@ ucs4string scheme::getMoshExecutablePath(bool& isErrorOccured)
             for(ret--;;ret--){
                 if(!ret) return UC("/");
                 if(path[ret] == '/'){
-                    path[ret] = 0;
+                    path[ret+1] = 0;
                     return ucs4string::from_c_str(path);
                 }
             }

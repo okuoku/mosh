@@ -3,11 +3,14 @@
 
 #ifdef USE_MP_MINI_GMP
 /* Statically link against mini-gmp */
-#include <mini-gmp.h>
-#include "bignum_shim_mini_gmp.h"
-#else /* USE_MP_GMP */
+#  include <mini-gmp.h>
+#  include "bignum_shim_mini_gmp.h"
+#elif defined(USE_MP_CRYPTOPP)
+#  include "bignum_shim_cryptopp.h"
+#  include "bignum_shim_mini_gmp.h"
+#else
 /* By default, use full gmp */
-#include <gmp.h>
+#  include <gmp.h>
 #endif
 
 #endif

@@ -278,25 +278,30 @@ endif()
 
 set(MOSH_MP_BACKEND "GMP" CACHE STRING "Bignum backend which will be linked against VM runtime")
 
-set_property(CACHE MOSH_MP_BACKEND PROPERTY STRINGS GMP MINI_GMP)
+set_property(CACHE MOSH_MP_BACKEND PROPERTY STRINGS GMP MINI_GMP CRYPTOPP)
+
+set(USE_MP_GMP false)
+set(USE_MP_MINI_GMP false)
+mark_as_advanced(FORCE MOSH_MP_MINI_GMP_DIR)
+set(USE_MP_CRYPTOPP false)
 
 # MOSH_MP_BACKEND: Options visibility control
 if(MOSH_MP_BACKEND STREQUAL GMP)
-    mark_as_advanced(FORCE MOSH_MP_MINI_GMP_DIR)
     # Don't touch MOSH_GMP_DIR for compatibility 
     # mark_as_advanced(CLEAR MOSH_GMP_DIR)
     set(USE_MP_GMP true)
-    set(USE_MP_MINI_GMP false)
 elseif(MOSH_MP_BACKEND STREQUAL MINI_GMP)
     # Don't touch MOSH_GMP_DIR for compatibility 
     # mark_as_advanced(FORCE MOSH_GMP_DIR)
     set(MOSH_MP_MINI_GMP_DIR CACHE PATH
         "Path to GMP source directory")
     mark_as_advanced(CLEAR MOSH_MP_MINI_GMP_DIR)
-    set(USE_MP_GMP false)
     set(USE_MP_MINI_GMP true)
+elseif(MOSH_MP_BACKEND STREQUAL CRYPTOPP)
+    set(MOSH_WITH_CRYPTOPP CACHE PATH
+        "Path to Crypto++ source directory")
+    set(USE_MP_CRYPTOPP true)
 endif()
-
 
 # GMP things
 # => GMP_INCLUDE_DIR, GMP_LIBRARY
@@ -354,6 +359,35 @@ elseif(USE_MP_MINI_GMP)
     set(MOSH_MP_SRCS "${MOSH_MP_INCLUDE_DIR}/mini-gmp.c")
     set(MOSH_MP_LIBRARY "")
     add_definitions(-DUSE_MP_MINI_GMP)
+elseif(USE_MP_CRYPTOPP)
+    # FIXME: CRYPTOPP_DISABLE_ASM :: Requires x64 MASM on MSVC...
+    add_definitions(
+        -DUSE_MP_CRYPTOPP 
+        -DCRYPTOPP_MANUALLY_INSTANTIATE_TEMPLATES
+        -DCRYPTOPP_DISABLE_ASM)
+    set(MOSH_MP_SRCS 
+        ${MOSH_WITH_CRYPTOPP}/fips140.cpp
+        ${MOSH_WITH_CRYPTOPP}/rdtables.cpp
+        ${MOSH_WITH_CRYPTOPP}/rijndael.cpp
+        ${MOSH_WITH_CRYPTOPP}/osrng.cpp
+        ${MOSH_WITH_CRYPTOPP}/rng.cpp
+        ${MOSH_WITH_CRYPTOPP}/misc.cpp
+        ${MOSH_WITH_CRYPTOPP}/filters.cpp
+        ${MOSH_WITH_CRYPTOPP}/cryptlib.cpp
+        ${MOSH_WITH_CRYPTOPP}/iterhash.cpp
+        ${MOSH_WITH_CRYPTOPP}/nbtheory.cpp
+        ${MOSH_WITH_CRYPTOPP}/asn.cpp
+        ${MOSH_WITH_CRYPTOPP}/algparam.cpp
+        ${MOSH_WITH_CRYPTOPP}/pubkey.cpp
+        ${MOSH_WITH_CRYPTOPP}/sha.cpp
+        ${MOSH_WITH_CRYPTOPP}/cpu.cpp
+        ${MOSH_WITH_CRYPTOPP}/mqueue.cpp
+        ${MOSH_WITH_CRYPTOPP}/queue.cpp
+        ${MOSH_WITH_CRYPTOPP}/algebra.cpp
+        ${MOSH_WITH_CRYPTOPP}/integer.cpp
+        )
+    set(MOSH_MP_LIBRARY "")
+    set(MOSH_MP_INCLUDE_DIR ${MOSH_WITH_CRYPTOPP})
 endif()
 
 # Generic `configure` items.

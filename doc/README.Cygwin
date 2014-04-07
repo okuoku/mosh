@@ -1,8 +1,8 @@
 mosh on Cygwin 1.7
 ==================
 
-1. Install
-----------
+1. Install(32bit)
+-----------------
 
 - Install following packages:
   libonig-devel
@@ -13,9 +13,24 @@ mosh on Cygwin 1.7
 - make
 - make install
 
+
+1. Install(64Bit)
+-----------------
+
+- Install following packages:
+  libonig-devel
+  libgmp-devel
+  libgc-devel
+  pkg-config
+  make
+  gcc-g++
+- ./configure --with-system-bdwgc
+- make
+- make install
+
 2. Limitations
 --------------
 
 - Not compatible with Cygwin 1.5 series
 - Mosh repeatedly prints GC warnings. 
-- Mosh FFI cannot use for Cygwin libc. Use MSVCRT.DLL instead.
+- Mosh FFI cannot use for Cygwin libc.

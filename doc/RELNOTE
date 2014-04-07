@@ -24,6 +24,10 @@ Changes:
     New library:
         SRFI-25 : Ported by Marco Maggi  (Issue 234)
 
+    New platform support:
+        Cygwin amd64       -- Require --with-system-bdwgc for configure
+        Visual Studio 2013 (i386 and amd64)
+
     VM:
         BoehmGC was updated to upstream 7.3alpha.
         Note: Mosh now can link against system-shared libgc. See 'Build system'
@@ -31,11 +35,11 @@ Changes:
 
     Reader:
         Reader now accepts following R7RS syntaxes:
-         - #u8(...) (was #vu8(...))
-         - #\null   (was #\nul)
-         - #\escape (was #\esc)
-         - #true    (was #t)
-         - #false   (was #f)
+         - #u8(...) (aka #vu8(...))
+         - #\null   (aka #\nul)
+         - #\escape (aka #\esc)
+         - #true    (aka #t)
+         - #false   (aka #f)
 
         Number reader now reads "1e2" as inexact. To read exact number using
         exponents, add exactness prefix like "#e1e2".
@@ -86,18 +90,12 @@ Changes:
 
         Build system now require pkg-config to generate.
 
-        nmosh CMake builds now can be compiled with VisualStudio 2012 RC.
+        nmosh CMake builds now can be compiled with VisualStudio 2012 and 2013.
 
         nmosh CMake builds now built with clang compiler on MacOS 10.7 or later.
 
         nmosh CMake builds now install "testmosh.bat" to test built nmosh.exe
         on Win32.
-
-        nmosh CMake builds now recognizes GStreamer SDK on Windows. Get 
-        GStreamer SDK from: http://docs.gstreamer.com/display/GstSDK/Home
-
-        Autotools and CMake builds will install additional plugins (some shared
-        objects suffixed with .mplg) for nmosh.
 
         Applied several tidy-up patches from barak. (Thanks!)
 
@@ -117,6 +115,8 @@ Bug fixes:
 
     Core:
         The pointer type was erroneously sized 32bit in 64-bit *BSD platforms.
+
+        Fixed memory leak with number->string on bignums.
 
     rnrs:
         Fixed Issue 215 reported by mrc.mgg:

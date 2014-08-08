@@ -748,8 +748,9 @@
            (map (lambda (s) 
                   (expand-suffix s 
                                  '(".nmosh.sls" ".nmosh.ss" ".nmosh.scm"
+                                   ".nmosh.sld"
                                    ".mosh.sls" ".mosh.ss" ".mosh.scm"
-                                   ".sls" ".ss" ".scm")))
+                                   ".sls" ".ss" ".scm" ".sld")))
                 (expand-prefix name prefix-list))))
 
   (let* ((fn (check-files (expand-name (basename name))))

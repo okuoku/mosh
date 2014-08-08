@@ -762,3 +762,21 @@
   )
 
 
+;;------------------------------------------------
+;; R7RS Library lower convert
+;;------------------------------------------------
+
+(define nmosh:r7rs-converter #f)
+(define (nmosh:r7rs-converter-install! cvt)
+  (set! nmosh:r7rs-converter cvt))
+
+(define (nmosh:setup-r7rs-converter!)
+  (PCK "Loading R7RS library converter...")
+  (ex:run-r6rs-sequence '((import (nmosh r7rs loader)))))
+
+(define (try-r7rs-library-convert form)
+  (or nmosh:r7rs-converter
+      (nmosh:setup-r7rs-converter!))
+  (and nmosh:r7rs-converter
+       (nmosh:r7rs-converter form)))
+

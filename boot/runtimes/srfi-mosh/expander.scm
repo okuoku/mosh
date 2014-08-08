@@ -2598,6 +2598,13 @@
             (reverse normalized)
             (if (pair? (car exps))
                 (case (caar exps)
+                  ((define-library) ;; R7RS library form
+                   (let ((e (try-r7rs-library-convert (car exps))))
+                    (or e (syntax-violation 
+                            'expand-file 
+                            "R7RS library loader was not found!" #f))
+                    (loop (cdr exps)
+                          (cons e normalized))))
                   ((library)
                    (loop (cdr exps)
                          (cons (car exps) normalized)))

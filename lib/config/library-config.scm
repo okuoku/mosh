@@ -141,6 +141,8 @@
     (alias-name => "name of library")
     (library-name => "library true name"))
   #(alias-name library-name interface-level)
+  ;; Withdrawn SRFI
+  [(srfi :33) (srfi :33 withdrawn-bitwise)]
   ;; SRFI
   [(srfi :98) (srfi :98 os-environment-variables) srfi]
   [(srfi :99) (srfi :99 records) srfi]

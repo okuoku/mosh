@@ -30,7 +30,7 @@
 (define (set-library-rename-table! spec)
   (set! library-rename-table spec))
 
-(define (rename-library spec)
+(define (rename-library0 spec)
   (let ((x (assoc spec library-rename-table)))
     (cond
       (x 
@@ -40,6 +40,20 @@
       (else 
         ;(PCK "not renamed: " spec)
         spec))))
+
+(define (rename-library spec)
+  (rename-library0
+    (or (and (pair? spec)
+             (eq? 'srfi (car spec))
+             (let ((i (cadr spec)))
+              (and (integer? i)
+                   ;; First, try srfi 0 => srfi :0
+                   (list 'srfi (string->symbol
+                                 (string-append 
+                                   ":"
+                                   (number->string i)))))))
+        ;; Second, fallback to the original spec
+        spec)))
 
 ;;------------------------------------------------
 ;; definitions

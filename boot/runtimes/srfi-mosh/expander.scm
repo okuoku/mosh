@@ -1951,6 +1951,13 @@
                           imported-libraries)
                       (append more-imports imports)))))))
 
+    ;; NMOSH: Flat library name (Allow R7RS integer ref)
+    (define (flat-libname spec)
+      (map (lambda (e) 
+             (cond ((integer? e) e) 
+                   ((symbol? e) e)
+                   (else (syntax->datum e)))) spec))
+
     ;; Returns (values <library reference> | #f
     ;;                 (<level> ...)
     ;;                 ((<local name> . <binding>) ...)
@@ -2026,11 +2033,11 @@
               (((syntax prefix)     . -) (invalid-form import-set))
               (((syntax rename)     . -) (invalid-form import-set))
               (-
-               (let ((library-ref (library-ref import-set)))
+               (let ((library-ref (flat-libname import-set)))
                  (if library-ref
                      (let* ((library (ex:lookup-library 
                                        (rename-library
-                                         (syntax->datum library-ref)) #f)) ;MOSH: pass recompile flag
+                                         (flat-libname library-ref)) #f)) ;MOSH: pass recompile flag
                             (exports (ex:library-exports library))
                             (imports
                              (map (lambda (mapping)
@@ -2043,7 +2050,7 @@
                                                           (binding-library binding)))))
                                   (adjuster (map (lambda (name) (cons name name))
                                                  (map car exports))))))
-                       (values (rename-library (syntax->datum library-ref))
+                       (values (rename-library (flat-libname library-ref))
                                levels
                                imports))
                      (syntax-violation 'import "Invalid import set" import-set)))))))))

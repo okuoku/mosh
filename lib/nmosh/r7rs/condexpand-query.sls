@@ -1,18 +1,10 @@
 (library (nmosh r7rs condexpand-query)
          (export condexpand-query)
-         (import (rnrs))
-
-(define *static-condexpand-symbols*
-  '(r7rs
-     else ;; FIXME: Check this..
-     exact-closed
-     ieee-float
-     full-unicode
-     ratios
-     nmosh))         
+         (import (rnrs)
+                 (nmosh r7rs condexpand-symbols))
 
 (define (condexpand-sym sym)
-  (member sym *static-condexpand-symbols*))
+  (member sym *condexpand-symbols*))
 
 (define (condexpand-query err-k e)
   (cond

@@ -1,0 +1,16 @@
+nmosh R7RS support
+==================
+
+nmosh has some basic support on R7RS small language.
+
+NOTE: Currently, psyntax-mosh (mosh) have no support for R7RS libraries.
+
+
+nmosh R7RS Limitations
+----------------------
+
+ * (Many others not listed here..)
+ * |Symbol with space|
+ * Does not have following library decl.
+   * include-ci
+

@@ -1,8 +1,8 @@
 (library (nmosh r7rs condexpand-symbols)
-         (export *condexpand-symbols*)
+         (export *condexpand-symbols* features)
          (import (rnrs))
-
          
+(define (features) *condexpand-symbols*)
 (define *condexpand-symbols*
   '(
     ;; SRFI-0

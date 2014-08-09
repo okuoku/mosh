@@ -17,7 +17,7 @@
             (chibi char-set full)
             (prefix (chibi char-set ascii) %)))
    (else
-    (import (scheme base) (srfi 14))
+    (import (scheme base) (scheme char) (srfi 14))
     (begin
       (define %char-set:letter
         (char-set-intersection char-set:ascii char-set:letter))

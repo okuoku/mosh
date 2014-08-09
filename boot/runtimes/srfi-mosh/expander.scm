@@ -212,6 +212,7 @@
 
 (define ex:expander-loaded? #t) ;NMOSH
 (define ex:expander-unload! #f) ;NMOSH
+(define ex:get-current-file-path #f)
 
 
 (letrec-syntax
@@ -361,6 +362,7 @@
          ;; 
          (*current-program* "<user program>")
          (*current-program-valid?* #f)
+         (*current-file-path* #f)
          ;; additional depenents
          (*cache-depfiles* '())
          ;; whether to save cache file
@@ -2540,6 +2542,7 @@
         ((*DBG?* #t)
          (*DBG-SYMS* '())
          (*cache-save?* #t)
+         (*current-file-path* fn)
          (*current-program-valid?* #t)
          (*current-program* fn)
          (*cache-depfiles* '()) ; it will converted absolute path in mosh-utils5
@@ -2853,6 +2856,9 @@
         (set! *macro-table* #f)
         (set! *env-table* #f)
         (set! *DBG-SYMS* #f)))
+    (set! ex:get-current-file-path
+      (lambda () *current-file-path*))
+
     ) ; let
   ) ; letrec-syntax
 

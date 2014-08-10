@@ -2,7 +2,7 @@
          ;; Export nothing
          (export)
          (import (rnrs)
-                 (mosh pp)
+                 ;(mosh pp)
                  (yuni util files)
                  (nmosh r7rs loader-body)
                  (nmosh r7rs condexpand-query)
@@ -15,7 +15,7 @@
 ;; R7RS library converter
 
 (define (adddep filename)
-  (write (list 'R7RS-ADDDEP filename))(newline)
+  ;(write (list 'R7RS-ADDDEP filename))(newline)
   (ex:acc-add-file-dependency filename))
 
 (define (read-include-file filename-in)

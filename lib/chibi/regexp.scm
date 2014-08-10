@@ -494,14 +494,6 @@
   (char-set-union %char-set:letter %char-set:digit (char-set #\_)))
 (define (char-word-constituent? ch)
   (char-set-contains? char-set:word-constituent ch))
-#|
-(define char-set:title-case
-  (char-set-union
-   (ucs-range->char-set #x1F88 #x1F90)
-   (ucs-range->char-set #x1F98 #x1FA0)
-   (ucs-range->char-set #x1FA8 #x1FB0)
-   (char-set #\x01C5 #\x01C8 #\x01CB #\x01F2 #\x1FBC #\x1FCC #\x1FFC)))
-|#
 (define get-char-set:cased
   (let ((char-set:cased #f))
     (lambda ()
@@ -621,7 +613,7 @@
            (or (string? (car sre))
                (memq (car sre)
                      '(char-set / char-range & and ~ complement - difference))
-               (and (memq (car sre) '(\x7c; or)) ;; NMOSH Use \x7c; here
+               (and (memq (car sre) '(\x7c; or)) ;; NMOSH
                     (every char-set-sre? (cdr sre)))))))
 
 (define (valid-sre? x)
@@ -652,7 +644,7 @@
                               (+ 1 (char->integer (cdr x))))))
                           (sre-flatten-ranges (cdr sre))))))
             ((& and) (apply char-set-intersection (map ->cs (cdr sre))))
-            ((\x7c; or) (apply char-set-union (map ->cs (cdr sre)))) ;; NMOSH: Use \x7c; here..
+            ((\x7c; or) (apply char-set-union (map ->cs (cdr sre)))) ;; NMOSH
             ((~ complement) (char-set-complement (->cs `(or ,@(cdr sre)))))
             ((- difference) (char-set-difference (->cs (cadr sre))
                                                  (->cs `(or ,@(cddr sre)))))
@@ -760,7 +752,7 @@
                     (n3 (->rx (cons 'seq (cddr sre)) flags next)))
                (state-next1-set! n2 n3)
                n1)))
-        ((or \x7c;) ;;NMOSH Use \x7c; here
+        ((or \x7c;) ;; NMOSH
          ;; Alternation.  An empty alternation always fails.
          ;; Otherwise we fork between any of the alternations, each
          ;; continuing to next.

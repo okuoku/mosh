@@ -7,16 +7,16 @@
                  (nmosh r7rs loader-body)
                  (nmosh r7rs condexpand-query)
                  (primitives 
+                   ex:acc-add-file-dependency
                    ex:get-current-file-path
                    library-name->filename
-                   nmosh:r7rs-converter-install!)
-                 (core nmosh cache-control))
+                   nmosh:r7rs-converter-install!))
 
 ;; R7RS library converter
 
 (define (adddep filename)
   (write (list 'R7RS-ADDDEP filename))(newline)
-  (%acc-adddep (list 'bogus filename)))
+  (ex:acc-add-file-dependency filename))
 
 (define (read-include-file filename-in)
   (define filename

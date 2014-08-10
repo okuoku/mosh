@@ -213,6 +213,7 @@
 (define ex:expander-loaded? #t) ;NMOSH
 (define ex:expander-unload! #f) ;NMOSH
 (define ex:get-current-file-path #f)
+(define ex:acc-add-file-dependency #f)
 
 
 (letrec-syntax
@@ -363,7 +364,7 @@
          (*current-program* "<user program>")
          (*current-program-valid?* #f)
          (*current-file-path* #f)
-         ;; additional depenents
+         ;; additional dependents
          (*cache-depfiles* '())
          ;; whether to save cache file
          (*cache-save?* #t)
@@ -2858,6 +2859,10 @@
         (set! *DBG-SYMS* #f)))
     (set! ex:get-current-file-path
       (lambda () *current-file-path*))
+    (set! ex:acc-add-file-dependency
+      (lambda (file)
+        (set! *cache-depfiles*
+          (cons file *cache-depfiles*))))
 
     ) ; let
   ) ; letrec-syntax

@@ -1,6 +1,6 @@
 ;; this file is an alias-library.
 ;;  alias of:
-;;   lib/srfi/%3a0/cond-expand.sls
+;;   lib/srfi/%3a0/cond-expand.nmosh.sls
 (library (srfi :0)
          (export
              cond-expand

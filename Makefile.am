@@ -215,7 +215,7 @@ MOSH_CORE_SRCS += src/ffi_stub_x86_64.S
 endif
 
 if MINGW32
-MOSH_CORE_SRCS += src/win32/process.c
+MOSH_CORE_SRCS += src/nmosh/win32/process.c # FIXME: Move to extra dist
 endif
 
 if PTRACE_COMMON

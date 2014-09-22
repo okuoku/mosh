@@ -94,6 +94,9 @@
 (define ex:lookup-library    #f)
 ;; (define ex:query-library-state #f) ;; In mosh-utils5.scm
 ;; (define ex:unload-libraries! #f) ;; In mosh-utils5.scm
+(define (%%omit-library-version name)
+  (filter (lambda (part) (not (pair? part))) name))
+
 (let ((table '()))
   (set! ex:register-library! 
         (lambda (library)
@@ -103,9 +106,10 @@
                                                    (car entry))))
                                     ex:imported))))
   (set! ex:lookup-library 
-        (lambda (name recompile?)
-          (let ((library (assoc name table)))
-            (if (and (not recompile?) library)
+        (lambda (name0 recompile?)
+          (let ((name (%%omit-library-version name0))) 
+            (let ((library (assoc name table)))
+              (if (and (not recompile?) library)
                 library
                 (if (ca-preload-realize name recompile?)
                   (ex:lookup-library name #f)
@@ -116,7 +120,7 @@
                         (fn (ca-load fn recompile? name) ;MOSH: recompile flg
                             (ex:lookup-library name #f))
                         (else (assertion-violation 
-                                'lookup-library "Library not found" name))))))))))
+                                'lookup-library "Library not found" name)))))))))))
   (set! ex:query-library-state (lambda () table))
   (set! ex:unload-libraries! (lambda (state save) 
                                (set! ex:imported save)

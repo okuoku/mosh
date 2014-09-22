@@ -6,9 +6,9 @@
 (define-syntax cond-expand
   (lambda (x)
     (syntax-case x (else)
-      (()
+      ((_)
        (syntax-violation #f "No matched cond-expand clause" x))
-      (((clause body ...) next ...)
+      ((_ (clause body ...) next ...)
        (if (condexpand-query (lambda _ #f) (syntax->datum #'clause))
          #'(begin body ...)
          #'(cond-expand next ...))))))

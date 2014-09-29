@@ -99,7 +99,7 @@
 
     Example:
     (start code)
-    (spawn (lambda (x) (display x)) 'hello '((rnrs)))
+    (spawn (lambda (x) (display x)) 'hello '((rnrs) (mosh concurrent)))
     (end code)
 
     Returns:
@@ -355,7 +355,7 @@
 
     Example:
     (start code)
-    (let ([pid (spawn (lambda (x) (display x)) 'hello '((rnrs)))])
+    (let ([pid (spawn (lambda (x) (display x)) 'hello '((rnrs) (mosh concurrent)))])
        (join! pid))
     (end code)
 |#

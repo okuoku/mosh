@@ -34,4 +34,6 @@
             free-vars))
     (display ") ) )")(newline)))
 
-(main (command-line))
+(with-output-to-file
+  "free-vars-decl.scm"
+  (lambda () (main (command-line))))

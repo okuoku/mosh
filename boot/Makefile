@@ -66,7 +66,7 @@ baselib.scm: baselib/base.scm compiler-vm-cpp.scm $(CORE_LIBS)
 	cat $^ > $@
 
 free-vars-decl.scm: free-vars.scm
-	mosh --disable-acc $(SCRIPTS_DIR)/gen-free-vars-decl.scm $< > $@
+	mosh --disable-acc $(SCRIPTS_DIR)/gen-free-vars-decl.scm $<
 
 GIT_BRANCH_NAME=`git branch | grep '*' | cut -d ' ' -f 2`
 SVN_REPOS="https://mosh-scheme.googlecode.com/svn/branches"

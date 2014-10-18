@@ -5,6 +5,11 @@
 #define __WITHOUT_TRACE 1
 #endif
 
+#ifdef __sun
+/* FIXME: SunOS do not have generic ptrace from BSD(of course) */
+#define __WITHOUT_TRACE 1
+#endif
+
 #include "posix_debugee.h"
 
 #include <unistd.h>

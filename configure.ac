@@ -197,6 +197,9 @@ case "$target_os" in
   *cygwin*)
     AC_DEFINE([MOSH_HOST_OS], ["cygwin"], [define operating-system])
     ;;
+  *solaris*)
+    AC_DEFINE([MOSH_HOST_OS], ["solaris"], [define operating-system])
+    ;;
   *)
     AC_DEFINE([MOSH_HOST_OS], ["unknown"], [define operating-system])
     ;;
@@ -228,6 +231,11 @@ freebsd*)
   ;;
 netbsd*)
   AC_DEFINE(GC_NETBSD_THREADS,1,[Define to use NetBSD threads])
+  has_gc_pthread=true
+  ;;
+solaris*)
+  AC_DEFINE(GC_THREADS,1,[Define to use Solaris pthreads])
+  AC_DEFINE(_REENTRANT,1,[Define to use reentrant libc]) # FIXME
   has_gc_pthread=true
   ;;
 cygwin)
@@ -299,6 +307,10 @@ i[[3456]]86|pentium)
          MOSH_OPTS="$MOSH_INTEL_OPTS -mtune=generic -fwide-exec-charset=ucs-4le"
          MOSH_LDADD_ARCH="-ldl -lpthread"
 	 ;;
+       *solaris2*)
+         MOSH_OPTS="$MOSH_INTEL_OPTS"
+         MOSH_LDADD_ARCH="-lpthread -lsocket -lm"
+         ;;
 
         *)
           MOSH_OPTS="-O3 -momit-leaf-frame-pointer -fomit-frame-pointer" # -mfpmath=sse -msse3 -march=$host_cpu

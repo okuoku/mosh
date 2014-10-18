@@ -32,6 +32,10 @@
 #include <malloc.h> /* For alloca */
 #endif
 
+#ifdef __sun
+#include <alloca.h> /* For alloca */
+#endif
+
 #include "embed-libs.inc.h"
 
 #if !defined(_WIN32) && !defined(MONA)

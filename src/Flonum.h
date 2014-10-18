@@ -33,7 +33,10 @@
 #define SCHEME_FLONUM_
 
 #include <stdlib.h>
-#ifdef MONA
+#if defined(MONA)||defined(__sun)
+#ifdef __sun
+#define _XOPEN_SOURCE 700 /* Request POSIX2008 */
+#endif
 #include <math.h> // isnan
 #else
 #include <cmath> // isnan
@@ -43,11 +46,12 @@
 
 
 /* C99 isnan/isinf */
-#if !(defined(isnan)||defined(_MSC_VER))
+/* FIXME: We should switch C++11/C99 here.. */
+#if !(defined(isnan)||defined(_MSC_VER)||defined(__sun))
 #define isnan std::isnan
 #endif
 
-#if !(defined(isinf)||defined(_MSC_VER))
+#if !(defined(isinf)||defined(_MSC_VER)||defined(__sun))
 #define isinf std::isinf
 #endif
 

@@ -1055,11 +1055,6 @@ Object scheme::internalFfiLookupEx(VM* theVM, int argc, const Object* argv)
 {
     DeclareProcedureName("lookup-shared-library");
 
-#ifndef FFI_SUPPORTED
-    callAssertionViolationAfter(theVM, procedureName, "ffi not supported on this architecture");
-    return Object::Undef;
-#endif
-
     checkArgumentLength(2);
     argumentAsPointer(0, handle);
     argumentAsSymbol(1, name);
@@ -1077,11 +1072,6 @@ Object scheme::internalFfiLookupEx(VM* theVM, int argc, const Object* argv)
 Object scheme::internalFfiOpenEx(VM* theVM, int argc, const Object* argv)
 {
     DeclareProcedureName("%ffi-open");
-
-#ifndef FFI_SUPPORTED
-    callAssertionViolationAfter(theVM, procedureName, "ffi not supported on this architecture");
-    return Object::Undef;
-#endif
 
     checkArgumentLength(1);
     argumentAsString(0, name);

@@ -530,6 +530,31 @@ void* nmosh_archive_ptr = NULL;
 uintptr_t nmosh_archive_size = 0;
 #endif
 
+// yuniFFI stubs
+typedef void (*yuniffi_nccc_func_t)(uint64_t* in, int in_count,
+                                    uint64_t* out, int out_count);
+
+static Object
+stub_yuniffi_nccc_call(VM* theVM, int argc, const Object* argv){
+    DeclareProcedureName("%nmosh-yuniffi-call-nccc");
+    checkArgumentLength(7);
+    argumentAsPointer(0, func);
+    argumentAsByteVector(1, in);
+    argumentAsFixnum(2, in_offset);
+    argumentAsFixnum(3, in_count);
+    argumentAsByteVector(4, out);
+    argumentAsFixnum(5, out_offset);
+    argumentAsFixnum(6, out_count);
+
+    yuniffi_nccc_func_t callee = (yuniffi_nccc_func_t)func->pointer();
+    uint64_t* in0 = (uint64_t*)in->data();
+    uint64_t* out0 = (uint64_t*)out->data();
+    
+    callee(&in0[in_offset], in_count, &out0[out_offset], out_count);
+
+    return Object::Undef;
+}
+
 void
 register_stubs(VM* theVM){
     // Standard pffi interface 
@@ -545,4 +570,7 @@ register_stubs(VM* theVM){
                           Object::makePointer(nmosh_archive_ptr));
     theVM->setValueString(UC("%nmosh-archive-size"),
                           Object::makePointer(reinterpret_cast<void*>(nmosh_archive_size)));
+    // yuniFFI interface
+    theVM->setValueString(UC("%nmosh-yuniffi-call-nccc"),
+                          Object::makeCProcedure(stub_yuniffi_nccc_call));
 }
